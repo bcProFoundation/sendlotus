@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import RawQRCode from 'qrcode.react';
 import {
     currency,
-    isValidCashPrefix,
     isValidTokenPrefix,
 } from '@components/Common/Ticker.js';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -122,17 +121,7 @@ export const QRCode = ({
 }) => {
     const [visible, setVisible] = useState(false);
     const trimAmount = 8;
-    // Set address format to legacy or not
 
-    if (!legacy) {
-        address = address ? convertToEcashPrefix(address) : '';
-    }
-    // get the prefix
-    const addressSplit = address ? address.split(':') : [''];
-    const addressPrefix = addressSplit[0];
-    const prefixLength = addressPrefix.length + 1;
-
-    const isCash = isValidCashPrefix(address);
 
     const address_trim = address ? address.length - trimAmount : '';
 
@@ -177,7 +166,7 @@ export const QRCode = ({
         >
             <div style={{ position: 'relative' }} onClick={handleOnClick}>
                 <Copied
-                    bch={address && isCash ? 1 : 0}
+                    bch={address ? 1 : 0}
                     style={{ display: visible ? null : 'none' }}
                 >
                     Copied <br />
@@ -188,12 +177,12 @@ export const QRCode = ({
                     id="borderedQRCode"
                     value={address || ''}
                     size={size}
-                    bch={address && isCash ? 1 : 0}
+                    bch={address ? 1 : 0}
                     renderAs={'svg'}
                     includeMargin
                     imageSettings={{
                         src:
-                            address && isCash
+                            address
                                 ? currency.logo
                                 : currency.tokenLogo,
                         x: null,
@@ -214,13 +203,8 @@ export const QRCode = ({
                             type="text"
                         />
                         <span>
-                            {address.slice(
-                                prefixLength,
-                                prefixLength + trimAmount,
-                            )}
+                            {address}
                         </span>
-                        {address.slice(prefixLength + trimAmount, address_trim)}
-                        <span>{address.slice(-trimAmount)}</span>
                     </CustomInput>
                 )}
             </div>

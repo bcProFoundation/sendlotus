@@ -266,11 +266,12 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                             <>
                                 -{' '}
                                 {formatBalance(
-                                    fromLegacyDecimals(data.amountSent),
+                                    data.amountSent,
                                 )}
+                                &nbsp;
                                 {currency.ticker}
                                 <br />
-                                {fiatPrice !== null && !isNaN(data.amountSent) && (
+                                {/* {fiatPrice !== null && !isNaN(data.amountSent) && (
                                     <TxFiatPrice>
                                         -{' '}
                                         {
@@ -285,17 +286,18 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                         ).toFixed(2)}{' '}
                                         {currency.fiatCurrencies.fiatCurrency}
                                     </TxFiatPrice>
-                                )}
+                                )} */}
                             </>
                         ) : (
                             <>
                                 +{' '}
                                 {formatBalance(
-                                    fromLegacyDecimals(data.amountReceived),
+                                    data.amountReceived,
                                 )}
+                                &nbsp;
                                 {currency.ticker}
                                 <br />
-                                {fiatPrice !== null &&
+                                {/* {fiatPrice !== null &&
                                     !isNaN(data.amountReceived) && (
                                         <TxFiatPrice>
                                             +{' '}
@@ -314,7 +316,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                                     .fiatCurrency
                                             }
                                         </TxFiatPrice>
-                                    )}
+                                    )} */}
                             </>
                         )}
                     </TxInfo>

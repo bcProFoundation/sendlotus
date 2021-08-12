@@ -155,7 +155,7 @@ export const HeaderCtn = styled.div`
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: 20px 0 30px;
+    padding: 10px 0 15px;
     margin-bottom: 20px;
     justify-content: space-between;
     border-bottom: 1px solid ${props => props.theme.wallet.borders.color};
@@ -224,11 +224,10 @@ const App = () => {
                                 <EasterEgg src={TabCash} alt="tabcash" />
                             )}
                             <a
-                                href="https://e.cash/"
+                                href="https://givelotus.org//"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                <AbcLogo src={ABC} alt="abc" />
                             </a>
                         </HeaderCtn>
                         <WalletLabel name={wallet.name}></WalletLabel>
@@ -268,6 +267,7 @@ const App = () => {
                             </NavButton>
 
                             <NavButton
+                                disabled
                                 active={selectedKey === 'tokens'}
                                 onClick={() => history.push('/tokens')}
                             >

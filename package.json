@@ -4,6 +4,7 @@
     "private": true,
     "homepage": "https://cashtabapp.com/",
     "dependencies": {
+        "@abcpros/minimal-slp-wallet": "^3.0.2",
         "@ant-design/icons": "^4.3.0",
         "@fortawesome/fontawesome-free": "^5.15.1",
         "@zxing/library": "0.8.0",
@@ -17,7 +18,6 @@
         "localforage": "^1.9.0",
         "lodash.isempty": "^4.4.0",
         "lodash.isequal": "^4.5.0",
-        "minimal-slp-wallet": "^3.3.1",
         "qrcode.react": "^1.0.0",
         "react": "^17.0.1",
         "react-app-polyfill": "^2.0.0",
@@ -130,10 +130,10 @@
         ]
     },
     "devDependencies": {
+        "@abcpros/bch-js": "^4.0.0",
         "@ant-design/dark-theme": "^1.0.3",
         "@babel/core": "^7.6.0",
         "@babel/node": "^7.12.6",
-        "@psf/bch-js": "^4.16.1",
         "@svgr/webpack": "^5.5.0",
         "@testing-library/react": "^11.2.2",
         "@testing-library/react-hooks": "^3.7.0",

@@ -167,19 +167,19 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
         let cleanAddress = address.split('?')[0];
 
         // Ensure address has bitcoincash: prefix and checksum
-        cleanAddress = toLegacy(cleanAddress);
+        // cleanAddress = toLegacy(cleanAddress);
 
-        let hasValidCashPrefix;
-        try {
-            hasValidCashPrefix = cleanAddress.startsWith(
-                currency.legacyPrefix + ':',
-            );
-        } catch (err) {
-            hasValidCashPrefix = false;
-            console.log(`toLegacy() returned an error:`, cleanAddress);
-        }
+        const isValidAddress = BCH.Address.isXAddress(cleanAddress);
+        // try {
+        //     hasValidLotusPrefix = cleanAddress.startsWith(
+        //         currency.legacyPrefix + ':',
+        //     );
+        // } catch (err) {
+        //     hasValidCashPrefix = false;
+        //     console.log(`toLegacy() returned an error:`, cleanAddress);
+        // }
 
-        if (!hasValidCashPrefix) {
+        if (!isValidAddress) {
             // set loading to false and set address validation to false
             // Now that the no-prefix case is handled, this happens when user tries to send
             // BCHA to an SLPA address
@@ -193,9 +193,9 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
         // Calculate the amount in BCH
         let bchValue = value;
 
-        if (selectedCurrency !== 'XEC') {
-            bchValue = fiatToCrypto(value, fiatPrice);
-        }
+        // if (selectedCurrency !== 'XPI') {
+        //     bchValue = fiatToCrypto(value, fiatPrice);
+        // }
 
         try {
             const link = await sendBch(
@@ -417,7 +417,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                     <BalanceHeader>
                         {formatBalance(balances.totalBalance)} {currency.ticker}
                     </BalanceHeader>
-                    {fiatPrice !== null && (
+                    {/* {fiatPrice !== null && (
                         <BalanceHeaderFiat>
                             {cashtabSettings
                                 ? `${
@@ -433,7 +433,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                                   ].slug.toUpperCase()} `
                                 : 'USD'}
                         </BalanceHeaderFiat>
-                    )}
+                    )} */}
                 </>
             )}
 
@@ -502,7 +502,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                                         handleSelectedCurrencyChange(e),
                                 }}
                             ></SendBchInput>
-                            {priceApiError && (
+                            {/* {priceApiError && (
                                 <AlertMsg>
                                     Error fetching fiat price. Setting send by{' '}
                                     {currency.fiatCurrencies[
@@ -514,7 +514,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                             <ConvertAmount>
                                 {fiatPriceString !== '' && '='}{' '}
                                 {fiatPriceString}
-                            </ConvertAmount>
+                            </ConvertAmount> */}
                             <div
                                 style={{
                                     paddingTop: '12px',

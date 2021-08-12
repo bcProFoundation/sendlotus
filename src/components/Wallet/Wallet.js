@@ -206,19 +206,10 @@ const WalletInfo = () => {
         parsedTxHistory = ContextValue.parsedTxHistory;
         tokens = ContextValue.tokens;
     }
-    const [address, setAddress] = React.useState('cashAddress');
-    const [addressPrefix, setAddressPrefix] = React.useState('eCash');
+    const [address, setAddress] = React.useState('xAddress');
     const [activeTab, setActiveTab] = React.useState('txHistory');
 
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
-
-    const handleChangeAddress = () => {
-        setAddress(address === 'cashAddress' ? 'slpAddress' : 'cashAddress');
-    };
-
-    const onAddressPrefixChange = () => {
-        setAddressPrefix(addressPrefix === 'eCash' ? 'bitcoincash' : 'eCash');
-    };
 
     return (
         <>
@@ -243,7 +234,7 @@ const WalletInfo = () => {
                     <BalanceHeader>
                         {formatBalance(balances.totalBalance)} {currency.ticker}
                     </BalanceHeader>
-                    {fiatPrice !== null && !isNaN(balances.totalBalance) && (
+                    {/* {fiatPrice !== null && !isNaN(balances.totalBalance) && (
                         <BalanceHeaderFiat>
                             {cashtabSettings
                                 ? `${
@@ -259,7 +250,7 @@ const WalletInfo = () => {
                                   ].slug.toUpperCase()} `
                                 : 'USD'}
                         </BalanceHeaderFiat>
-                    )}
+                    )} */}
                 </>
             )}
             {apiError && (
@@ -272,79 +263,15 @@ const WalletInfo = () => {
                 </>
             )}
 
-            {wallet && ((wallet.Path245 && wallet.Path145) || wallet.Path1899) && (
+            {wallet && (wallet.Path10605) && (
                 <>
-                    {wallet.Path1899 ? (
-                        <>
-                            <QRCode
-                                id="borderedQRCode"
-                                address={
-                                    address === 'slpAddress'
-                                        ? wallet.Path1899.slpAddress
-                                        : wallet.Path1899.cashAddress
-                                }
-                                legacy={addressPrefix === 'bitcoincash'}
-                            />
-                            <AddrSwitchContainer>
-                                <AddrPrefixLabel>
-                                    Address Format:
-                                </AddrPrefixLabel>
-                                <AddrPrefixSwitch
-                                    id="addrSwitch"
-                                    defaultChecked
-                                    checkedChildren={
-                                        address === 'slpAddress'
-                                            ? 'eToken'
-                                            : 'eCash'
-                                    }
-                                    unCheckedChildren={
-                                        address === 'slpAddress'
-                                            ? 'simpleledger'
-                                            : 'bitcoincash'
-                                    }
-                                    onChange={onAddressPrefixChange}
-                                />
-                            </AddrSwitchContainer>
-                        </>
-                    ) : (
-                        <>
-                            <AddrPrefixSwitch
-                                defaultChecked
-                                checkedChildren="eCash"
-                                unCheckedChildren="Legacy"
-                                onChange={onAddressPrefixChange}
-                            />
-                            <QRCode
-                                id="borderedQRCode"
-                                address={
-                                    address === 'slpAddress'
-                                        ? wallet.Path245.slpAddress
-                                        : wallet.Path145.cashAddress
-                                }
-                            />
-                        </>
-                    )}
+                    <QRCode
+                        id="borderedQRCode"
+                        address={wallet.Path10605.xAddress}
+                    />
                 </>
             )}
 
-            <SwitchBtnCtn>
-                <SwitchBtn
-                    onClick={() => handleChangeAddress()}
-                    className={
-                        address !== 'cashAddress' ? 'nonactiveBtn' : null
-                    }
-                >
-                    {currency.ticker}
-                </SwitchBtn>
-                <SwitchBtn
-                    onClick={() => handleChangeAddress()}
-                    className={
-                        address === 'cashAddress' ? 'nonactiveBtn' : 'slpActive'
-                    }
-                >
-                    {currency.tokenTicker}
-                </SwitchBtn>
-            </SwitchBtnCtn>
             {hasHistory && parsedTxHistory && (
                 <>
                     <Tabs>
@@ -354,12 +281,12 @@ const WalletInfo = () => {
                         >
                             Transaction History
                         </TabLabel>
-                        <TabLabel
+                        {/* <TabLabel
                             active={activeTab === 'tokens'}
                             onClick={() => setActiveTab('tokens')}
                         >
                             Tokens
-                        </TabLabel>
+                        </TabLabel> */}
                         <TabLine left={activeTab === 'txHistory'} />
                     </Tabs>
 
@@ -405,7 +332,7 @@ const Wallet = () => {
                     <LoadingOutlined />
                 </LoadingCtn>
             ) : (
-                <>{wallet.Path1899 ? <WalletInfo /> : <OnBoarding />}</>
+                <>{wallet.Path10605 ? <WalletInfo /> : <OnBoarding />}</>
             )}
         </>
     );

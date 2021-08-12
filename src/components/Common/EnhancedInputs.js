@@ -123,11 +123,11 @@ export const SendBchInput = ({
         {
             value: currency.ticker,
             label: currency.ticker,
-        },
-        {
-            value: activeFiatCode ? activeFiatCode : 'USD',
-            label: activeFiatCode ? activeFiatCode : 'USD',
-        },
+        }
+        // {
+        //     value: activeFiatCode ? activeFiatCode : 'USD',
+        //     label: activeFiatCode ? activeFiatCode : 'USD',
+        // },
     ];
     const currencyOptions = currencies.map(currency => {
         return (
@@ -307,5 +307,7 @@ export const AddressValidators = () => {
             AddressValidators.safelyDetectAddressFormat(value) === 'cashaddr',
         isLegacyAddress: value =>
             AddressValidators.safelyDetectAddressFormat(value) === 'legacy',
+        isXAddress: value =>
+            AddressValidators.safelyDetectAddressFormat(value) === 'xaddr',
     }();
 };

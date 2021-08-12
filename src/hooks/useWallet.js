@@ -92,10 +92,10 @@ const useWallet = () => {
     };
 
     const normalizeSlpBalancesAndUtxos = (slpBalancesAndUtxos, wallet) => {
-        const Accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
+        const Accounts = [wallet.Path10605];
         slpBalancesAndUtxos.nonSlpUtxos.forEach(utxo => {
             const derivatedAccount = Accounts.find(
-                account => account.cashAddress === utxo.address,
+                account => account.xAddress === utxo.address,
             );
             utxo.wif = derivatedAccount.fundingWif;
         });
@@ -118,8 +118,10 @@ const useWallet = () => {
         const node = BCH.HDNode.derivePath(masterHDNode, path);
         const cashAddress = BCH.HDNode.toCashAddress(node);
         const slpAddress = BCH.SLP.Address.toSLPAddress(cashAddress);
+        const xAddress = BCH.HDNode.toXAddress(node);
 
         return {
+            xAddress,
             cashAddress,
             slpAddress,
             fundingWif: BCH.HDNode.toWIF(node),
@@ -202,16 +204,17 @@ const useWallet = () => {
             if (!wallet) {
                 return;
             }
-            const cashAddresses = [
-                wallet.Path245.cashAddress,
-                wallet.Path145.cashAddress,
-                wallet.Path1899.cashAddress,
+            const xAddresses = [
+                wallet.Path10605.xAddress,
+                // wallet.Path245.cashAddress,
+                // wallet.Path145.cashAddress,
+                // wallet.Path1899.cashAddress,
             ];
 
-            const utxos = await getUtxos(BCH, cashAddresses);
+            const utxos = await getUtxos(BCH, xAddresses);
 
             // If an error is returned or utxos from only 1 address are returned
-            if (!utxos || isEmpty(utxos) || utxos.error || utxos.length < 2) {
+            if (!utxos || isEmpty(utxos) || utxos.error || utxos.length < 1) {
                 // Throw error here to prevent more attempted api calls
                 // as you are likely already at rate limits
                 throw new Error('Error fetching utxos');
@@ -243,7 +246,7 @@ const useWallet = () => {
             const slpBalancesAndUtxos = await getSlpBalancesAndUtxos(
                 hydratedUtxoDetails,
             );
-            const txHistory = await getTxHistory(BCH, cashAddresses);
+            const txHistory = await getTxHistory(BCH, xAddresses);
             const parsedTxHistory = await getTxData(BCH, txHistory);
 
             const parsedWithTokens = await addTokenTxData(BCH, parsedTxHistory);
@@ -336,8 +339,8 @@ const useWallet = () => {
             // 3 - null if error
 
             // If the wallet does not have Path1899, add it
-            if (existingWallet && !existingWallet.Path1899) {
-                console.log(`Wallet does not have Path1899`);
+            if (existingWallet && !existingWallet.Path10605) {
+                console.log(`Wallet does not have Path10605`);
                 existingWallet = await migrateLegacyWallet(BCH, existingWallet);
             }
             // If not in localforage then existingWallet = false, check localstorage
@@ -389,12 +392,12 @@ const useWallet = () => {
         } else {
             masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer, 'testnet');
         }
-        const Path1899 = await deriveAccount(BCH, {
+        const Path10605 = await deriveAccount(BCH, {
             masterHDNode,
-            path: "m/44'/1899'/0'/0/0",
+            path: "m/44'/10605'/0'/0/0",
         });
 
-        wallet.Path1899 = Path1899;
+        wallet.Path10605 = Path10605;
 
         try {
             await localforage.setItem('wallet', wallet);
@@ -435,20 +438,24 @@ const useWallet = () => {
             masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer, 'testnet');
         }
 
-        const Path245 = await deriveAccount(BCH, {
+        // const Path245 = await deriveAccount(BCH, {
+        //     masterHDNode,
+        //     path: "m/44'/245'/0'/0/0",
+        // });
+        // const Path145 = await deriveAccount(BCH, {
+        //     masterHDNode,
+        //     path: "m/44'/145'/0'/0/0",
+        // });
+        // const Path1899 = await deriveAccount(BCH, {
+        //     masterHDNode,
+        //     path: "m/44'/1899'/0'/0/0",
+        // });
+        const Path10605 = await deriveAccount(BCH, {
             masterHDNode,
-            path: "m/44'/245'/0'/0/0",
-        });
-        const Path145 = await deriveAccount(BCH, {
-            masterHDNode,
-            path: "m/44'/145'/0'/0/0",
-        });
-        const Path1899 = await deriveAccount(BCH, {
-            masterHDNode,
-            path: "m/44'/1899'/0'/0/0",
+            path: "m/44'/10605'/0'/0/0",
         });
 
-        let name = Path1899.cashAddress.slice(12, 17);
+        let name = Path10605.xAddress.slice(12, 17);
         // Only set the name if it does not currently exist
         if (wallet && wallet.name) {
             name = wallet.name;
@@ -457,9 +464,10 @@ const useWallet = () => {
         return {
             mnemonic: wallet.mnemonic,
             name,
-            Path245,
-            Path145,
-            Path1899,
+            // Path245,
+            // Path145,
+            // Path1899,
+            Path10605
         };
     };
 
@@ -539,9 +547,9 @@ const useWallet = () => {
             if (savedWallets[i].name === currentlyActiveWallet.name) {
                 walletInSavedWallets = true;
                 // Check savedWallets for unmigrated currentlyActiveWallet
-                if (!savedWallets[i].Path1899) {
+                if (!savedWallets[i].Path10605) {
                     // Case 1, described above
-                    savedWallets[i].Path1899 = currentlyActiveWallet.Path1899;
+                    savedWallets[i].Path10605 = currentlyActiveWallet.Path10605;
                 }
 
                 /*
@@ -578,7 +586,7 @@ const useWallet = () => {
         }
         // If wallet does not have Path1899, add it
 
-        if (!walletToActivate.Path1899) {
+        if (!walletToActivate.Path10605) {
             // Case 2, described above
             console.log(`Case 2: Wallet to activate does not have Path1899`);
             console.log(
@@ -1359,22 +1367,23 @@ const useWallet = () => {
         initializeFiatPriceApi(initialSettings.fiatCurrency);
     }, []);
 
-    useEffect(() => {
-        if (
-            wallet &&
-            wallet.Path145 &&
-            wallet.Path145.cashAddress &&
-            wallet.Path245 &&
-            wallet.Path245.cashAddress
-        ) {
-            if (currency.useBlockchainWs) {
-                initializeWebsocket(
-                    wallet.Path145.legacyAddress,
-                    wallet.Path245.legacyAddress,
-                );
-            }
-        }
-    }, [wallet]);
+    // @Todo: investigate and uncomment here
+    // useEffect(() => {
+    //     if (
+    //         wallet &&
+    //         wallet.Path145 &&
+    //         wallet.Path145.cashAddress &&
+    //         wallet.Path245 &&
+    //         wallet.Path245.cashAddress
+    //     ) {
+    //         if (currency.useBlockchainWs) {
+    //             initializeWebsocket(
+    //                 wallet.Path145.legacyAddress,
+    //                 wallet.Path245.legacyAddress,
+    //             );
+    //         }
+    //     }
+    // }, [wallet]);
 
     return {
         BCH,

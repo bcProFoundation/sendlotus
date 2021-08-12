@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { currency } from '@components/Common/Ticker';
 import { isValidTokenStats } from '@utils/validation';
-import SlpWallet from 'minimal-slp-wallet';
+import SlpWallet from '@abcpros/minimal-slp-wallet';
 import {
     toSmallestDenomination,
     fromSmallestDenomination,
@@ -305,11 +305,11 @@ export default function useBCH() {
     const getUtxos = async (BCH, addresses) => {
         let utxosResponse;
         try {
-            //console.log(`API Call: BCH.Electrumx.utxo(addresses)`);
-            //console.log(addresses);
+            // console.log(`API Call: BCH.Electrumx.utxo(addresses)`);
+            // console.log(addresses);
             utxosResponse = await BCH.Electrumx.utxo(addresses);
-            //console.log(`BCH.Electrumx.utxo(addresses) succeeded`);
-            //console.log(`utxosResponse`, utxosResponse);
+            // console.log(`BCH.Electrumx.utxo(addresses) succeeded`);
+            // console.log(`utxosResponse`, utxosResponse);
             return utxosResponse.utxos;
         } catch (err) {
             console.log(`Error in BCH.Electrumx.utxo(addresses):`);
@@ -509,7 +509,7 @@ export default function useBCH() {
             }
             const utxos = wallet.state.slpBalancesAndUtxos.nonSlpUtxos;
 
-            const CREATION_ADDR = wallet.Path1899.cashAddress;
+            const CREATION_ADDR = wallet.Path110605.cashAddress;
             const inputUtxos = [];
             let transactionBuilder;
 
@@ -770,10 +770,10 @@ export default function useBCH() {
         // Sign each token UTXO being consumed.
         for (let i = 0; i < tokenUtxosBeingSpent.length; i++) {
             const thisUtxo = tokenUtxosBeingSpent[i];
-            const accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
+            const accounts = [wallet.Path10605];
             const utxoEcPair = BCH.ECPair.fromWIF(
                 accounts
-                    .filter(acc => acc.cashAddress === thisUtxo.address)
+                    .filter(acc => acc.xAddress === thisUtxo.address)
                     .pop().fundingWif,
             );
 
@@ -888,14 +888,14 @@ export default function useBCH() {
             let isValidChangeAddress;
             try {
                 REMAINDER_ADDR = inputUtxos[0].address;
-                isValidChangeAddress = BCH.Address.isCashAddress(
+                isValidChangeAddress = BCH.Address.isXAddress(
                     REMAINDER_ADDR,
                 );
             } catch (err) {
                 isValidChangeAddress = false;
             }
             if (!isValidChangeAddress) {
-                REMAINDER_ADDR = wallet.Path1899.cashAddress;
+                REMAINDER_ADDR = wallet.Path10605.xAddress;
             }
 
             // amount to send back to the remainder address.
@@ -913,7 +913,7 @@ export default function useBCH() {
 
             // add output w/ address and amount to send
             transactionBuilder.addOutput(
-                BCH.Address.toCashAddress(destinationAddress),
+                BCH.Address.toXAddress(destinationAddress),
                 parseInt(toSmallestDenomination(value)),
             );
 
@@ -983,6 +983,7 @@ export default function useBCH() {
 
         ConstructedSlpWallet = new SlpWallet('', {
             restURL: getRestUrl(apiIndex),
+            hdPath: "m/44'/10605'/0'/0/0"
         });
         return ConstructedSlpWallet.bchjs;
     };

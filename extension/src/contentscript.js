@@ -4,7 +4,7 @@ const extension = require('extensionizer');
 // Could use a div or other approach for now, but emulate MetaMask this way so it is extensible to other items
 // Try window object approach
 var cashTabInject = document.createElement('script');
-cashTabInject.innerHTML = `window.bitcoinAbc = 'cashtab'`;
+cashTabInject.innerHTML = `window.bitcoinAbc = 'sendlotus'`;
 document.head.appendChild(cashTabInject);
 
 // Process page messages
