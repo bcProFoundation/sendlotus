@@ -371,12 +371,13 @@ export default function useBCH() {
         // You need to throw an error before setting nonSlpUtxos and slpUtxos in this case
         const nullUtxos = hydratedUtxos.filter(utxo => utxo.isValid === null);
         //console.log(`nullUtxos`, nullUtxos);
-        if (nullUtxos.length > 0) {
-            console.log(
-                `${nullUtxos.length} null utxos found, ignoring results`,
-            );
-            throw new Error('Null utxos found, ignoring results');
-        }
+        // @TODO: Temporary disable checking
+        // if (nullUtxos.length > 0) {
+        //     console.log(
+        //         `${nullUtxos.length} null utxos found, ignoring results`,
+        //     );
+        //     throw new Error('Null utxos found, ignoring results');
+        // }
 
         // Prevent app from treating slpUtxos as nonSlpUtxos
         // Must enforce === false as api will occasionally return utxo.isValid === null

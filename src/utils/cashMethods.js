@@ -48,6 +48,7 @@ export const toSmallestDenomination = (
 };
 
 export const formatBalance = x => {
+    if (!x) return 0
     try {
         let balanceInParts = x.toString().split('.');
         balanceInParts[0] = balanceInParts[0].replace(

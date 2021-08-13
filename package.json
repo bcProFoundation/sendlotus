@@ -1,8 +1,8 @@
 {
-    "name": "cashtab",
+    "name": "sendlotus",
     "version": "1.0.0",
     "private": true,
-    "homepage": "https://cashtabapp.com/",
+    "homepage": "https://sendlotus.com/",
     "dependencies": {
         "@abcpros/minimal-slp-wallet": "^3.0.2",
         "@ant-design/icons": "^4.3.0",
