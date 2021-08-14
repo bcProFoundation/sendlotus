@@ -18,7 +18,7 @@
     },
     "browser_action": {
         "default_popup": "index.html",
-        "default_title": "Cashtab"
+        "default_title": "SendLotus"
     },
     "icons": {
         "16": "ecash16.png",
