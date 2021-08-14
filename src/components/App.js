@@ -16,6 +16,7 @@ import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
+import LogoLotusPink from '@assets/lotus-pink-logo.png'
 import TabCash from '@assets/tabcash.png';
 import ABC from '@assets/logo_topright.png';
 import './App.css';
@@ -128,7 +129,7 @@ export const WalletBody = styled.div`
     justify-content: center;
     width: 100%;
     min-height: 100vh;
-    background-image: ${props => props.theme.app.sidebars};
+    background-image: ${props => props.theme.app.gradient};
     background-attachment: fixed;
 `;
 
@@ -153,7 +154,7 @@ export const WalletCtn = styled.div`
 export const HeaderCtn = styled.div`
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start !important;
     width: 100%;
     padding: 10px 0 15px;
     margin-bottom: 20px;
@@ -187,9 +188,15 @@ export const EasterEgg = styled.img`
 `;
 
 export const CashTabLogo = styled.img`
-    width: 120px;
+    width: 200px;
     @media (max-width: 768px) {
         width: 110px;
+    }
+`;
+export const LotusLogo = styled.img`
+    width: 50px;
+    @media (max-width: 768px) {
+        width: 30px;
     }
 `;
 export const AbcLogo = styled.img`
@@ -219,6 +226,7 @@ const App = () => {
                 <WalletBody>
                     <WalletCtn>
                         <HeaderCtn>
+                            <LotusLogo src={LogoLotusPink} alt="lotus" />
                             <CashTabLogo src={CashTab} alt="cashtab" />
                             {hasTab && (
                                 <EasterEgg src={TabCash} alt="tabcash" />
