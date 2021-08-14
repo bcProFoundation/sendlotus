@@ -1,16 +1,17 @@
 export const theme = {
-    primary: '#00ABE7',
+    primary: '#6f2dbd',
     brandSecondary: '#CD0BC3',
     contrast: '#fff',
     app: {
         sidebars: `url("/cashtab_bg.png")`,
+        gradient : 'linear-gradient(-225deg, #231557 0%, #44107A 29%, #FF1361 67%, #d38cad 100%)',
         background: '#fbfbfd',
     },
     wallet: {
         background: '#fff',
         text: {
-            primary: '#273498',
-            secondary: '#273498',
+            primary: '#6f2dbd',
+            secondary: '#6212f5',
         },
         switch: {
             activeCash: {
@@ -44,12 +45,12 @@ export const theme = {
     forms: {
         error: '#FF21D0',
         border: '#e7edf3',
-        text: '#001137',
+        text: '#6f2dbd',
         addonBackground: '#f4f4f4',
-        addonForeground: '#3e3f42',
+        addonForeground: '#6f2dbd',
         selectionBackground: '#fff',
     },
-    icons: { outlined: '#273498' },
+    icons: { outlined: '#6f2dbd' },
     modals: {
         buttons: { background: '#fff' },
     },
@@ -65,13 +66,13 @@ export const theme = {
     buttons: {
         primary: {
             backgroundImage:
-                'linear-gradient(270deg, #0074C2 0%, #273498 100%)',
+                'linear-gradient(270deg, #973aa8 0%, #6d23b6 100%)',
             color: '#fff',
             hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
         },
         secondary: {
             background: '#e9eaed',
-            color: '#444',
+            color: '#6f2dbd',
             hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
         },
     },

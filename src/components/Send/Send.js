@@ -524,7 +524,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                                 apiError ||
                                 sendBchAmountError ||
                                 sendBchAddressError ? (
-                                    <SecondaryButton>Send</SecondaryButton>
+                                    <PrimaryButton>Send</PrimaryButton>
                                 ) : (
                                     <>
                                         {txInfoFromUrl ? (
