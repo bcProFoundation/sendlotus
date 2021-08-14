@@ -83,11 +83,11 @@ export const OnBoarding = ({ history }) => {
 
     return (
         <>
-            <h2>Welcome to Cashtab!</h2>
+            <h2>Welcome to SendLotus!</h2>
             <WelcomeText>
-                Cashtab is an{' '}
+                SendLotus is an{' '}
                 <WelcomeLink
-                    href="https://github.com/bitcoin-abc/bitcoin-abc"
+                    href="https://givelotus.org/"
                     target="_blank"
                     rel="noreferrer"
                 >
@@ -98,11 +98,11 @@ export const OnBoarding = ({ history }) => {
                 <br />
                 Want to learn more?{' '}
                 <WelcomeLink
-                    href="https://docs.cashtabapp.com/docs/"
+                    href="https://gitlab.com/abcpros/libraries/sendlotus/"
                     target="_blank"
                     rel="noreferrer"
                 >
-                    Check out the Cashtab documentation.
+                    Check out the SendLotus source code.
                 </WelcomeLink>
             </WelcomeText>
 

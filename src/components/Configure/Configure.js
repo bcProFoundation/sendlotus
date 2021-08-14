@@ -605,16 +605,17 @@ const Configure = () => {
                         }
                     />
                 </AntdFormWrapper>
-                <StyledSpacer />[
+                <StyledSpacer />
+                {/* [
                 <SettingsLink
                     type="link"
-                    href="https://docs.cashtabapp.com/docs/"
+                    href="https://gitlab.com/abcpros/libraries/sendlotus"
                     target="_blank"
                     rel="noreferrer"
                 >
-                    Documentation
+                    Repository
                 </SettingsLink>
-                ]
+                ] */}
             </StyledConfigure>
         </Spin>
     );

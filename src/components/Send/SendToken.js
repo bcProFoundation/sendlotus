@@ -224,7 +224,7 @@ const SendToken = ({ tokenId, jestBCH }) => {
             error = 'Address is not valid';
             // If valid address but token format
         } else if (!isValidTokenPrefix(address)) {
-            error = `Cashtab only supports sending to ${currency.tokenPrefixes[0]} prefixed addresses`;
+            error = `SendLotus only supports sending to ${currency.tokenPrefixes[0]} prefixed addresses`;
         }
         setSendTokenAddressError(error);
 
