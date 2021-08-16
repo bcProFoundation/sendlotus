@@ -47,6 +47,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
         cashtabSettings,
     } = ContextValue;
     let balances;
+    const myCurrentAddress = wallet.Path10605.xAddress;
     const paramsInWalletState = wallet.state ? Object.keys(wallet.state) : [];
     // If wallet.state includes balances and parsedTxHistory params, use these
     // These are saved in indexedDb in the latest version of the app, hence accessible more quickly
@@ -57,7 +58,6 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
         // This is how the app used to work
         balances = ContextValue.balances;
     }
-
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
     const { width } = useWindowDimensions();
@@ -277,7 +277,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
         // If query string,
         // Show an alert that only amount and currency.ticker are supported
         setQueryStringText(queryString);
-
+    
         // Is this valid address?
         if (!isValid) {
             error = `Invalid ${currency.ticker} address`;
@@ -287,6 +287,13 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
             }
         }
         setSendBchAddressError(error);
+
+        // Is this address same with my address?
+        if (address === myCurrentAddress) {
+            setSendBchAddressError(
+                'Cannot send to yourself!'
+            );
+        }
 
         // Set amount if it's in the query string
         if (amount !== null) {
@@ -446,6 +453,9 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                             }}
                         >
                             <FormItemWithQRCodeAddon
+                                style={{
+                                    margin: '0 0 20px 0'
+                                }}
                                 loadWithCameraOpen={scannerSupported}
                                 disabled={Boolean(filledAddress)}
                                 validateStatus={

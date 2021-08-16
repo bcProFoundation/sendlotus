@@ -145,7 +145,7 @@ export const SendBchInput = ({
         <Select
             defaultValue={currency.ticker}
             className="select-after"
-            style={{ width: '30%' }}
+            style={{ width: '25%' }}
             {...selectProps}
         >
             {currencyOptions}
@@ -156,7 +156,7 @@ export const SendBchInput = ({
             <Form.Item {...otherProps}>
                 <Input.Group compact>
                     <Input
-                        style={{ width: '60%', textAlign: 'left' }}
+                        style={{ width: '58%', textAlign: 'left' }}
                         type="number"
                         step={
                             inputProps.dollar === 1
@@ -180,7 +180,7 @@ export const SendBchInput = ({
                     {CurrencySelect}
                     <InputNumberAddonText
                         style={{
-                            width: '10%',
+                            width: '17%',
                             height: '60px',
                             lineHeight: '60px',
                         }}

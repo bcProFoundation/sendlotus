@@ -190,13 +190,13 @@ export const EasterEgg = styled.img`
 export const CashTabLogo = styled.img`
     width: 200px;
     @media (max-width: 768px) {
-        width: 110px;
+        width: 150px;
     }
 `;
 export const LotusLogo = styled.img`
     width: 50px;
     @media (max-width: 768px) {
-        width: 30px;
+        width: 50px;
     }
 `;
 export const AbcLogo = styled.img`
