@@ -54,7 +54,7 @@ export const formatBalance = x => {
             /\B(?=(\d{2})+(?!\d))/g,
             ' ',
         );
-        if(balanceInParts.length > 1){
+        if(balanceInParts.length > 1) {
             balanceInParts[1] = balanceInParts[1].slice(0,2);
         }
         return balanceInParts.join('.');
