@@ -47,7 +47,8 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
         cashtabSettings,
     } = ContextValue;
     let balances;
-    const myCurrentAddress = wallet.Path10605.xAddress;
+
+    const currentAddress = wallet && wallet.Path10605 ? wallet.Path10605.xAddress : undefined;
     const paramsInWalletState = wallet.state ? Object.keys(wallet.state) : [];
     // If wallet.state includes balances and parsedTxHistory params, use these
     // These are saved in indexedDb in the latest version of the app, hence accessible more quickly
@@ -289,7 +290,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
         setSendBchAddressError(error);
 
         // Is this address same with my address?
-        if (address === myCurrentAddress) {
+        if (currentAddress && address && address === currentAddress) {
             setSendBchAddressError(
                 'Cannot send to yourself!'
             );
