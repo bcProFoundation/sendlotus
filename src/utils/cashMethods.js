@@ -52,7 +52,7 @@ export const formatBalance = x => {
         let balanceInParts = x.toString().split('.');
         balanceInParts[0] = balanceInParts[0].replace(
             /\B(?=(\d{2})+(?!\d))/g,
-            ' ',
+            '',
         );
         if(balanceInParts.length > 1) {
             balanceInParts[1] = balanceInParts[1].slice(0,2);
