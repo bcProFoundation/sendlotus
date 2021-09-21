@@ -1,12 +1,14 @@
 import React from "react";
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, Text} from 'react-native';
 
 const Slide = ({item}) => {
-    const {tittle} = item
+    const {title, des, image} = item
 
     return (
         <View style={[styles.slide, { backgroundColor: '#555555' }]}>
-            <Text style={styles.text}>{item.tittle}</Text>
+            <Text style={styles.text}>{item.title}</Text>
+            <Text style={styles.text}>{item.des}</Text>
+            <img src={item.image} />
         </View>
     )
 }
@@ -17,7 +19,7 @@ const styles = StyleSheet.create({
         width,
         height,
         justifyContent: 'center',
-        alignContent: 'center'
+        alignItems: 'center',
     },
     text: {
         color: '#fff',
