@@ -3,7 +3,7 @@ import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
 import { theme } from '@assets/styles/theme';
 import CreateTokenForm from '@components/Tokens/CreateTokenForm';
-import BCHJS from '@psf/bch-js';
+import BCHJS from '@abcpros/bch-js';
 import useBCH from '@hooks/useBCH';
 import { walletWithBalancesAndTokensWithCorrectState } from '../../Wallet/__mocks__/walletAndBalancesMock';
 

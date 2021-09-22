@@ -2,7 +2,7 @@ import useWallet from '../useWallet';
 import useBCH from '../useBCH';
 import { renderHook } from '@testing-library/react-hooks';
 import mockLegacyWallets from '../__mocks__/mockLegacyWallets';
-import BCHJS from '@psf/bch-js';
+import BCHJS from '@abcpros/bch-js';
 
 jest.mock('../useBCH');
 useBCH.mockReturnValue({ getBCH: () => new BCHJS() });

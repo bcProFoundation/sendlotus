@@ -51,9 +51,12 @@ export const formatBalance = x => {
     try {
         let balanceInParts = x.toString().split('.');
         balanceInParts[0] = balanceInParts[0].replace(
-            /\B(?=(\d{3})+(?!\d))/g,
-            ' ',
+            /\B(?=(\d{2})+(?!\d))/g,
+            '',
         );
+        if(balanceInParts.length > 1) {
+            balanceInParts[1] = balanceInParts[1].slice(0,2);
+        }
         return balanceInParts.join('.');
     } catch (err) {
         console.log(`Error in formatBalance for ${x}`);

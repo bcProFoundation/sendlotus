@@ -4,17 +4,17 @@ import cashaddr from 'ecashaddrjs';
 import BigNumber from 'bignumber.js';
 
 export const currency = {
-    name: 'eCash',
-    ticker: 'XEC',
+    name: 'Lotus',
+    ticker: 'XPI',
     logo: mainLogo,
     legacyPrefix: 'bitcoincash',
-    prefixes: ['ecash'],
-    coingeckoId: 'ecash',
+    prefixes: ['lotus'],
+    coingeckoId: 'bitcoin-cash-abc-2',
     defaultFee: 2.01,
     dustSats: 550,
     etokenSats: 546,
-    cashDecimals: 2,
-    blockExplorerUrl: 'https://explorer.bitcoinabc.org',
+    cashDecimals: 6,
+    blockExplorerUrl: 'https://explorer.givelotus.org',
     tokenExplorerUrl: 'https://explorer.be.cash',
     blockExplorerUrlTestnet: 'https://texplorer.bitcoinabc.org',
     tokenName: 'eToken',
@@ -73,7 +73,7 @@ export function isValidCashPrefix(addressString) {
     for (let i = 0; i < currency.prefixes.length; i += 1) {
         // If the addressString being tested starts with an accepted prefix or no prefix at all
         if (
-            addressString.startsWith(currency.prefixes[i] + ':') ||
+            addressString.startsWith(currency.prefixes[i]) ||
             !addressString.includes(':')
         ) {
             return true;
@@ -102,22 +102,13 @@ export function toLegacy(address) {
 
     try {
         if (isValidCashPrefix(address)) {
-            // Prefix-less addresses may be valid, but the cashaddr.decode function used below
-            // will throw an error without a prefix. Hence, must ensure prefix to use that function.
-            const hasPrefix = address.includes(':');
-            if (!hasPrefix) {
-                testedAddress = currency.legacyPrefix + ':' + address;
-            } else {
-                testedAddress = address;
-            }
-
             // Note: an `ecash:` checksum address with no prefix will not be validated by
             // parseAddress in Send.js
 
             // Only handle the case of prefixless address that is valid `bitcoincash:` address
 
-            const { type, hash } = cashaddr.decode(testedAddress);
-            legacyAddress = cashaddr.encode(currency.legacyPrefix, type, hash);
+            // const { type, hash } = cashaddr.decode(testedAddress);
+            // legacyAddress = cashaddr.encode(currency.legacyPrefix, type, hash);
         } else {
             console.log(`Error: ${address} is not a cash address`);
             throw new Error(
@@ -147,17 +138,7 @@ export function parseAddress(BCH, addressString, isToken = false) {
     // Validate address
     let isValidAddress;
     try {
-        isValidAddress = BCH.Address.isCashAddress(cleanAddress);
-        // Only accept addresses with ecash: prefix
-        const { prefix } = cashaddr.decode(cleanAddress);
-        // If the address does not have a valid prefix or token prefix
-        if (
-            (!isToken && !currency.prefixes.includes(prefix)) ||
-            (isToken && !currency.tokenPrefixes.includes(prefix))
-        ) {
-            // then it is not a valid destination address for XEC sends
-            isValidAddress = false;
-        }
+        isValidAddress = BCH.Address.isXAddress(cleanAddress);
     } catch (err) {
         isValidAddress = false;
     }

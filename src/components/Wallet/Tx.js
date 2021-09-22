@@ -304,61 +304,57 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                     <>
                                         -{' '}
                                         {formatBalance(
-                                            fromLegacyDecimals(data.amountSent),
-                                        )}{' '}
+                                    data.amountSent,
+                                )}
+                                &nbsp;
                                         {currency.ticker}
                                         <br />
-                                        {fiatPrice !== null &&
-                                            !isNaN(data.amountSent) && (
-                                                <TxFiatPrice>
-                                                    -{' '}
-                                                    {
-                                                        currency.fiatCurrencies[
-                                                            fiatCurrency
-                                                        ].symbol
-                                                    }
-                                                    {(
-                                                        fromLegacyDecimals(
-                                                            data.amountSent,
-                                                        ) * fiatPrice
-                                                    ).toFixed(2)}{' '}
-                                                    {
-                                                        currency.fiatCurrencies
-                                                            .fiatCurrency
-                                                    }
-                                                </TxFiatPrice>
-                                            )}
+                                {/* {fiatPrice !== null && !isNaN(data.amountSent) && (
+                                    <TxFiatPrice>
+                                        -{' '}
+                                        {
+                                            currency.fiatCurrencies[
+                                                fiatCurrency
+                                            ].symbol
+                                        }
+                                        {(
+                                            fromLegacyDecimals(
+                                                data.amountSent,
+                                            ) * fiatPrice
+                                        ).toFixed(2)}{' '}
+                                        {currency.fiatCurrencies.fiatCurrency}
+                                    </TxFiatPrice>
+                                        }
                                     </>
                                 ) : (
                                     <>
                                         +{' '}
                                         {formatBalance(
-                                            fromLegacyDecimals(
-                                                data.amountReceived,
-                                            ),
-                                        )}{' '}
+                                    data.amountReceived,
+                                )}
+                                &nbsp;
                                         {currency.ticker}
                                         <br />
-                                        {fiatPrice !== null &&
-                                            !isNaN(data.amountReceived) && (
-                                                <TxFiatPrice>
-                                                    +{' '}
-                                                    {
-                                                        currency.fiatCurrencies[
-                                                            fiatCurrency
-                                                        ].symbol
-                                                    }
-                                                    {(
-                                                        fromLegacyDecimals(
-                                                            data.amountReceived,
-                                                        ) * fiatPrice
-                                                    ).toFixed(2)}{' '}
-                                                    {
-                                                        currency.fiatCurrencies
-                                                            .fiatCurrency
-                                                    }
-                                                </TxFiatPrice>
-                                            )}
+                                            {
+                                    !isNaN(data.amountReceived) && (
+                                        <TxFiatPrice>
+                                            +{' '}
+                                            {
+                                                currency.fiatCurrencies[
+                                                    fiatCurrency
+                                                ].symbol
+                                            }
+                                            {(
+                                                fromLegacyDecimals(
+                                                    data.amountReceived,
+                                                ) * fiatPrice
+                                            ).toFixed(2)}{' '}
+                                            {
+                                                currency.fiatCurrencies
+                                                    .fiatCurrency
+                                            }
+                                        </TxFiatPrice>
+                                            }
                                     </>
                                 )}
                             </TxInfo>

@@ -18,6 +18,7 @@ import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
+import LogoLotus from '@assets/logo_primary.png'
 import './App.css';
 import { WalletContext } from '@utils/context';
 import { isValidStoredWallet } from '@utils/cashMethods';
@@ -131,7 +132,7 @@ export const WalletBody = styled.div`
     justify-content: center;
     width: 100%;
     min-height: 100vh;
-    background-image: ${props => props.theme.app.sidebars};
+    background: ${props => props.theme.app.gradient};
     background-attachment: fixed;
 `;
 
@@ -156,7 +157,7 @@ export const WalletCtn = styled.div`
 export const HeaderCtn = styled.div`
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start !important;
     width: 100%;
     padding: 20px 0 30px;
     margin-bottom: 20px;
@@ -180,9 +181,15 @@ export const HeaderCtn = styled.div`
 `;
 
 export const CashTabLogo = styled.img`
-    width: 120px;
+    width: 200px;
     @media (max-width: 768px) {
-        width: 110px;
+        width: 150px;
+    }
+`;
+export const LotusLogo = styled.img`
+    width: 50px;
+    @media (max-width: 768px) {
+        width: 50px;
     }
 `;
 
@@ -225,6 +232,7 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
+                            <LotusLogo src={LogoLotusPink} alt="lotus" />
                                 <CashTabLogo src={CashTab} alt="cashtab" />
                                 {/*Begin extension-only components*/}
                                 <OpenInTabBtn

@@ -124,11 +124,11 @@ export const SendBchInput = ({
         {
             value: currency.ticker,
             label: currency.ticker,
-        },
-        {
-            value: activeFiatCode ? activeFiatCode : 'USD',
-            label: activeFiatCode ? activeFiatCode : 'USD',
-        },
+        }
+        // {
+        //     value: activeFiatCode ? activeFiatCode : 'USD',
+        //     label: activeFiatCode ? activeFiatCode : 'USD',
+        // },
     ];
     const currencyOptions = currencies.map(currency => {
         return (
@@ -146,7 +146,7 @@ export const SendBchInput = ({
         <Select
             defaultValue={currency.ticker}
             className="select-after"
-            style={{ width: '30%' }}
+            style={{ width: '25%' }}
             {...selectProps}
         >
             {currencyOptions}
@@ -157,7 +157,7 @@ export const SendBchInput = ({
             <Form.Item {...otherProps}>
                 <Input.Group compact>
                     <Input
-                        style={{ width: '60%', textAlign: 'left' }}
+                        style={{ width: '58%', textAlign: 'left' }}
                         type="number"
                         step={
                             inputProps.dollar === 1
@@ -181,7 +181,7 @@ export const SendBchInput = ({
                     {CurrencySelect}
                     <InputNumberAddonText
                         style={{
-                            width: '10%',
+                            width: '17%',
                             height: '60px',
                             lineHeight: '60px',
                         }}
@@ -326,5 +326,7 @@ export const AddressValidators = () => {
             AddressValidators.safelyDetectAddressFormat(value) === 'cashaddr',
         isLegacyAddress: value =>
             AddressValidators.safelyDetectAddressFormat(value) === 'legacy',
+        isXAddress: value =>
+            AddressValidators.safelyDetectAddressFormat(value) === 'xaddr',
     }();
 };

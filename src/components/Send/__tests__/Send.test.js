@@ -3,7 +3,7 @@ import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
 import { theme } from '@assets/styles/theme';
 import Send from '@components/Send/Send';
-import BCHJS from '@psf/bch-js';
+import BCHJS from '@abcpros/bch-js';
 import {
     walletWithBalancesAndTokens,
     walletWithBalancesMock,

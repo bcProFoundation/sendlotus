@@ -83,26 +83,17 @@ const OnBoarding = () => {
 
     return (
         <>
-            <h2>Welcome to Cashtab!</h2>
+            <h2>Welcome to SendLotus!</h2>
             <WelcomeText>
-                Cashtab is an{' '}
+                SendLotus is an open source, non-custodial web wallet for Lotus.
+                <br />
+                To start, install SendLotus to your device follow {' '}
                 <WelcomeLink
-                    href="https://github.com/bitcoin-abc/bitcoin-abc"
+                    href="https://gitlab.com/abcpros/sendlotus/-/wikis/home"
                     target="_blank"
                     rel="noreferrer"
                 >
-                    open source,
-                </WelcomeLink>{' '}
-                non-custodial web wallet for {currency.name}.
-                <br />
-                <br />
-                Want to learn more?{' '}
-                <WelcomeLink
-                    href="https://docs.cashtabapp.com/docs/"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    Check out the Cashtab documentation.
+                    the guide
                 </WelcomeLink>
             </WelcomeText>
 

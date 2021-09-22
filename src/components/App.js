@@ -18,6 +18,9 @@ import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
+import LogoLotusPink from '@assets/lotus-pink-logo.png'
+import TabCash from '@assets/tabcash.png';
+import ABC from '@assets/logo_topright.png';
 import './App.css';
 import { WalletContext } from '@utils/context';
 import { isValidStoredWallet } from '@utils/cashMethods';
@@ -133,7 +136,7 @@ export const WalletBody = styled.div`
     justify-content: center;
     width: 100%;
     min-height: 100vh;
-    background-image: ${props => props.theme.app.sidebars};
+    background-image: ${props => props.theme.app.gradient};
     background-attachment: fixed;
 `;
 
@@ -158,9 +161,9 @@ export const WalletCtn = styled.div`
 export const HeaderCtn = styled.div`
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start !important;
     width: 100%;
-    padding: 20px 0 30px;
+    padding: 10px 0 15px;
     margin-bottom: 20px;
     justify-content: space-between;
     border-bottom: 1px solid ${props => props.theme.wallet.borders.color};
@@ -215,6 +218,24 @@ export const EasterEgg = styled.img`
     }
 `;
 
+export const CashTabLogo = styled.img`
+    width: 200px;
+    @media (max-width: 768px) {
+        width: 150px;
+    }
+`;
+export const LotusLogo = styled.img`
+    width: 50px;
+    @media (max-width: 768px) {
+        width: 50px;
+    }
+`;
+export const AbcLogo = styled.img`
+    width: 150px;
+    @media (max-width: 768px) {
+        width: 120px;
+    }
+`;
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, loading } = ContextValue;
@@ -248,6 +269,7 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
+                            <LotusLogo src={LogoLotusPink} alt="lotus" />
                                 <CashTabLogo src={CashTab} alt="cashtab" />
                                 {/*Begin component not included in extension as desktop only*/}
                                 {hasTab && (
@@ -256,11 +278,10 @@ const App = () => {
                                 {/*End component not included in extension as desktop only*/}
                                 {/*Begin component not included in extension as replaced by open in tab link*/}
                                 <a
-                                    href="https://e.cash/"
+                                href="https://givelotus.org//"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    <AbcLogo src={ABC} alt="abc" />
                                 </a>
                                 {/*Begin component not included in extension as replaced by open in tab link*/}
                             </HeaderCtn>
@@ -312,6 +333,7 @@ const App = () => {
                                 </NavButton>
 
                                 <NavButton
+                                disabled
                                     active={selectedKey === 'tokens'}
                                     onClick={() => history.push('/tokens')}
                                 >

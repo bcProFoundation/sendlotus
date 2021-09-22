@@ -42,9 +42,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
     const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
+
+    const currentAddress = wallet && wallet.Path10605 ? wallet.Path10605.xAddress : undefined;
     const walletState = getWalletState(wallet);
     const { balances, slpBalancesAndUtxos } = walletState;
-
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
     const { width } = useWindowDimensions();
@@ -153,19 +154,19 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         let cleanAddress = address.split('?')[0];
 
         // Ensure address has bitcoincash: prefix and checksum
-        cleanAddress = toLegacy(cleanAddress);
+        // cleanAddress = toLegacy(cleanAddress);
 
-        let hasValidCashPrefix;
-        try {
-            hasValidCashPrefix = cleanAddress.startsWith(
-                currency.legacyPrefix + ':',
-            );
-        } catch (err) {
-            hasValidCashPrefix = false;
-            console.log(`toLegacy() returned an error:`, cleanAddress);
-        }
+        const isValidAddress = BCH.Address.isXAddress(cleanAddress);
+        // try {
+        //     hasValidLotusPrefix = cleanAddress.startsWith(
+        //         currency.legacyPrefix + ':',
+        //     );
+        // } catch (err) {
+        //     hasValidCashPrefix = false;
+        //     console.log(`toLegacy() returned an error:`, cleanAddress);
+        // }
 
-        if (!hasValidCashPrefix) {
+        if (!isValidAddress) {
             // set loading to false and set address validation to false
             // Now that the no-prefix case is handled, this happens when user tries to send
             // BCHA to an SLPA address
@@ -179,9 +180,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // Calculate the amount in BCH
         let bchValue = value;
 
-        if (selectedCurrency !== 'XEC') {
-            bchValue = fiatToCrypto(value, fiatPrice);
-        }
+        // if (selectedCurrency !== 'XPI') {
+        //     bchValue = fiatToCrypto(value, fiatPrice);
+        // }
 
         try {
             const link = await sendBch(
@@ -264,7 +265,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // If query string,
         // Show an alert that only amount and currency.ticker are supported
         setQueryStringText(queryString);
-
+    
         // Is this valid address?
         if (!isValid) {
             error = `Invalid ${currency.ticker} address`;
@@ -274,6 +275,13 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             }
         }
         setSendBchAddressError(error);
+
+        // Is this address same with my address?
+        if (currentAddress && address && address === currentAddress) {
+            setSendBchAddressError(
+                'Cannot send to yourself!'
+            );
+        }
 
         // Set amount if it's in the query string
         if (amount !== null) {
@@ -405,13 +413,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         balance={balances.totalBalance}
                         ticker={currency.ticker}
                     />
-                    {fiatPrice !== null && (
-                        <BalanceHeaderFiat
-                            balance={balances.totalBalance}
-                            settings={cashtabSettings}
-                            fiatPrice={fiatPrice}
-                        />
-                    )}
                 </>
             )}
 
@@ -423,6 +424,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         }}
                     >
                         <FormItemWithQRCodeAddon
+                                style={{
+                                    margin: '0 0 20px 0'
+                                }}
                             loadWithCameraOpen={scannerSupported}
                             validateStatus={sendBchAddressError ? 'error' : ''}
                             help={
@@ -467,18 +471,20 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 onChange: e => handleSelectedCurrencyChange(e),
                             }}
                         ></SendBchInput>
-                        {priceApiError && (
-                            <AlertMsg>
-                                Error fetching fiat price. Setting send by{' '}
-                                {currency.fiatCurrencies[
-                                    cashtabSettings.fiatCurrency
-                                ].slug.toUpperCase()}{' '}
-                                disabled
-                            </AlertMsg>
-                        )}
-                        <ConvertAmount>
-                            {fiatPriceString !== '' && '='} {fiatPriceString}
-                        </ConvertAmount>
+                            {/* {priceApiError && (
+                                <AlertMsg>
+                                    Error fetching fiat price. Setting send by{' '}
+                                    {currency.fiatCurrencies[
+                                        cashtabSettings.fiatCurrency
+                                    ].slug.toUpperCase()}{' '}
+                                    disabled
+                                </AlertMsg>
+                            )}
+                            <ConvertAmount>
+                                {fiatPriceString !== '' && '='}{' '}
+                                {fiatPriceString}
+                            </ConvertAmount> */}
+                                {fiatPriceString !== '' && '='}{' '}
                         <div
                             style={{
                                 paddingTop: '12px',
@@ -488,7 +494,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             apiError ||
                             sendBchAmountError ||
                             sendBchAddressError ? (
-                                <SecondaryButton>Send</SecondaryButton>
+                                    <PrimaryButton>Send</PrimaryButton>
                             ) : (
                                 <>
                                     {txInfoFromUrl ? (

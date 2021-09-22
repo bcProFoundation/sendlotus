@@ -1,10 +1,10 @@
-# Cashtab
+# SendLotus
 
-## Bitcoin Cash Web Wallet
+## Lotus Web Wallet
 
 ### Features
 
--   Send & Receive BCH
+-   Send & Receive XPI
 -   Import existing wallets
 
 ## Development

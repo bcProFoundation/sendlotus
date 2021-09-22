@@ -54,7 +54,7 @@ const init = (options = {}) => {
     const isGAEnabled = process.env.NODE_ENV === 'production';
 
     if (isGAEnabled) {
-        ReactGA.initialize('UA-183678810-1');
+        ReactGA.initialize('G-WS7GDZNDN1');
     }
 
     return isGAEnabled;

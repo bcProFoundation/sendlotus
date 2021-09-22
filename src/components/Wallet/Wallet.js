@@ -171,14 +171,12 @@ const WalletInfo = () => {
     const walletState = getWalletState(wallet);
     const { balances, parsedTxHistory, tokens } = walletState;
 
-    const [address, setAddress] = React.useState('cashAddress');
+    const [address, setAddress] = React.useState('xAddress');
     const [activeTab, setActiveTab] = React.useState('txHistory');
 
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
-
     const handleChangeAddress = () => {
-        setAddress(address === 'cashAddress' ? 'slpAddress' : 'cashAddress');
-    };
+        setAddress(address === 'xAddress' ? 'slpAddress' : 'xAddress');
 
     return (
         <>
@@ -204,63 +202,20 @@ const WalletInfo = () => {
                         balance={balances.totalBalance}
                         ticker={currency.ticker}
                     />
-                    {fiatPrice !== null && !isNaN(balances.totalBalance) && (
-                        <BalanceHeaderFiat
-                            balance={balances.totalBalance}
-                            settings={cashtabSettings}
-                            fiatPrice={fiatPrice}
-                        />
                     )}
                 </>
             )}
             {apiError && <ApiError />}
 
-            {wallet && ((wallet.Path245 && wallet.Path145) || wallet.Path1899) && (
+            {wallet && (wallet.Path10605) && (
                 <>
-                    {wallet.Path1899 ? (
-                        <>
-                            <QRCode
-                                id="borderedQRCode"
-                                address={
-                                    address === 'slpAddress'
-                                        ? wallet.Path1899.slpAddress
-                                        : wallet.Path1899.cashAddress
-                                }
-                            />
-                        </>
-                    ) : (
-                        <>
-                            <QRCode
-                                id="borderedQRCode"
-                                address={
-                                    address === 'slpAddress'
-                                        ? wallet.Path245.slpAddress
-                                        : wallet.Path145.cashAddress
-                                }
-                            />
-                        </>
-                    )}
+                    <QRCode
+                        id="borderedQRCode"
+                        address={wallet.Path10605.xAddress}
+                    />
                 </>
             )}
 
-            <SwitchBtnCtn>
-                <SwitchBtn
-                    onClick={() => handleChangeAddress()}
-                    className={
-                        address !== 'cashAddress' ? 'nonactiveBtn' : null
-                    }
-                >
-                    {currency.ticker}
-                </SwitchBtn>
-                <SwitchBtn
-                    onClick={() => handleChangeAddress()}
-                    className={
-                        address === 'cashAddress' ? 'nonactiveBtn' : 'slpActive'
-                    }
-                >
-                    {currency.tokenTicker}
-                </SwitchBtn>
-            </SwitchBtnCtn>
             {hasHistory && parsedTxHistory && (
                 <>
                     <Tabs>
@@ -270,12 +225,12 @@ const WalletInfo = () => {
                         >
                             Transaction History
                         </TabLabel>
-                        <TabLabel
+                        {/* <TabLabel
                             active={activeTab === 'tokens'}
                             onClick={() => setActiveTab('tokens')}
                         >
                             Tokens
-                        </TabLabel>
+                        </TabLabel> */}
                         <TabLine left={activeTab === 'txHistory'} />
                     </Tabs>
 
@@ -320,8 +275,8 @@ const Wallet = () => {
                 <LoadingCtn />
             ) : (
                 <>
-                    {(wallet && wallet.Path1899) ||
-                    (previousWallet && previousWallet.path1899) ? (
+                    {(wallet && wallet.Path10605) ||
+                    (previousWallet && previousWallet.path10605) ? (
                         <WalletInfo />
                     ) : (
                         <OnBoarding />

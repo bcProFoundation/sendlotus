@@ -25,7 +25,7 @@ import {
     mockSentTokenTx,
     mockReceivedTokenTx,
 } from '../__mocks__/mockParsedTxs';
-import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
+import BCHJS from '@abcpros/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';

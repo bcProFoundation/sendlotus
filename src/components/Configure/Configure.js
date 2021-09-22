@@ -588,17 +588,19 @@ const Configure = () => {
                     }
                 />
             </AntdFormWrapper>
-            <StyledSpacer />[
-            <SettingsLink
-                type="link"
-                href="https://docs.cashtabapp.com/docs/"
-                target="_blank"
-                rel="noreferrer"
-            >
-                Documentation
-            </SettingsLink>
-            ]
-        </StyledConfigure>
+                <StyledSpacer />
+                {/* [
+                <SettingsLink
+                    type="link"
+                    href="https://gitlab.com/abcpros/libraries/sendlotus"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    Repository
+                </SettingsLink>
+                ] */}
+            </StyledConfigure>
+        </Spin>
     );
 };
 

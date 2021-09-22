@@ -1,6 +1,6 @@
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
-import BCHJS from '@psf/bch-js';
+import BCHJS from '@abcpros/bch-js';
 import {
     fromSmallestDenomination,
     toSmallestDenomination,

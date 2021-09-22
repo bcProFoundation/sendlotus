@@ -1,9 +1,9 @@
 {
     "manifest_version": 2,
 
-    "name": "Cashtab",
-    "description": "A browser-integrated eCash wallet from Bitcoin ABC",
-    "version": "1.0.2",
+    "name": "SendLotus",
+    "description": "A browser-integrated Lotus wallet",
+    "version": "1.0.0",
     "content_scripts": [
         {
             "matches": ["file://*/*", "http://*/*", "https://*/*"],
@@ -18,7 +18,7 @@
     },
     "browser_action": {
         "default_popup": "index.html",
-        "default_title": "Cashtab"
+        "default_title": "SendLotus"
     },
     "icons": {
         "16": "ecash16.png",
