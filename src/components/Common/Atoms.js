@@ -15,7 +15,7 @@ export const LoadingCtn = styled.div`
     }
 `;
 
-export const BalanceHeader = styled.div`
+export const BalanceHeaderWrap = styled.div`
     color: ${props => props.theme.wallet.text.primary};
     width: 100%;
     font-size: 30px;
@@ -25,7 +25,7 @@ export const BalanceHeader = styled.div`
     }
 `;
 
-export const BalanceHeaderFiat = styled.div`
+export const BalanceHeaderFiatWrap = styled.div`
     color: ${props => props.theme.wallet.text.secondary};
     width: 100%;
     font-size: 18px;
@@ -48,7 +48,7 @@ export const TokenParamLabel = styled.span`
 `;
 
 export const AlertMsg = styled.p`
-    color: ${props => props.theme.forms.error};
+    color: ${props => props.theme.forms.error} !important;
 `;
 
 export const ConvertAmount = styled.div`

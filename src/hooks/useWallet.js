@@ -17,22 +17,17 @@ import localforage from 'localforage';
 import { currency } from '@components/Common/Ticker';
 import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
+import {
+    CashReceivedNotificationIcon,
+    TokenReceivedNotificationIcon,
+} from '@components/Common/CustomIcons';
 
 const useWallet = () => {
     const [wallet, setWallet] = useState(false);
     const [cashtabSettings, setCashtabSettings] = useState(false);
     const [fiatPrice, setFiatPrice] = useState(null);
-    const [ws, setWs] = useState(null);
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
-    const [walletState, setWalletState] = useState({
-        balances: {},
-        hydratedUtxoDetails: {},
-        tokens: [],
-        slpBalancesAndUtxos: {},
-        parsedTxHistory: [],
-        utxos: [],
-    });
     const {
         getBCH,
         getUtxos,
@@ -45,13 +40,13 @@ const useWallet = () => {
     const [loading, setLoading] = useState(true);
     const [apiIndex, setApiIndex] = useState(0);
     const [BCH, setBCH] = useState(getBCH(apiIndex));
-    const [utxos, setUtxos] = useState(null);
-    const {
-        balances,
-        tokens,
-        slpBalancesAndUtxos,
-        parsedTxHistory,
-    } = walletState;
+    const { balances, tokens, utxos } = isValidStoredWallet(wallet)
+        ? wallet.state
+        : {
+              balances: {},
+              tokens: [],
+              utxos: null,
+          };
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
     const previousWallet = usePrevious(wallet);
@@ -166,8 +161,9 @@ const useWallet = () => {
             if (isValidStoredWallet(wallet)) {
                 // Convert all the token balance figures to big numbers
                 const liveWalletState = loadStoredWallet(wallet.state);
+                wallet.state = liveWalletState;
 
-                return setWalletState(liveWalletState);
+                return setWallet(wallet);
             }
             // If wallet in storage is a legacy wallet or otherwise does not have all state fields,
             // then assume utxos have changed
@@ -195,7 +191,7 @@ const useWallet = () => {
         return !isEqual(utxos, utxosToCompare);
     };
 
-    const update = async ({ wallet, setWalletState }) => {
+    const update = async ({ wallet }) => {
         //console.log(`tick()`);
         //console.time("update");
         try {
@@ -216,7 +212,6 @@ const useWallet = () => {
                 // as you are likely already at rate limits
                 throw new Error('Error fetching utxos');
             }
-            setUtxos(utxos);
 
             // Need to call with wallet as a parameter rather than trusting it is in state, otherwise can sometimes get wallet=false from haveUtxosChanged
             const utxosHaveChanged = haveUtxosChanged(
@@ -230,7 +225,7 @@ const useWallet = () => {
                 // remove api error here; otherwise it will remain if recovering from a rate
                 // limit error with an unchanged utxo set
                 setApiError(false);
-                // then walletState has not changed and does not need to be updated
+                // then wallet.state has not changed and does not need to be updated
                 //console.timeEnd("update");
                 return;
             }
@@ -276,12 +271,8 @@ const useWallet = () => {
 
             newState.hydratedUtxoDetails = hydratedUtxoDetails;
 
-            setWalletState(newState);
-
             // Set wallet with new state field
-            // Note: now that wallet carries state, maintaining a separate walletState object is redundant
-            // TODO clear up in future diff
-            wallet.state = wallet.newState;
+            wallet.state = newState;
             setWallet(wallet);
 
             // Write this state to indexedDb using localForage
@@ -289,7 +280,7 @@ const useWallet = () => {
             // If everything executed correctly, remove apiError
             setApiError(false);
         } catch (error) {
-            console.log(`Error in update({wallet, setWalletState})`);
+            console.log(`Error in update({wallet})`);
             console.log(error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
@@ -899,10 +890,8 @@ const useWallet = () => {
         setLoading(false);
     };
 
-    // Parse for incoming BCH transactions
-    // Only notify if websocket is not connected
+    // Parse for incoming XEC transactions
     if (
-        (ws === null || ws.readyState !== 1) &&
         previousBalances &&
         balances &&
         'totalBalance' in previousBalances &&
@@ -915,18 +904,37 @@ const useWallet = () => {
             message: 'Transaction received',
             description: (
                 <Paragraph>
-                    You received{' '}
-                    {Number(
-                        balances.totalBalance - previousBalances.totalBalance,
-                    ).toFixed(currency.cashDecimals)}{' '}
-                    {currency.ticker}!
+                    +{' '}
+                    {parseFloat(
+                        Number(
+                            balances.totalBalance -
+                                previousBalances.totalBalance,
+                        ).toFixed(currency.cashDecimals),
+                    ).toLocaleString()}{' '}
+                    {currency.ticker}{' '}
+                    {cashtabSettings &&
+                        cashtabSettings.fiatCurrency &&
+                        `(${
+                            currency.fiatCurrencies[
+                                cashtabSettings.fiatCurrency
+                            ].symbol
+                        }${(
+                            Number(
+                                balances.totalBalance -
+                                    previousBalances.totalBalance,
+                            ) * fiatPrice
+                        ).toFixed(
+                            currency.cashDecimals,
+                        )} ${cashtabSettings.fiatCurrency.toUpperCase()})`}
                 </Paragraph>
             ),
             duration: 3,
+            icon: <CashReceivedNotificationIcon />,
+            style: { width: '100%' },
         });
     }
 
-    // Parse for incoming SLP transactions
+    // Parse for incoming eToken transactions
     if (
         tokens &&
         tokens[0] &&
@@ -981,13 +989,15 @@ const useWallet = () => {
             // Notification if you received SLP
             if (receivedSlpQty > 0) {
                 notification.success({
-                    message: `${currency.tokenTicker} Transaction received: ${receivedSlpTicker}`,
+                    message: `${currency.tokenTicker} transaction received: ${receivedSlpTicker}`,
                     description: (
                         <Paragraph>
                             You received {receivedSlpQty} {receivedSlpName}
                         </Paragraph>
                     ),
-                    duration: 5,
+                    duration: 3,
+                    icon: <TokenReceivedNotificationIcon />,
+                    style: { width: '100%' },
                 });
             }
 
@@ -1017,14 +1027,16 @@ const useWallet = () => {
                     const receivedSlpName = tokens[i].info.tokenName;
 
                     notification.success({
-                        message: `SLP Transaction received: ${receivedSlpTicker}`,
+                        message: `${currency.tokenTicker} transaction received: ${receivedSlpTicker}`,
                         description: (
                             <Paragraph>
                                 You received {receivedSlpQty.toString()}{' '}
                                 {receivedSlpName}
                             </Paragraph>
                         ),
-                        duration: 5,
+                        duration: 3,
+                        icon: <TokenReceivedNotificationIcon />,
+                        style: { width: '100%' },
                     });
                 }
             }
@@ -1036,287 +1048,10 @@ const useWallet = () => {
         const wallet = await getWallet();
         update({
             wallet,
-            setWalletState,
         }).finally(() => {
             setLoading(false);
         });
     }, 10000);
-
-    const initializeWebsocket = (cashAddress, slpAddress) => {
-        // console.log(`initializeWebsocket(${cashAddress}, ${slpAddress})`);
-        // This function parses 3 cases
-        // 1: edge case, websocket is in state but not properly connected
-        //    > Remove it from state and forget about it, fall back to normal notifications
-        // 2: edge-ish case, websocket is in state and connected but user has changed wallet
-        //    > Unsubscribe from old addresses and subscribe to new ones
-        // 3: most common: app is opening, creating websocket with existing addresses
-
-        // If the websocket is already in state but is not properly connected
-        if (ws !== null && ws.readyState !== 1) {
-            // Forget about it and use conventional notifications
-
-            // Close
-            ws.close();
-            // Remove from state
-            setWs(null);
-        }
-        // If the websocket is in state and connected
-        else if (ws !== null) {
-            // console.log(`Websocket already in state`);
-            // console.log(`ws,`, ws);
-            // instead of initializing websocket, unsubscribe from old addresses and subscribe to new ones
-            const previousWsCashAddress = previousWallet.Path145.legacyAddress;
-            const previousWsSlpAddress = previousWallet.Path245.legacyAddress;
-            try {
-                // Unsubscribe from previous addresses
-                ws.send(
-                    JSON.stringify({
-                        op: 'addr_unsub',
-                        addr: previousWsCashAddress,
-                    }),
-                );
-                console.log(
-                    `Unsubscribed from BCH address at ${previousWsCashAddress}`,
-                );
-                ws.send(
-                    JSON.stringify({
-                        op: 'addr_unsub',
-                        addr: previousWsSlpAddress,
-                    }),
-                );
-                console.log(
-                    `Unsubscribed from SLP address at ${previousWsSlpAddress}`,
-                );
-
-                // Subscribe to new addresses
-                ws.send(
-                    JSON.stringify({
-                        op: 'addr_sub',
-                        addr: cashAddress,
-                    }),
-                );
-                console.log(`Subscribed to BCH address at ${cashAddress}`);
-                // Subscribe to SLP address
-                ws.send(
-                    JSON.stringify({
-                        op: 'addr_sub',
-                        addr: slpAddress,
-                    }),
-                );
-                console.log(`Subscribed to SLP address at ${slpAddress}`);
-                // Reset onmessage; it was previously set with the old addresses
-                // Note this code is exactly identical to lines 431-490
-                // TODO put in function
-                ws.onmessage = e => {
-                    // TODO handle case where receive multiple messages on one incoming transaction
-                    //console.log(`ws msg received`);
-                    const incomingTx = JSON.parse(e.data);
-                    console.log(incomingTx);
-
-                    let bchSatsReceived = 0;
-                    // First, check the inputs
-                    // If cashAddress or slpAddress are in the inputs, then this is a sent tx and should be ignored for notifications
-                    if (
-                        incomingTx &&
-                        incomingTx.x &&
-                        incomingTx.x.inputs &&
-                        incomingTx.x.out
-                    ) {
-                        const inputs = incomingTx.x.inputs;
-                        // Iterate over inputs and see if this transaction was sent by the active wallet
-                        for (let i = 0; i < inputs.length; i += 1) {
-                            if (
-                                inputs[i].prev_out.addr === cashAddress ||
-                                inputs[i].prev_out.addr === slpAddress
-                            ) {
-                                // console.log(`Found a sending tx, not notifying`);
-                                // This is a sent transaction and should be ignored by notification handlers
-                                return;
-                            }
-                        }
-                        // Iterate over outputs to determine receiving address
-                        const outputs = incomingTx.x.out;
-
-                        for (let i = 0; i < outputs.length; i += 1) {
-                            if (outputs[i].addr === cashAddress) {
-                                // console.log(`BCH transaction received`);
-                                bchSatsReceived += outputs[i].value;
-                                // handle
-                            }
-                            if (outputs[i].addr === slpAddress) {
-                                console.log(`SLP transaction received`);
-                                //handle
-                                // you would want to get the slp info using this endpoint:
-                                // https://rest.kingbch.com/v3/slp/txDetails/cb39dd04e07e172a37addfcb1d6e167dc52c01867ba21c9bf8b5acf4dd969a3f
-                                // But it does not work for unconfirmed txs
-                                // Hold off on slp tx notifications for now
-                            }
-                        }
-                    }
-                    // parse for receiving address
-                    // if received at cashAddress, parse for BCH amount, notify BCH received
-                    // if received at slpAddress, parse for token, notify SLP received
-                    // if those checks fail, could be from a 'sent' tx, ignore
-
-                    // Note, when you send an SLP tx, you get SLP change to SLP address and BCH change to BCH address
-
-                    // Also note, when you send an SLP tx, you often have inputs from both BCH and SLP addresses
-
-                    // This causes a sent SLP tx to register 4 times from the websocket
-
-                    // Best way to ignore this is to ignore any incoming utx.x with BCH or SLP address in the inputs
-
-                    // Notification for received BCHA
-                    if (bchSatsReceived > 0) {
-                        notification.success({
-                            message: 'Transaction received',
-                            description: (
-                                <Paragraph>
-                                    You received {bchSatsReceived / 1e8}{' '}
-                                    {currency.ticker}!
-                                </Paragraph>
-                            ),
-                            duration: 3,
-                        });
-                    }
-                };
-            } catch (err) {
-                console.log(
-                    `Error attempting to configure websocket for new wallet`,
-                );
-                console.log(err);
-                console.log(`Closing connection`);
-                ws.close();
-                setWs(null);
-            }
-        } else {
-            // If there is no websocket, create one, subscribe to addresses, and add notifications for incoming BCH transactions
-
-            let newWs = new WebSocket('wss://ws.blockchain.info/bch/inv');
-
-            newWs.onopen = () => {
-                console.log(`Connected to bchWs`);
-
-                // Subscribe to BCH address
-                newWs.send(
-                    JSON.stringify({
-                        op: 'addr_sub',
-                        addr: cashAddress,
-                    }),
-                );
-
-                console.log(`Subscribed to BCH address at ${cashAddress}`);
-                // Subscribe to SLP address
-                newWs.send(
-                    JSON.stringify({
-                        op: 'addr_sub',
-                        addr: slpAddress,
-                    }),
-                );
-                console.log(`Subscribed to SLP address at ${slpAddress}`);
-            };
-            newWs.onerror = e => {
-                // close and set to null
-                console.log(`Error in websocket connection for ${newWs}`);
-                console.log(e);
-                setWs(null);
-            };
-            newWs.onclose = () => {
-                console.log(`Websocket connection closed`);
-                // Unsubscribe on close to prevent double subscribing
-                //{"op":"addr_unsub", "addr":"$bitcoin_address"}
-                newWs.send(
-                    JSON.stringify({
-                        op: 'addr_unsub',
-                        addr: cashAddress,
-                    }),
-                );
-                console.log(`Unsubscribed from BCH address at ${cashAddress}`);
-                newWs.send(
-                    JSON.stringify({
-                        op: 'addr_sub',
-                        addr: slpAddress,
-                    }),
-                );
-                console.log(`Unsubscribed from SLP address at ${slpAddress}`);
-            };
-            newWs.onmessage = e => {
-                // TODO handle case where receive multiple messages on one incoming transaction
-                //console.log(`ws msg received`);
-                const incomingTx = JSON.parse(e.data);
-                console.log(incomingTx);
-
-                let bchSatsReceived = 0;
-                // First, check the inputs
-                // If cashAddress or slpAddress are in the inputs, then this is a sent tx and should be ignored for notifications
-                if (
-                    incomingTx &&
-                    incomingTx.x &&
-                    incomingTx.x.inputs &&
-                    incomingTx.x.out
-                ) {
-                    const inputs = incomingTx.x.inputs;
-                    // Iterate over inputs and see if this transaction was sent by the active wallet
-                    for (let i = 0; i < inputs.length; i += 1) {
-                        if (
-                            inputs[i].prev_out.addr === cashAddress ||
-                            inputs[i].prev_out.addr === slpAddress
-                        ) {
-                            // console.log(`Found a sending tx, not notifying`);
-                            // This is a sent transaction and should be ignored by notification handlers
-                            return;
-                        }
-                    }
-                    // Iterate over outputs to determine receiving address
-                    const outputs = incomingTx.x.out;
-
-                    for (let i = 0; i < outputs.length; i += 1) {
-                        if (outputs[i].addr === cashAddress) {
-                            // console.log(`BCH transaction received`);
-                            bchSatsReceived += outputs[i].value;
-                            // handle
-                        }
-                        if (outputs[i].addr === slpAddress) {
-                            console.log(`SLP transaction received`);
-                            //handle
-                            // you would want to get the slp info using this endpoint:
-                            // https://rest.kingbch.com/v3/slp/txDetails/cb39dd04e07e172a37addfcb1d6e167dc52c01867ba21c9bf8b5acf4dd969a3f
-                            // But it does not work for unconfirmed txs
-                            // Hold off on slp tx notifications for now
-                        }
-                    }
-                }
-                // parse for receiving address
-                // if received at cashAddress, parse for BCH amount, notify BCH received
-                // if received at slpAddress, parse for token, notify SLP received
-                // if those checks fail, could be from a 'sent' tx, ignore
-
-                // Note, when you send an SLP tx, you get SLP change to SLP address and BCH change to BCH address
-
-                // Also note, when you send an SLP tx, you often have inputs from both BCH and SLP addresses
-
-                // This causes a sent SLP tx to register 4 times from the websocket
-
-                // Best way to ignore this is to ignore any incoming utx.x with BCH or SLP address in the inputs
-
-                // Notification for received BCHA
-                if (bchSatsReceived > 0) {
-                    notification.success({
-                        message: 'Transaction received',
-                        description: (
-                            <Paragraph>
-                                You received {bchSatsReceived / 1e8}{' '}
-                                {currency.ticker}!
-                            </Paragraph>
-                        ),
-                        duration: 3,
-                    });
-                }
-            };
-
-            setWs(newWs);
-        }
-    };
 
     const fetchBchPrice = async (
         fiatCode = cashtabSettings ? cashtabSettings.fiatCurrency : 'usd',
@@ -1337,7 +1072,7 @@ const useWallet = () => {
         try {
             bchPriceJson = await bchPrice.json();
             //console.log(`bchPriceJson`, bchPriceJson);
-            let bchPriceInFiat = bchPriceJson[cryptoId][fiatCode] / 1e6;
+            let bchPriceInFiat = bchPriceJson[cryptoId][fiatCode];
 
             const validEcashPrice = typeof bchPriceInFiat === 'number';
 
@@ -1359,31 +1094,10 @@ const useWallet = () => {
         initializeFiatPriceApi(initialSettings.fiatCurrency);
     }, []);
 
-    useEffect(() => {
-        if (
-            wallet &&
-            wallet.Path145 &&
-            wallet.Path145.cashAddress &&
-            wallet.Path245 &&
-            wallet.Path245.cashAddress
-        ) {
-            if (currency.useBlockchainWs) {
-                initializeWebsocket(
-                    wallet.Path145.legacyAddress,
-                    wallet.Path245.legacyAddress,
-                );
-            }
-        }
-    }, [wallet]);
-
     return {
         BCH,
         wallet,
         fiatPrice,
-        slpBalancesAndUtxos,
-        balances,
-        tokens,
-        parsedTxHistory,
         loading,
         apiError,
         cashtabSettings,
@@ -1394,19 +1108,12 @@ const useWallet = () => {
         getWalletDetails,
         getSavedWallets,
         migrateLegacyWallet,
-        update: async () =>
-            update({
-                wallet: await getWallet(),
-                setLoading,
-                setWalletState,
-            }),
         createWallet: async importMnemonic => {
             setLoading(true);
             const newWallet = await createWallet(importMnemonic);
             setWallet(newWallet);
             update({
                 wallet: newWallet,
-                setWalletState,
             }).finally(() => setLoading(false));
         },
         activateWallet: async walletToActivate => {
@@ -1421,7 +1128,6 @@ const useWallet = () => {
                 // This handles case of unmigrated legacy wallet
                 update({
                     wallet: newWallet,
-                    setWalletState,
                 }).finally(() => setLoading(false));
             }
         },
