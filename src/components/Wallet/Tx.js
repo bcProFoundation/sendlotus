@@ -304,57 +304,21 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                     <>
                                         -{' '}
                                         {formatBalance(
-                                    data.amountSent,
-                                )}
-                                &nbsp;
+                                            data.amountSent,
+                                        )}
+                                        &nbsp;
                                         {currency.ticker}
                                         <br />
-                                {/* {fiatPrice !== null && !isNaN(data.amountSent) && (
-                                    <TxFiatPrice>
-                                        -{' '}
-                                        {
-                                            currency.fiatCurrencies[
-                                                fiatCurrency
-                                            ].symbol
-                                        }
-                                        {(
-                                            fromLegacyDecimals(
-                                                data.amountSent,
-                                            ) * fiatPrice
-                                        ).toFixed(2)}{' '}
-                                        {currency.fiatCurrencies.fiatCurrency}
-                                    </TxFiatPrice>
-                                        }
                                     </>
                                 ) : (
                                     <>
                                         +{' '}
                                         {formatBalance(
-                                    data.amountReceived,
-                                )}
-                                &nbsp;
+                                            data.amountReceived
+                                        )}
+                                        &nbsp;
                                         {currency.ticker}
                                         <br />
-                                            {
-                                    !isNaN(data.amountReceived) && (
-                                        <TxFiatPrice>
-                                            +{' '}
-                                            {
-                                                currency.fiatCurrencies[
-                                                    fiatCurrency
-                                                ].symbol
-                                            }
-                                            {(
-                                                fromLegacyDecimals(
-                                                    data.amountReceived,
-                                                ) * fiatPrice
-                                            ).toFixed(2)}{' '}
-                                            {
-                                                currency.fiatCurrencies
-                                                    .fiatCurrency
-                                            }
-                                        </TxFiatPrice>
-                                            }
                                     </>
                                 )}
                             </TxInfo>

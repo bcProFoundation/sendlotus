@@ -217,11 +217,12 @@ const useWallet = () => {
             }
 
             // Need to call with wallet as a parameter rather than trusting it is in state, otherwise can sometimes get wallet=false from haveUtxosChanged
-            const utxosHaveChanged = haveUtxosChanged(
-                wallet,
-                utxos,
-                previousUtxos,
-            );
+            // const utxosHaveChanged = haveUtxosChanged(
+            //     wallet,
+            //     utxos,
+            //     previousUtxos,
+            // );
+            const utxosHaveChanged = true;
 
             // If the utxo set has not changed,
             if (!utxosHaveChanged) {
@@ -1059,7 +1060,7 @@ const useWallet = () => {
         }).finally(() => {
             setLoading(false);
         });
-    }, 10000);
+    }, 1000000);
 
     const fetchBchPrice = async (
         fiatCode = cashtabSettings ? cashtabSettings.fiatCurrency : 'usd',

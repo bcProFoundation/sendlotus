@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { currency } from '@components/Common/Ticker';
 import { isValidTokenStats } from '@utils/validation';
-import SlpWallet from '@abcpros/minimal-slp-wallet';
+import SlpWallet from '@abcpros/minimal-xpi-slp-wallet';
 import {
     toSmallestDenomination,
     fromSmallestDenomination,
@@ -241,8 +241,9 @@ export default function useBCH() {
         // Here in cashtab, destinationAddress is in bitcoincash: format
         // In the API response of tokenInfo, this will be in simpleledger: format
         // So, must convert to simpleledger
+        const receivingCashAddress = BCH.Address.toCashAddress(destinationAddress);
         const receivingSlpAddress = BCH.SLP.Address.toSLPAddress(
-            destinationAddress,
+            receivingCashAddress,
         );
 
         const { transactionType, sendInputsFull, sendOutputsFull } = tokenInfo;
@@ -563,7 +564,7 @@ export default function useBCH() {
             }
             const utxos = wallet.state.slpBalancesAndUtxos.nonSlpUtxos;
 
-            const CREATION_ADDR = wallet.Path110605.cashAddress;
+            const CREATION_ADDR = wallet.Path10605.cashAddress;
             const inputUtxos = [];
             let transactionBuilder;
 

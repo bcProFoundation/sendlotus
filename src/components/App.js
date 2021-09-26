@@ -33,8 +33,6 @@ import {
     useHistory,
 } from 'react-router-dom';
 // Easter egg imports not used in extension/src/components/App.js
-import TabCash from '@assets/tabcash.png';
-import ABC from '@assets/logo_topright.png';
 import { checkForTokenById } from '@utils/tokenMethods.js';
 
 const GlobalStyle = createGlobalStyle`    
@@ -185,13 +183,17 @@ export const HeaderCtn = styled.div`
 `;
 
 export const CashTabLogo = styled.img`
-    width: 120px;
+    width: 200px;
     @media (max-width: 768px) {
-        width: 110px;
+        width: 150px;
     }
 `;
-
-// AbcLogo styled component not included in extension, replaced by open in new tab link
+export const LotusLogo = styled.img`
+    width: 50px;
+    @media (max-width: 768px) {
+        width: 50px;
+    }
+`;
 export const AbcLogo = styled.img`
     width: 150px;
     @media (max-width: 768px) {
@@ -218,24 +220,7 @@ export const EasterEgg = styled.img`
     }
 `;
 
-export const CashTabLogo = styled.img`
-    width: 200px;
-    @media (max-width: 768px) {
-        width: 150px;
-    }
-`;
-export const LotusLogo = styled.img`
-    width: 50px;
-    @media (max-width: 768px) {
-        width: 50px;
-    }
-`;
-export const AbcLogo = styled.img`
-    width: 150px;
-    @media (max-width: 768px) {
-        width: 120px;
-    }
-`;
+
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, loading } = ContextValue;
@@ -333,7 +318,6 @@ const App = () => {
                                 </NavButton>
 
                                 <NavButton
-                                disabled
                                     active={selectedKey === 'tokens'}
                                     onClick={() => history.push('/tokens')}
                                 >

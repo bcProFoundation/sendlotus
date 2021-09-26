@@ -177,6 +177,7 @@ const WalletInfo = () => {
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
     const handleChangeAddress = () => {
         setAddress(address === 'xAddress' ? 'slpAddress' : 'xAddress');
+    }
 
     return (
         <>
@@ -202,7 +203,6 @@ const WalletInfo = () => {
                         balance={balances.totalBalance}
                         ticker={currency.ticker}
                     />
-                    )}
                 </>
             )}
             {apiError && <ApiError />}
@@ -225,12 +225,12 @@ const WalletInfo = () => {
                         >
                             Transaction History
                         </TabLabel>
-                        {/* <TabLabel
+                        <TabLabel
                             active={activeTab === 'tokens'}
                             onClick={() => setActiveTab('tokens')}
                         >
                             Tokens
-                        </TabLabel> */}
+                        </TabLabel>
                         <TabLine left={activeTab === 'txHistory'} />
                     </Tabs>
 

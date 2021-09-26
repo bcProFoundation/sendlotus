@@ -471,19 +471,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 onChange: e => handleSelectedCurrencyChange(e),
                             }}
                         ></SendBchInput>
-                            {/* {priceApiError && (
-                                <AlertMsg>
-                                    Error fetching fiat price. Setting send by{' '}
-                                    {currency.fiatCurrencies[
-                                        cashtabSettings.fiatCurrency
-                                    ].slug.toUpperCase()}{' '}
-                                    disabled
-                                </AlertMsg>
-                            )}
-                            <ConvertAmount>
-                                {fiatPriceString !== '' && '='}{' '}
-                                {fiatPriceString}
-                            </ConvertAmount> */}
                                 {fiatPriceString !== '' && '='}{' '}
                         <div
                             style={{

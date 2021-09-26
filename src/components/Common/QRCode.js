@@ -20,8 +20,8 @@ export const StyledRawQRCode = styled(RawQRCode)`
         fill: ${props => props.theme.qr.background};
     }
     :hover {
-        border-color: ${({ xec = 0, ...props }) =>
-            xec === 1 ? props.theme.primary : props.theme.qr.token};
+        border-color: ${({ xpi = 0, ...props }) =>
+            xpi === 1 ? props.theme.primary : props.theme.qr.token};
     }
     @media (max-width: 768px) {
         border-radius: 18px;
@@ -35,11 +35,11 @@ const Copied = styled.div`
     font-weight: bold;
     width: 100%;
     text-align: center;
-    background-color: ${({ xec = 0, ...props }) =>
-        xec === 1 ? props.theme.primary : props.theme.qr.token};
+    background-color: ${({ xpi = 0, ...props }) =>
+        xpi === 1 ? props.theme.primary : props.theme.qr.token};
     border: 1px solid;
-    border-color: ${({ xec = 0, ...props }) =>
-        xec === 1
+    border-color: ${({ xpi = 0, ...props }) =>
+        xpi === 1
             ? props.theme.qr.copyBorderCash
             : props.theme.qr.copyBorderToken};
     color: ${props => props.theme.contrast};
@@ -74,11 +74,8 @@ const AddressHighlightTrim = styled.span`
 `;
 
 const CustomInput = styled.div`
-    font-size: 12px;
-    color: ${({ xec = 0, ...props }) =>
-        xec === 1
-            ? props.theme.wallet.text.secondary
-            : props.theme.brandSecondary};
+    font-size: 15px;
+    color: ${props => props.theme.wallet.text.secondary};
     text-align: center;
     cursor: pointer;
     margin-bottom: 0px;
@@ -86,6 +83,11 @@ const CustomInput = styled.div`
     font-family: 'Roboto Mono', monospace;
     border-radius: 5px;
 
+    span {
+        font-weight: bold;
+        color: ${props => props.theme.wallet.text.primary};
+        font-size: 16px;
+    }
     input {
         border: none;
         width: 100%;
@@ -109,16 +111,22 @@ const CustomInput = styled.div`
         color: ${props => props.theme.wallet.text.primary};
     }
     @media (max-width: 768px) {
-        font-size: 10px;
+        font-size: 11px;
+        span {
+            font-size: 12px;
+        }
         input {
-            font-size: 10px;
+            font-size: 11px;
             margin-bottom: 10px;
         }
     }
-    @media (max-width: 400px) {
-        font-size: 7px;
+    @media (max-width: 340px) {
+        font-size: 10px;
+        span {
+            font-size: 11px;
+        }
         input {
-            font-size: 10px;
+            font-size: 11px;
             margin-bottom: 10px;
         }
     }
@@ -178,7 +186,7 @@ export const QRCode = ({
         >
             <div style={{ position: 'relative' }} onClick={handleOnClick}>
                 <Copied
-                    bch={address ? 1 : 0}
+                    xpi={address ? 1 : 0}
                     style={{ display: visible ? null : 'none' }}
                 >
                     Copied <br />
@@ -189,7 +197,7 @@ export const QRCode = ({
                     id="borderedQRCode"
                     value={address || ''}
                     size={size}
-                    bch={address ? 1 : 0}
+                    xpi={address ? 1 : 0}
                     renderAs={'svg'}
                     includeMargin
                     imageSettings={{
@@ -206,7 +214,7 @@ export const QRCode = ({
                 />
 
                 {address && (
-                    <CustomInput xec={address && isCash ? 1 : 0}>
+                    <CustomInput xpi={address ? 1 : 0}>
                         <input
                             ref={txtRef}
                             readOnly

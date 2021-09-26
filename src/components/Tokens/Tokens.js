@@ -52,13 +52,6 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
                         balance={balances.totalBalance}
                         ticker={currency.ticker}
                     />
-                    {fiatPrice !== null && !isNaN(balances.totalBalance) && (
-                        <BalanceHeaderFiat
-                            balance={balances.totalBalance}
-                            settings={cashtabSettings}
-                            fiatPrice={fiatPrice}
-                        />
-                    )}
                 </>
             )}
             {apiError && <ApiError />}
