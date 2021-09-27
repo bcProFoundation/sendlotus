@@ -211,10 +211,31 @@ const WalletInfo = () => {
                 <>
                     <QRCode
                         id="borderedQRCode"
-                        address={wallet.Path10605.xAddress}
+                        address={
+                            address === 'slpAddress'? wallet.Path10605.slpAddress : wallet.Path10605.xAddress
+                        }
                     />
                 </>
             )}
+
+            <SwitchBtnCtn>
+                <SwitchBtn
+                    onClick={() => handleChangeAddress()}
+                    className={
+                        address !== 'xAddress' ? 'nonactiveBtn' : null
+                    }
+                >
+                    {currency.ticker}
+                </SwitchBtn>
+                <SwitchBtn
+                    onClick={() => handleChangeAddress()}
+                    className={
+                        address === 'xAddress' ? 'nonactiveBtn' : 'slpActive'
+                    }
+                >
+                    {currency.tokenTicker}
+                </SwitchBtn>
+            </SwitchBtnCtn>
 
             {hasHistory && parsedTxHistory && (
                 <>

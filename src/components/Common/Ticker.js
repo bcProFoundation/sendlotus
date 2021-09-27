@@ -137,8 +137,18 @@ export function parseAddress(BCH, addressString, isToken = false) {
 
     // Validate address
     let isValidAddress;
+    
     try {
-        isValidAddress = BCH.Address.isXAddress(cleanAddress);
+        if (isToken) {
+            isValidAddress = BCH.Address.isCashAddress(cleanAddress);
+            const { prefix } = cashaddr.decode(cleanAddress);
+            if (!currency.tokenPrefixes.includes(prefix)) {
+                isValidAddress = false;
+            }
+        } else {
+            isValidAddress = BCH.Address.isXAddress(cleanAddress);
+        }
+        
     } catch (err) {
         isValidAddress = false;
     }
