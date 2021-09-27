@@ -4,7 +4,7 @@
     "private": true,
     "homepage": "https://sendlotus.com/",
     "dependencies": {
-        "@abcpros/minimal-xpi-slp-wallet": "^3.0.4",
+        "@abcpros/minimal-xpi-slp-wallet": "^3.0.5",
         "@ant-design/icons": "^4.3.0",
         "@fortawesome/fontawesome-free": "^5.15.1",
         "@zxing/library": "0.8.0",
