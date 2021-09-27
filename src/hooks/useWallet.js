@@ -1060,7 +1060,7 @@ const useWallet = () => {
         }).finally(() => {
             setLoading(false);
         });
-    }, 1000000);
+    }, 10000);
 
     const fetchBchPrice = async (
         fiatCode = cashtabSettings ? cashtabSettings.fiatCurrency : 'usd',
