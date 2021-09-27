@@ -217,12 +217,11 @@ const useWallet = () => {
             }
 
             // Need to call with wallet as a parameter rather than trusting it is in state, otherwise can sometimes get wallet=false from haveUtxosChanged
-            // const utxosHaveChanged = haveUtxosChanged(
-            //     wallet,
-            //     utxos,
-            //     previousUtxos,
-            // );
-            const utxosHaveChanged = true;
+            const utxosHaveChanged = haveUtxosChanged(
+                wallet,
+                utxos,
+                previousUtxos,
+            );
 
             // If the utxo set has not changed,
             if (!utxosHaveChanged) {
