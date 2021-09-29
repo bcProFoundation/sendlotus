@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './components/App';
-import CheckBrowser from './components/InApp/Slider/check-browser';
+import CheckBrowser from './components/InApp/check-browser';
 import { WalletProvider } from './utils/context';
 import { HashRouter as Router } from 'react-router-dom';
 import GA from './utils/GoogleAnalytics';

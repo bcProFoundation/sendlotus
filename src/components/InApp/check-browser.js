@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import WelcomeScreen from '../Welcome-screen';
-import InApp from '../inapp';
+import InApp from './inapp';
+// import WelcomeScreen from './Slider/Welcome-screen';
 
 class CheckBrowser extends Component {
 
@@ -25,7 +25,7 @@ class CheckBrowser extends Component {
       {
           key: 2,
           title: 'First click on the Share button in the red rectangle as below:',
-          image: Image1,
+          image: '',
       },
       {
           key: 3,
@@ -41,18 +41,17 @@ class CheckBrowser extends Component {
       return null;
     } 
 
+
     else if (inapp.isMobile) // isMobile
     {
-      return <WelcomeScreen slides={slides}/>;
+      return alert('For the best user experience, please install app');
+      // return <WelcomeScreen slides={slides}/>;
     } 
     
+
     else // isInApp
     {
-      return (
-        <div>
-          
-        </div>
-      );
+      return null;
     }
   }
 }

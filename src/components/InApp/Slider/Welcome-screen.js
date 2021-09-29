@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, Text, Dimensions } from 'react-native-web';
-import Indicators from './Slider/Indicators';
-import Slide from './Slider/Slide';
+import { View, StyleSheet, FlatList, Dimensions } from 'react-native-web';
+import Indicators from './Indicators'
+import Slide from './Slide';
 
 const WelcomeScreen = ({ slides = [], onDone }) => {
     if (!slides || !slides.length) return null;
