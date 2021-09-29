@@ -85,24 +85,15 @@ export const OnBoarding = ({ history }) => {
         <>
             <h2>Welcome to SendLotus!</h2>
             <WelcomeText>
-                SendLotus is an{' '}
+                SendLotus is an open source, non-custodial web wallet for Lotus.
+                <br />
+                To start, install SendLotus to your device follow {' '}
                 <WelcomeLink
-                    href="https://givelotus.org/"
+                    href="https://gitlab.com/abcpros/sendlotus/-/wikis/home"
                     target="_blank"
                     rel="noreferrer"
                 >
-                    open source,
-                </WelcomeLink>{' '}
-                non-custodial web wallet for {currency.name}.
-                <br />
-                <br />
-                Want to learn more?{' '}
-                <WelcomeLink
-                    href="https://gitlab.com/abcpros/libraries/sendlotus/"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    Check out the SendLotus source code.
+                    the guide
                 </WelcomeLink>
             </WelcomeText>
 
