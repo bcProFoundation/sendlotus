@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
+import { Row, Col, Button } from 'antd';
 import InApp from './inapp';
-
-import AddToHomeScreen from './AddToHomescreen/addToHomescreen'
+import PWAInstallerPrompt from './addHomeScreen'
 // import WelcomeScreen from './Slider/Welcome-screen';
 
 class CheckBrowser extends Component {
 
-    state = {
-        inapp: null,
-    }
+  state = {
+    inapp: null,
+  }
 
   componentWillMount() {
     const inapp = new InApp(navigator.userAgent || navigator.vendor || window.opera);
@@ -47,51 +47,46 @@ class CheckBrowser extends Component {
     else if (inapp.isMobile) // isMobile
     {
       return (
-        <div>
-        <AddToHomeScreen
-            startAutomatically={ true }
-            startDelay={ 0 }
-            lifespan={ 30 }
-            skipFirstVisit={ true }
-            displayPace={ 0 }
-            customPromptContent={ {
-              cancelMsg: '',
-              installMsg: 'Install',
-              guidanceCancelMsg: ''
-            } }
-            customPromptElements={ {
-              container: 'athContainer',
-              containerAddOns: '',
-              banner: 'athBanner',
-              logoCell: 'athLogoCell',
-              logoCellAddOns: 'athContentCell',
-              logo: 'athLogo',
-              titleCell: 'athTitleCell',
-              titleCellAddOns: 'athContentCell',
-              title: 'athTitle',
-              cancelButtonCell: 'athCancelButtonCell',
-              cancelButtonCellAddOns: 'athButtonCell',
-              cancelButton: 'athCancelButton',
-              installButtonCell: 'athInstallButtonCell',
-              installButtonCellAddOns: 'athButtonCell',
-              installButton: 'athInstallButton',
-              installButtonAddOns: 'button',
-              guidance: 'athGuidance',
-              guidanceImageCell: 'athGuidanceImageCell',
-              guidanceImageCellAddOns: '',
-              guidanceCancelButton: 'athGuidanceCancelButton'
-            } }
+        <PWAInstallerPrompt 
+          render={({ onClick }) => (
+            <Row align="middle" justify="center">
+              <Col span={16}>
+                  Add to HomeScreen & Quick Access!
+              </Col>
+              <Col span={6}>
+                <Button type="dashed" onClick={onClick}>
+                  Install
+                </Button>
+              </Col>
+            </Row>
+          )}
+          callback={(data) => console.log(data)} 
         />
-        </div>
       );
-      // return <AddToHomescreen/>;
       // return <WelcomeScreen slides={slides}/>;
     } 
     
 
     else // isInApp
     {
-      return alert('For the best user experience, please install app');
+      // return alert('For the best user experience, please install app');
+      return (
+        <PWAInstallerPrompt 
+          render={({ onClick }) => (
+            <Row align="middle" justify="center">
+              <Col span={16}>
+                  Add to HomeScreen & Quick Access!
+              </Col>
+              <Col span={6}>
+                <Button type="dashed" onClick={onClick}>
+                  Install
+                </Button>
+              </Col>
+            </Row>
+          )}
+          callback={(data) => console.log(data)} 
+        />
+      );
     }
   }
 }

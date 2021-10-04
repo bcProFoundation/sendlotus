@@ -32,6 +32,7 @@
         "react-native-app-intro-slider": "^4.0.4",
         "react-native-slider-intro": "^1.0.21",
         "react-native-web": "^0.17.1",
+        "react-pwa-installer-prompt": "^1.0.8",
         "react-router": "^5.2.0",
         "react-router-dom": "^5.2.0",
         "styled-components": "^4.4.0"
