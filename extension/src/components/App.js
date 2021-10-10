@@ -283,6 +283,7 @@ const App = () => {
                         {wallet ? (
                             <Footer>
                                 <NavButton
+                                    disabled
                                     active={selectedKey === 'wallet'}
                                     onClick={() => history.push('/wallet')}
                                 >

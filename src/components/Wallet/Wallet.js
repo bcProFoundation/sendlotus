@@ -218,7 +218,7 @@ const WalletInfo = () => {
                 </>
             )}
 
-            <SwitchBtnCtn>
+            {/* <SwitchBtnCtn>
                 <SwitchBtn
                     onClick={() => handleChangeAddress()}
                     className={
@@ -235,7 +235,7 @@ const WalletInfo = () => {
                 >
                     {currency.tokenTicker}
                 </SwitchBtn>
-            </SwitchBtnCtn>
+            </SwitchBtnCtn> */}
 
             {hasHistory && parsedTxHistory && (
                 <>
@@ -246,12 +246,12 @@ const WalletInfo = () => {
                         >
                             Transaction History
                         </TabLabel>
-                        <TabLabel
+                        {/* <TabLabel
                             active={activeTab === 'tokens'}
                             onClick={() => setActiveTab('tokens')}
                         >
                             Tokens
-                        </TabLabel>
+                        </TabLabel> */}
                         <TabLine left={activeTab === 'txHistory'} />
                     </Tabs>
 

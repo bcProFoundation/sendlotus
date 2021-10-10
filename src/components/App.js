@@ -318,6 +318,7 @@ const App = () => {
                                 </NavButton>
 
                                 <NavButton
+                                    disabled
                                     active={selectedKey === 'tokens'}
                                     onClick={() => history.push('/tokens')}
                                 >

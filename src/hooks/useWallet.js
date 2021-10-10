@@ -233,10 +233,23 @@ const useWallet = () => {
                 return;
             }
 
-            const hydratedUtxoDetails = await getHydratedUtxoDetails(
-                BCH,
-                utxos,
-            );
+            // We do not support slp here, so we assume all uxtos are invalid (in slp context)
+            for (let i = 0; i < utxos.length; i += 1) {
+                let theseUtxos = utxos[i].utxos;
+                for (let j = 0; j < theseUtxos.length; j += 1) {
+                    const utxo = theseUtxos[j];
+                    utxo.txid = utxo.tx_hash;
+                    utxo.vout = utxo.tx_pos;
+                    utxo.isValid = false;
+                }
+            }
+
+            // @TODO: we does not support slp here, so comment out below code and keep it as reference
+            // const hydratedUtxoDetails = await getHydratedUtxoDetails(
+            //     BCH,
+            //     utxos,
+            // );
+            const hydratedUtxoDetails = { slpUtxos: utxos };
 
             const slpBalancesAndUtxos = await getSlpBalancesAndUtxos(
                 hydratedUtxoDetails,
@@ -1059,7 +1072,7 @@ const useWallet = () => {
         }).finally(() => {
             setLoading(false);
         });
-    }, 10000);
+    }, 10000000);
 
     const fetchBchPrice = async (
         fiatCode = cashtabSettings ? cashtabSettings.fiatCurrency : 'usd',
