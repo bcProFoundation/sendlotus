@@ -933,20 +933,6 @@ const useWallet = () => {
                         ).toFixed(currency.cashDecimals),
                     ).toLocaleString()}{' '}
                     {currency.ticker}{' '}
-                    {cashtabSettings &&
-                        cashtabSettings.fiatCurrency &&
-                        `(${
-                            currency.fiatCurrencies[
-                                cashtabSettings.fiatCurrency
-                            ].symbol
-                        }${(
-                            Number(
-                                balances.totalBalance -
-                                    previousBalances.totalBalance,
-                            ) * fiatPrice
-                        ).toFixed(
-                            currency.cashDecimals,
-                        )} ${cashtabSettings.fiatCurrency.toUpperCase()})`}
                 </Paragraph>
             ),
             duration: 3,
