@@ -471,7 +471,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 onChange: e => handleSelectedCurrencyChange(e),
                             }}
                         ></SendBchInput>
-                                {fiatPriceString !== '' && '='}{' '}
                         <div
                             style={{
                                 paddingTop: '12px',
