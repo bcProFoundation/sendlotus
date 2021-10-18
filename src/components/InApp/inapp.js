@@ -28,11 +28,15 @@ class InApp {
   }
 
   get isMobile(): boolean {
-    return /(iPad|iPhone|Android|Mobile)/i.test(this.ua) || false;
+    return /(Android|Mobile)/i.test(this.ua) || false;
+  }
+
+  get isIOS(): boolean {
+    return /(iPad|iPhone)/i.test(this.ua) || false;
   }
 
   get isDesktop(): boolean {
-    return !this.isMobile;
+    return !this.isMobile && !this.isIOS;
   }
 
   get isInApp(): boolean {

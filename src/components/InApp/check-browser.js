@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { Row, Col, Button } from 'antd';
 import InApp from './inapp';
 import PWAInstallerPrompt from './addHomeScreen'
-// import WelcomeScreen from './Slider/Welcome-screen';
+import PWAPrompt from './IOSPWAPrompt/PWAPrompt'
+
 
 class CheckBrowser extends Component {
 
@@ -17,34 +18,15 @@ class CheckBrowser extends Component {
   }
 
   render() {
-    // const slides = [
-    //   {
-    //       key: 1,
-    //       title: 'Welcome To SendLotus',
-    //       des: 'To experience sendlotus the most optimal way',
-    //       image: '',
-    //   },
-    //   {
-    //       key: 2,
-    //       title: 'First click on the Share button in the red rectangle as below:',
-    //       image: '',
-    //   },
-    //   {
-    //       key: 3,
-    //       title: '',
-    //       image: '',
-    //   },
-    // ];
-
     const { inapp } = this.state;
-
-    if (inapp.isDesktop) // isDesktop
+    
+    // isDesktop
+    if (inapp.isDesktop) 
     {
       return null;
     } 
-
-
-    else if (inapp.isMobile) // isMobile
+    // isMobile
+    else if (inapp.isMobile)
     {
       return (
         <PWAInstallerPrompt 
@@ -63,29 +45,32 @@ class CheckBrowser extends Component {
           callback={(data) => console.log(data)} 
         />
       );
-      // return <WelcomeScreen slides={slides}/>;
-    } 
-    
-
-    else // isInApp
+    }
+    // isIOS
+    else if (inapp.isIOS)
     {
-      // return alert('For the best user experience, please install app');
       return (
-        <PWAInstallerPrompt 
-          render={({ onClick }) => (
-            <Row align="middle" justify="center">
-              <Col span={16}>
-                  Add to HomeScreen & Quick Access!
-              </Col>
-              <Col span={6}>
-                <Button type="dashed" onClick={onClick}>
-                  Install
-                </Button>
-              </Col>
-            </Row>
-          )}
-          callback={(data) => console.log(data)} 
+        <PWAPrompt
+          delay={delay}
+          copyTitle={copyTitle}
+          copyBody={copyBody}
+          copyAddHomeButtonLabel={copyAddHomeButtonLabel}
+          copyShareButtonLabel={copyShareButtonLabel}
+          copyClosePrompt={copyClosePrompt}
+          permanentlyHideOnDismiss={permanentlyHideOnDismiss}
+          promptData={promptData}
+          maxVisits={timesToShow + promptOnVisit}
+          onClose={onClose}
         />
+      );
+    }
+    // isInApp
+    else //isInApp
+    {
+      return(
+        <div>
+          
+        </div>
       );
     }
   }
