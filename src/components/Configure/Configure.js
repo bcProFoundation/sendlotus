@@ -27,6 +27,7 @@ import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
 import { ReactComponent as Edit } from '@assets/edit.svg';
 import { Event } from '@utils/GoogleAnalytics';
 import ApiError from '@components/Common/ApiError';
+import ResponsiveIframe from '@components/Common/ResponsiveIframe';
 
 const { Panel } = Collapse;
 
@@ -162,6 +163,12 @@ const StyledSpacer = styled.div`
     width: 100%;
     background-color: ${props => props.theme.wallet.borders.color};
     margin: 60px 0 50px;
+`;
+
+const StyledEmbeddedQRIframeCtn = styled.div`
+    height: 100%;
+    width: 80%;
+    margin: auto;
 `;
 
 const Configure = () => {
@@ -461,13 +468,27 @@ const Configure = () => {
                 showIcon
             />
             {wallet && wallet.mnemonic && (
-                <StyledCollapse>
-                    <Panel header="Click to reveal seed phrase" key="1">
-                        <p className="notranslate">
-                            {wallet && wallet.mnemonic ? wallet.mnemonic : ''}
-                        </p>
-                    </Panel>
-                </StyledCollapse>
+                <>
+                    <StyledCollapse>
+                        <Panel header="Click to reveal seed phrase" key="1">
+                            <p className="notranslate">
+                                {wallet && wallet.mnemonic
+                                    ? wallet.mnemonic
+                                    : ''}
+                            </p>
+                        </Panel>
+                    </StyledCollapse>
+                    <StyledCollapse>
+                        <Panel header="Download your QR code" key="2">
+                            <StyledEmbeddedQRIframeCtn>
+                                <ResponsiveIframe
+                                    src={`https://qr.sendlotus.com/embed/${wallet.Path10605.xAddress}/${wallet.name}`}
+                                    ratioHeightToWidth={1.25}
+                                />
+                            </StyledEmbeddedQRIframeCtn>
+                        </Panel>
+                    </StyledCollapse>
+                </>
             )}
             <StyledSpacer />
             <h2>
@@ -588,8 +609,8 @@ const Configure = () => {
                     }
                 />
             </AntdFormWrapper>
-                <StyledSpacer />
-            </StyledConfigure>
+            <StyledSpacer />
+        </StyledConfigure>
     );
 };
 
