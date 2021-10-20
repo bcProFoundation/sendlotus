@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { Row, Col, Button } from 'antd';
+import { isAndroid, isIOS } from "react-device-detect";
+
 import InApp from './inapp';
 import PWAInstallerPrompt from './addHomeScreen'
 import PWAPrompt from './IOSPWAPrompt/PWAPrompt'
@@ -67,11 +69,7 @@ class CheckBrowser extends Component {
     // isInApp
     else //isInApp
     {
-      return(
-        <div>
-          
-        </div>
-      );
+      return location.replace("https://sendlotus.com/");
     }
   }
 }
