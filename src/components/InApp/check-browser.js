@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Row, Col, Button } from 'antd';
 import { isAndroid, isIOS } from "react-device-detect";
 
-import InApp from './inapp';
+import InApp from 'detect-inapp';
 import PWAInstallerPrompt from './addHomeScreen'
 import PWAPrompt from './IOSPWAPrompt/PWAPrompt'
 
