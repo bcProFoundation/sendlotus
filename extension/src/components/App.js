@@ -187,9 +187,9 @@ export const CashTabLogo = styled.img`
     }
 `;
 export const LotusLogo = styled.img`
-    width: 50px;
+    width: 60px;
     @media (max-width: 768px) {
-        width: 50px;
+        width: 60px;
     }
 `;
 
