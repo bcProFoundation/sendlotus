@@ -16,7 +16,7 @@ export const theme = {
         switch: {
             activeCash: {
                 shadow:
-                    'inset 8px 8px 16px #0074C2, inset -8px -8px 16px #273498',
+                    'inset 8px 8px 16px #44107A, inset -8px -8px 16px #6f2dbd',
             },
             activeToken: {
                 background: '#CD0BC3',

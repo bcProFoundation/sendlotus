@@ -3,9 +3,9 @@
 # dependencies
 /node_modules
 /.pnp
-/.yalc
 .pnp.js
 yalc.lock
+/.yalc
 
 # testing
 /coverage

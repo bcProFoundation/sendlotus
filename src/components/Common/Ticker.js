@@ -1,6 +1,6 @@
 import mainLogo from '@assets/logo_primary.png';
 import tokenLogo from '@assets/logo_secondary.png';
-import cashaddr from 'cashaddrjs';
+import cashaddr from 'ecashaddrjs';
 import BigNumber from 'bignumber.js';
 
 export const currency = {
@@ -11,7 +11,8 @@ export const currency = {
     prefixes: ['lotus'],
     coingeckoId: 'bitcoin-cash-abc-2',
     defaultFee: 2.01,
-    dustSats: 546,
+    dustSats: 550,
+    etokenSats: 546,
     cashDecimals: 6,
     blockExplorerUrl: 'https://explorer.givelotus.org',
     tokenExplorerUrl: 'https://explorer.be.cash',
@@ -19,9 +20,8 @@ export const currency = {
     tokenName: 'eToken',
     tokenTicker: 'eToken',
     tokenLogo: tokenLogo,
-    tokenPrefixes: ['simpleledger', 'etoken'],
+    tokenPrefixes: ['etoken'],
     tokenIconsUrl: '', //https://tokens.bitcoin.com/32 for BCH SLP
-    useBlockchainWs: false,
     txHistoryCount: 5,
     hydrateUtxoBatchSize: 20,
     defaultSettings: { fiatCurrency: 'usd' },
@@ -40,14 +40,18 @@ export const currency = {
             'jpy',
             'try',
             'rub',
+            'inr',
+            'brl',
         ],
     },
     fiatCurrencies: {
         usd: { name: 'US Dollar', symbol: '$', slug: 'usd' },
+        brl: { name: 'Brazilian Real', symbol: 'R$', slug: 'brl' },
         gbp: { name: 'British Pound', symbol: '£', slug: 'gbp' },
         cad: { name: 'Canadian Dollar', symbol: '$', slug: 'cad' },
         cny: { name: 'Chinese Yuan', symbol: '元', slug: 'cny' },
         eur: { name: 'Euro', symbol: '€', slug: 'eur' },
+        inr: { name: 'Indian Rupee', symbol: '₹', slug: 'inr' },
         idr: { name: 'Indonesian Rupiah', symbol: 'Rp', slug: 'idr' },
         jpy: { name: 'Japanese Yen', symbol: '¥', slug: 'jpy' },
         krw: { name: 'Korean Won', symbol: '₩', slug: 'krw' },
@@ -117,7 +121,7 @@ export function toLegacy(address) {
     return legacyAddress;
 }
 
-export function parseAddress(BCH, addressString) {
+export function parseAddress(BCH, addressString, isToken = false) {
     // Build return obj
     const addressInfo = {
         address: '',
@@ -133,8 +137,18 @@ export function parseAddress(BCH, addressString) {
 
     // Validate address
     let isValidAddress;
+    
     try {
-        isValidAddress = BCH.Address.isXAddress(cleanAddress);
+        if (isToken) {
+            isValidAddress = BCH.Address.isCashAddress(cleanAddress);
+            const { prefix } = cashaddr.decode(cleanAddress);
+            if (!currency.tokenPrefixes.includes(prefix)) {
+                isValidAddress = false;
+            }
+        } else {
+            isValidAddress = BCH.Address.isXAddress(cleanAddress);
+        }
+        
     } catch (err) {
         isValidAddress = false;
     }
@@ -155,7 +169,7 @@ export function parseAddress(BCH, addressString) {
             // Amount in satoshis
             try {
                 amount = new BigNumber(parseInt(addrParams.get('amount')))
-                    .div(1e8)
+                    .div(10 ** currency.cashDecimals)
                     .toString();
             } catch (err) {
                 amount = null;

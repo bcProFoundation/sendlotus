@@ -20,8 +20,8 @@ export const StyledRawQRCode = styled(RawQRCode)`
         fill: ${props => props.theme.qr.background};
     }
     :hover {
-        border-color: ${({ bch = 0, ...props }) =>
-            bch === 1 ? props.theme.primary : props.theme.qr.token};
+        border-color: ${({ xpi = 0, ...props }) =>
+            xpi === 1 ? props.theme.primary : props.theme.qr.token};
     }
     @media (max-width: 768px) {
         border-radius: 18px;
@@ -35,12 +35,11 @@ const Copied = styled.div`
     font-weight: bold;
     width: 100%;
     text-align: center;
-
-    background-color: ${({ bch = 0, ...props }) =>
-        bch === 1 ? props.theme.primary : props.theme.qr.token};
+    background-color: ${({ xpi = 0, ...props }) =>
+        xpi === 1 ? props.theme.primary : props.theme.qr.token};
     border: 1px solid;
-    border-color: ${({ bch = 0, ...props }) =>
-        bch === 1
+    border-color: ${({ xpi = 0, ...props }) =>
+        xpi === 1
             ? props.theme.qr.copyBorderCash
             : props.theme.qr.copyBorderToken};
     color: ${props => props.theme.contrast};
@@ -50,6 +49,27 @@ const Copied = styled.div`
     @media (max-width: 768px) {
         top: 52px;
         padding: 20px 0;
+    }
+`;
+const PrefixLabel = styled.span`
+    text-align: right;
+    font-size: 14px;
+    font-weight: bold;
+    @media (max-width: 768px) {
+        font-size: 12px;
+    }
+    @media (max-width: 400px) {
+        font-size: 10px;
+    }
+`;
+const AddressHighlightTrim = styled.span`
+    font-weight: bold;
+    font-size: 14px;
+    @media (max-width: 768px) {
+        font-size: 12px;
+    }
+    @media (max-width: 400px) {
+        font-size: 10px;
     }
 `;
 
@@ -114,14 +134,14 @@ const CustomInput = styled.div`
 
 export const QRCode = ({
     address,
-    legacy,
     size = 210,
     onClick = () => null,
     ...otherProps
 }) => {
+    address = address ? convertToEcashPrefix(address) : '';
+
     const [visible, setVisible] = useState(false);
     const trimAmount = 8;
-
 
     const address_trim = address ? address.length - trimAmount : '';
 
@@ -137,7 +157,7 @@ export const QRCode = ({
 
     const handleOnCopy = () => {
         // Event.("Category", "Action", "Label")
-        // BCH or slp?
+        // xec or etoken?
         let eventLabel = currency.ticker;
         if (address) {
             const isToken = isValidTokenPrefix(address);
@@ -166,7 +186,7 @@ export const QRCode = ({
         >
             <div style={{ position: 'relative' }} onClick={handleOnClick}>
                 <Copied
-                    bch={address ? 1 : 0}
+                    xpi={address ? 1 : 0}
                     style={{ display: visible ? null : 'none' }}
                 >
                     Copied <br />
@@ -177,7 +197,7 @@ export const QRCode = ({
                     id="borderedQRCode"
                     value={address || ''}
                     size={size}
-                    bch={address ? 1 : 0}
+                    xpi={address ? 1 : 0}
                     renderAs={'svg'}
                     includeMargin
                     imageSettings={{
@@ -194,7 +214,7 @@ export const QRCode = ({
                 />
 
                 {address && (
-                    <CustomInput>
+                    <CustomInput xpi={address ? 1 : 0}>
                         <input
                             ref={txtRef}
                             readOnly

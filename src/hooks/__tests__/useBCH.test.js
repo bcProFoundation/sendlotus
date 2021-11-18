@@ -15,6 +15,7 @@ import {
 } from '../__mocks__/mockHydrateUtxosBatched';
 import {
     tokenSendWdt,
+    tokenReceiveGarmonbozia,
     tokenReceiveTBS,
     tokenGenesisCashtabMintAlpha,
 } from '../__mocks__/mockParseTokenInfoForTxHistory';
@@ -130,39 +131,6 @@ describe('useBCH hook', () => {
         expect(BCH.RawTransactions.sendRawTransaction).toHaveBeenCalledWith(
             expectedHex,
         );
-    });
-
-    it('sends BCH correctly with callback', async () => {
-        const { sendBch } = useBCH();
-        const BCH = new BCHJS();
-        const callback = jest.fn();
-        const {
-            expectedTxId,
-            expectedHex,
-            utxos,
-            wallet,
-            destinationAddress,
-            sendAmount,
-        } = sendBCHMock;
-
-        BCH.RawTransactions.sendRawTransaction = jest
-            .fn()
-            .mockResolvedValue(expectedTxId);
-        expect(
-            await sendBch(
-                BCH,
-                wallet,
-                utxos,
-                destinationAddress,
-                sendAmount,
-                1.01,
-                callback,
-            ),
-        ).toBe(`${currency.blockExplorerUrl}/tx/${expectedTxId}`);
-        expect(BCH.RawTransactions.sendRawTransaction).toHaveBeenCalledWith(
-            expectedHex,
-        );
-        expect(callback).toHaveBeenCalledWith(expectedTxId);
     });
 
     it(`Throws error if called trying to send one base unit ${currency.ticker} more than available in utxo set`, async () => {
@@ -383,8 +351,10 @@ describe('useBCH hook', () => {
 
     it(`Correctly parses a "send ${currency.tokenTicker}" transaction with token details`, () => {
         const { parseTokenInfoForTxHistory } = useBCH();
+        const BCH = new BCHJS();
         expect(
             parseTokenInfoForTxHistory(
+                BCH,
                 tokenSendWdt.parsedTx,
                 tokenSendWdt.tokenInfo,
             ),
@@ -393,18 +363,34 @@ describe('useBCH hook', () => {
 
     it(`Correctly parses a "receive ${currency.tokenTicker}" transaction with token details and 9 decimals of precision`, () => {
         const { parseTokenInfoForTxHistory } = useBCH();
+        const BCH = new BCHJS();
         expect(
             parseTokenInfoForTxHistory(
+                BCH,
                 tokenReceiveTBS.parsedTx,
                 tokenReceiveTBS.tokenInfo,
             ),
         ).toStrictEqual(tokenReceiveTBS.cashtabTokenInfo);
     });
 
-    it(`Correctly parses a "GENESIS ${currency.tokenTicker}" transaction with token details`, () => {
+    it(`Correctly parses a "receive ${currency.tokenTicker}" transaction from an HD wallet (change address different from sending address)`, () => {
         const { parseTokenInfoForTxHistory } = useBCH();
+        const BCH = new BCHJS();
         expect(
             parseTokenInfoForTxHistory(
+                BCH,
+                tokenReceiveGarmonbozia.parsedTx,
+                tokenReceiveGarmonbozia.tokenInfo,
+            ),
+        ).toStrictEqual(tokenReceiveGarmonbozia.cashtabTokenInfo);
+    });
+
+    it(`Correctly parses a "GENESIS ${currency.tokenTicker}" transaction with token details`, () => {
+        const { parseTokenInfoForTxHistory } = useBCH();
+        const BCH = new BCHJS();
+        expect(
+            parseTokenInfoForTxHistory(
+                BCH,
                 tokenGenesisCashtabMintAlpha.parsedTx,
                 tokenGenesisCashtabMintAlpha.tokenInfo,
             ),

@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { currency } from '@components/Common/Ticker';
 import { isValidTokenStats } from '@utils/validation';
-import SlpWallet from '@abcpros/minimal-slp-wallet';
+import SlpWallet from '@abcpros/minimal-xpi-slp-wallet';
 import {
     toSmallestDenomination,
     fromSmallestDenomination,
@@ -91,18 +91,30 @@ export default function useBCH() {
         const parsedTxHistory = [];
         for (let i = 0; i < txData.length; i += 1) {
             const tx = txData[i];
+
             const parsedTx = {};
+
             // Move over info that does not need to be calculated
             parsedTx.txid = tx.txid;
-            parsedTx.confirmations = tx.confirmations;
             parsedTx.height = tx.height;
+            let destinationAddress = tx.address;
+
+            // If this tx had too many inputs to be parsed by getTxDataWithPassThrough, skip it
+            // When this occurs, the tx will only have txid and height
+            // So, it will not have 'vin'
+            if (!Object.keys(tx).includes('vin')) {
+                // Populate as a limited-info tx that can be expanded in a block explorer
+                parsedTxHistory.push(parsedTx);
+                continue;
+            }
+
+            parsedTx.confirmations = tx.confirmations;
             parsedTx.blocktime = tx.blocktime;
             let amountSent = 0;
             let amountReceived = 0;
             // Assume an incoming transaction
             let outgoingTx = false;
             let tokenTx = false;
-            let destinationAddress = tx.address;
 
             // If vin includes tx address, this is an outgoing tx
             // Note that with bch-input data, we do not have input amounts
@@ -141,7 +153,6 @@ export default function useBCH() {
                 }
             }
             // Construct parsedTx
-            parsedTx.txid = tx.txid;
             parsedTx.amountSent = amountSent;
             parsedTx.amountReceived = amountReceived;
             parsedTx.tokenTx = tokenTx;
@@ -177,9 +188,19 @@ export default function useBCH() {
 
     const getTxDataWithPassThrough = async (BCH, flatTx) => {
         // necessary as BCH.RawTransactions.getTxData does not return address or blockheight
-        const txDataWithPassThrough = await BCH.RawTransactions.getTxData(
-            flatTx.txid,
-        );
+        let txDataWithPassThrough = {};
+        try {
+            txDataWithPassThrough = await BCH.RawTransactions.getTxData(
+                flatTx.txid,
+            );
+        } catch (err) {
+            console.log(
+                `Error in BCH.RawTransactions.getTxData(${flatTx.txid})`,
+            );
+            console.log(err);
+            // Include txid if you don't get it from the attempted response
+            txDataWithPassThrough.txid = flatTx.txid;
+        }
         txDataWithPassThrough.height = flatTx.height;
         txDataWithPassThrough.address = flatTx.address;
         return txDataWithPassThrough;
@@ -214,10 +235,20 @@ export default function useBCH() {
         }
     };
 
-    const parseTokenInfoForTxHistory = (parsedTx, tokenInfo) => {
-        // Scan over inputs to find out originating addresses
+    const parseTokenInfoForTxHistory = (BCH, parsedTx, tokenInfo) => {
+        // Address at which the eToken was received
+        const { destinationAddress } = parsedTx;
+        // Here in cashtab, destinationAddress is in bitcoincash: format
+        // In the API response of tokenInfo, this will be in simpleledger: format
+        // So, must convert to simpleledger
+        const receivingCashAddress = BCH.Address.toCashAddress(destinationAddress);
+        const receivingSlpAddress = BCH.SLP.Address.toSLPAddress(
+            receivingCashAddress,
+        );
+
         const { transactionType, sendInputsFull, sendOutputsFull } = tokenInfo;
         const sendingTokenAddresses = [];
+        // Scan over inputs to find out originating addresses
         for (let i = 0; i < sendInputsFull.length; i += 1) {
             const sendingAddress = sendInputsFull[i].address;
             sendingTokenAddresses.push(sendingAddress);
@@ -241,9 +272,12 @@ export default function useBCH() {
                     new BigNumber(sendOutputsFull[i].amount),
                 );
             } else {
-                qtyReceived = qtyReceived.plus(
-                    new BigNumber(sendOutputsFull[i].amount),
-                );
+                // Only if this matches the receiving address
+                if (sendOutputsFull[i].address === receivingSlpAddress) {
+                    qtyReceived = qtyReceived.plus(
+                        new BigNumber(sendOutputsFull[i].amount),
+                    );
+                }
             }
         }
         const cashtabTokenInfo = {};
@@ -259,15 +293,33 @@ export default function useBCH() {
 
     const addTokenTxDataToSingleTx = async (BCH, parsedTx) => {
         // Accept one parsedTx
-        // If it's a token tx, do an API call to get token info and return it
-        // If it's not a token tx, just return it
+
+        // If it's not a token tx, just return it as is and do not parse for token data
         if (!parsedTx.tokenTx) {
             return parsedTx;
         }
-        const tokenData = await BCH.SLP.Utils.txDetails(parsedTx.txid);
+
+        // If it could be a token tx, do an API call to get token info and return it
+        let tokenData;
+        try {
+            tokenData = await BCH.SLP.Utils.txDetails(parsedTx.txid);
+        } catch (err) {
+            console.log(
+                `Error in parsing BCH.SLP.Utils.txDetails(${parsedTx.txid})`,
+            );
+            console.log(err);
+            // This is not a token tx
+            parsedTx.tokenTx = false;
+            return parsedTx;
+        }
+
         const { tokenInfo } = tokenData;
 
-        parsedTx.tokenInfo = parseTokenInfoForTxHistory(parsedTx, tokenInfo);
+        parsedTx.tokenInfo = parseTokenInfoForTxHistory(
+            BCH,
+            parsedTx,
+            tokenInfo,
+        );
 
         return parsedTx;
     };
@@ -385,7 +437,9 @@ export default function useBCH() {
         // Do not classify any utxos that include token information as nonSlpUtxos
         const nonSlpUtxos = hydratedUtxos.filter(
             utxo =>
-                utxo.isValid === false && utxo.value !== 546 && !utxo.tokenName,
+                utxo.isValid === false &&
+                utxo.value !== currency.etokenSats &&
+                !utxo.tokenName,
         );
         // To be included in slpUtxos, the utxo must
         // have utxo.isValid = true
@@ -510,7 +564,7 @@ export default function useBCH() {
             }
             const utxos = wallet.state.slpBalancesAndUtxos.nonSlpUtxos;
 
-            const CREATION_ADDR = wallet.Path110605.cashAddress;
+            const CREATION_ADDR = wallet.Path10605.cashAddress;
             const inputUtxos = [];
             let transactionBuilder;
 
@@ -535,7 +589,7 @@ export default function useBCH() {
 
                 if (
                     originalAmount
-                        .minus(new BigNumber(currency.dustSats))
+                        .minus(new BigNumber(currency.etokenSats))
                         .minus(new BigNumber(txFee))
                         .gte(0)
                 ) {
@@ -545,7 +599,7 @@ export default function useBCH() {
 
             // amount to send back to the remainder address.
             const remainder = originalAmount
-                .minus(new BigNumber(currency.dustSats))
+                .minus(new BigNumber(currency.etokenSats))
                 .minus(new BigNumber(txFee));
 
             if (remainder.lt(0)) {
@@ -562,10 +616,10 @@ export default function useBCH() {
             transactionBuilder.addOutput(script, 0);
 
             // add output w/ address and amount to send
-            transactionBuilder.addOutput(CREATION_ADDR, currency.dustSats);
+            transactionBuilder.addOutput(CREATION_ADDR, currency.etokenSats);
 
             // Send change to own address
-            if (remainder.gte(new BigNumber(currency.dustSats))) {
+            if (remainder.gte(new BigNumber(currency.etokenSats))) {
                 transactionBuilder.addOutput(
                     CREATION_ADDR,
                     parseInt(remainder),
@@ -721,7 +775,7 @@ export default function useBCH() {
         // Send dust transaction representing tokens being sent.
         transactionBuilder.addOutput(
             BCH.SLP.Address.toLegacyAddress(tokenReceiverAddress),
-            546,
+            currency.etokenSats,
         );
 
         // Return any token change back to the sender.
@@ -731,7 +785,7 @@ export default function useBCH() {
                 BCH.SLP.Address.toLegacyAddress(
                     tokenUtxosBeingSpent[0].address,
                 ),
-                546,
+                currency.etokenSats,
             );
         }
 
@@ -745,7 +799,7 @@ export default function useBCH() {
         );
 
         // amount to send back to the sending address. It's the original amount - 1 sat/byte for tx size
-        const remainder = originalAmount - txFee - 546 * 2;
+        const remainder = originalAmount - txFee - currency.etokenSats * 2;
         if (remainder < 1) {
             throw new Error('Selected UTXO does not have enough satoshis');
         }
@@ -820,11 +874,7 @@ export default function useBCH() {
         destinationAddress,
         sendAmount,
         feeInSatsPerByte,
-        callbackTxId,
-        encodedOpReturn,
     ) => {
-        // Note: callbackTxId is a callback function that accepts a txid as its only parameter
-
         try {
             if (!sendAmount) {
                 return null;
@@ -872,9 +922,7 @@ export default function useBCH() {
                 transactionBuilder.addInput(txid, vout);
 
                 inputUtxos.push(utxo);
-                txFee = encodedOpReturn
-                    ? calcFee(BCH, inputUtxos, 3, feeInSatsPerByte)
-                    : calcFee(BCH, inputUtxos, 2, feeInSatsPerByte);
+                txFee = calcFee(BCH, inputUtxos, 2, feeInSatsPerByte);
 
                 if (originalAmount.minus(satoshisToSend).minus(txFee).gte(0)) {
                     break;
@@ -906,10 +954,6 @@ export default function useBCH() {
                 const error = new Error(`Insufficient funds`);
                 error.code = SEND_BCH_ERRORS.INSUFFICIENT_FUNDS;
                 throw error;
-            }
-
-            if (encodedOpReturn) {
-                transactionBuilder.addOutput(encodedOpReturn, 0);
             }
 
             // add output w/ address and amount to send
@@ -949,10 +993,6 @@ export default function useBCH() {
                 console.log(`${currency.ticker} txid`, txidStr[0]);
             }
             let link;
-
-            if (callbackTxId) {
-                callbackTxId(txidStr);
-            }
             if (process.env.REACT_APP_NETWORK === `mainnet`) {
                 link = `${currency.blockExplorerUrl}/tx/${txidStr}`;
             } else {
