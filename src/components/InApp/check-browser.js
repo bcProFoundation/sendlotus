@@ -1,7 +1,8 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import OpenBrowserHint from '@assets/open_browser.jpg'
-import InApp from './inapp';
+import Arrow from '@assets/arrow.png'
+import InApp from '../../utils/inapp';
 
 export const Overlay = styled.div`
     position: fixed; /* Sit on top of the page content */
@@ -12,46 +13,55 @@ export const Overlay = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(255,255,255,0.96); /* Black background with opacity */
+    background-color: rgba(0,0,0,0.8);
     z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
 `;
 
 export const H2Center = styled.h2`
   width: 100%;
   text-align: center;
-  color: black;
+  color: white;
 `;
 
 export const FullWidthImg = styled.img`
-  width: 100%;
+  width: 80%;
+  margin: auto;
+  margin-top: 15%;
+  display:block;
 `;
 
-class CheckBrowser extends Component {
+export const TopImg = styled.img`
+  width: 10%;
+  display:block;
+  position: absolute;
+  height: auto;
+  right: 0px;
+  top: 0px;
+  margin-right: 3%;
+  margin-top: 10px;
+`;
 
-  state = {
-    inapp: null,
-    loaded: false
-  }
+const CheckBrowser = () => {
+  const [inapp, setInapp] = useState(null);
+  const [loadedArrow, setLoadedArrow] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
-  componentWillMount() {
+  useEffect(() => {
     const inapp = new InApp(navigator.userAgent || navigator.vendor || window.opera);
-    this.setState({ inapp });
-  }
+    setInapp(inapp);
+  }, [])
 
-  render() {
-    const { inapp } = this.state;
-
-    if (inapp.isInApp) {
-      return (
-        <Overlay>
-          <FullWidthImg style={this.state.loaded ? {} : { display: 'none' }} src={OpenBrowserHint} onLoad={() => this.setState({ loaded: true })} alt="browser-hint" />
-          <H2Center style={this.state.loaded ? {} : { display: 'none' }}>Open browser to continue...</H2Center>
+  return (
+    <>
+      {inapp?.isInApp &&
+        <Overlay style={loaded && loadedArrow ? {} : { display: 'none' }}>
+          <TopImg src={Arrow} onLoad={() => setLoaded(true)} />
+          <FullWidthImg src={OpenBrowserHint} onLoad={() => setLoadedArrow(true)} />
+          <H2Center>Open browser to continue...</H2Center>
         </Overlay>
-      );
-    } else {
-      return null;
-    } // isDesktop
-  }
+      }
+    </>
+  )
 }
 
 export default CheckBrowser;
