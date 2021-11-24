@@ -1,76 +1,56 @@
 import React, { Component } from 'react';
-import { Row, Col, Button } from 'antd';
-import { isAndroid, isIOS } from "react-device-detect";
+import styled from 'styled-components';
+import OpenBrowserHint from '@assets/open_browser.jpg'
+import InApp from './inapp';
 
-import InApp from 'detect-inapp';
-import PWAInstallerPrompt from './addHomeScreen'
-import PWAPrompt from './IOSPWAPrompt/PWAPrompt'
+export const Overlay = styled.div`
+    position: fixed; /* Sit on top of the page content */
+    display: block; /* Hidden by default */
+    width: 100%; /* Full width (cover the whole page) */
+    height: 100%; /* Full height (cover the whole page) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255,255,255,0.96); /* Black background with opacity */
+    z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+`;
 
+export const H2Center = styled.h2`
+  width: 100%;
+  text-align: center;
+  color: black;
+`;
+
+export const FullWidthImg = styled.img`
+  width: 100%;
+`;
 
 class CheckBrowser extends Component {
 
   state = {
     inapp: null,
+    loaded: false
   }
 
   componentWillMount() {
     const inapp = new InApp(navigator.userAgent || navigator.vendor || window.opera);
     this.setState({ inapp });
-    // window.ga('send', 'event', 'useragent', useragent, inapp.browser);
   }
 
   render() {
     const { inapp } = this.state;
-    
-    // isDesktop
-    if (inapp.isDesktop) 
-    {
+
+    if (inapp.isInApp) {
+      return (
+        <Overlay>
+          <FullWidthImg style={this.state.loaded ? {} : { display: 'none' }} src={OpenBrowserHint} onLoad={() => this.setState({ loaded: true })} alt="browser-hint" />
+          <H2Center style={this.state.loaded ? {} : { display: 'none' }}>Open browser to continue...</H2Center>
+        </Overlay>
+      );
+    } else {
       return null;
-    } 
-    // isMobile
-    else if (inapp.isMobile)
-    {
-      return (
-        <PWAInstallerPrompt 
-          render={({ onClick }) => (
-            <Row align="middle" justify="center">
-              <Col span={16}>
-                  Add to HomeScreen & Quick Access!
-              </Col>
-              <Col span={6}>
-                <Button type="dashed" onClick={onClick}>
-                  Install
-                </Button>
-              </Col>
-            </Row>
-          )}
-          callback={(data) => console.log(data)} 
-        />
-      );
-    }
-    // isIOS
-    else if (inapp.isIOS)
-    {
-      return (
-        <PWAPrompt
-          delay={delay}
-          copyTitle={copyTitle}
-          copyBody={copyBody}
-          copyAddHomeButtonLabel={copyAddHomeButtonLabel}
-          copyShareButtonLabel={copyShareButtonLabel}
-          copyClosePrompt={copyClosePrompt}
-          permanentlyHideOnDismiss={permanentlyHideOnDismiss}
-          promptData={promptData}
-          maxVisits={timesToShow + promptOnVisit}
-          onClose={onClose}
-        />
-      );
-    }
-    // isInApp
-    else //isInApp
-    {
-      return location.replace("https://sendlotus.com/");
-    }
+    } // isDesktop
   }
 }
 
