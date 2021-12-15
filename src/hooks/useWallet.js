@@ -11,6 +11,7 @@ import {
     fromSmallestDenomination,
     loadStoredWallet,
     isValidStoredWallet,
+    isLegacyMigrationRequired,
 } from '@utils/cashMethods';
 import { isValidCashtabSettings } from '@utils/validation';
 import localforage from 'localforage';
@@ -111,11 +112,13 @@ const useWallet = () => {
 
     const deriveAccount = async (BCH, { masterHDNode, path }) => {
         const node = BCH.HDNode.derivePath(masterHDNode, path);
+        const publicKey = BCH.HDNode.toPublicKey(node).toString('hex');
         const cashAddress = BCH.HDNode.toCashAddress(node);
         const slpAddress = BCH.SLP.Address.toSLPAddress(cashAddress);
         const xAddress = BCH.HDNode.toXAddress(node);
 
         return {
+            publicKey,
             xAddress,
             cashAddress,
             slpAddress,
@@ -207,6 +210,12 @@ const useWallet = () => {
                 // wallet.Path1899.cashAddress,
             ];
 
+            const publicKeys = [
+                wallet.Path10605.publicKey,
+                // wallet.Path145.publicKey,
+                // wallet.Path245.publicKey,
+                // wallet.Path1899.publicKey,
+            ];
             const utxos = await getUtxos(BCH, xAddresses);
 
             // If an error is returned or utxos from only 1 address are returned
@@ -255,7 +264,9 @@ const useWallet = () => {
                 hydratedUtxoDetails,
             );
             const txHistory = await getTxHistory(BCH, xAddresses);
-            const parsedTxHistory = await getTxData(BCH, txHistory);
+
+            // public keys are used to determined if a tx is incoming outgoing
+            const parsedTxHistory = await getTxData(BCH, txHistory, publicKeys);
 
             const parsedWithTokens = await addTokenTxData(BCH, parsedTxHistory);
 
@@ -342,11 +353,20 @@ const useWallet = () => {
             // 2 - false if it does not exist in localForage
             // 3 - null if error
 
-            // If the wallet does not have Path1899, add it
-            if (existingWallet && !existingWallet.Path10605) {
-                console.log(`Wallet does not have Path10605`);
-                existingWallet = await migrateLegacyWallet(BCH, existingWallet);
+            // If the wallet does not have Path10605, add it
+            // or Path10605 does not have a public key, add it
+            if (existingWallet) {
+                if (isLegacyMigrationRequired(existingWallet)) {
+                    console.log(
+                        `Wallet does not have Path10605 or does not have public key`,
+                    );
+                    existingWallet = await migrateLegacyWallet(
+                        BCH,
+                        existingWallet,
+                    );
+                }
             }
+
             // If not in localforage then existingWallet = false, check localstorage
             if (!existingWallet) {
                 console.log(`no existing wallet, checking local storage`);
@@ -539,6 +559,9 @@ const useWallet = () => {
         
         2 - walletToActivate does not have Path1899
             > Update walletToActivate with Path1899 before activation
+
+        NOTE: since publicKey property is added later,
+        wallet without public key in Path10605 is also considered legacy and required migration.
         */
 
         // Need to handle a similar situation with state
@@ -551,7 +574,7 @@ const useWallet = () => {
             if (savedWallets[i].name === currentlyActiveWallet.name) {
                 walletInSavedWallets = true;
                 // Check savedWallets for unmigrated currentlyActiveWallet
-                if (!savedWallets[i].Path10605) {
+                if (isLegacyMigrationRequired(savedWallets[i])) {
                     // Case 1, described above
                     savedWallets[i].Path10605 = currentlyActiveWallet.Path10605;
                 }
@@ -588,13 +611,15 @@ const useWallet = () => {
                 );
             }
         }
-        // If wallet does not have Path1899, add it
-
-        if (!walletToActivate.Path10605) {
+    
+        // If wallet does not have Path10605, add it
+        // or Path10605 does not have a public key, add it
+        // by calling migrateLagacyWallet()
+        if (isLegacyMigrationRequired(walletToActivate)) {
             // Case 2, described above
-            console.log(`Case 2: Wallet to activate does not have Path1899`);
+            console.log(`Case 2: Wallet to activate does not have Path10605`);
             console.log(
-                `Wallet to activate from SavedWallets does not have Path1899`,
+                `Wallet to activate from SavedWallets does not have Path10605`,
             );
             console.log(`walletToActivate`, walletToActivate);
             walletToActivate = await migrateLegacyWallet(BCH, walletToActivate);
