@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
 import OnBoarding from '@components/OnBoarding/OnBoarding';
+import RedeemSection from '@components/Redeem/RedeemSection';
 import { QRCode } from '@components/Common/QRCode';
 import { currency } from '@components/Common/Ticker.js';
 import { Link } from 'react-router-dom';
@@ -9,8 +10,8 @@ import TokenList from './TokenList';
 import TxHistory from './TxHistory';
 import ApiError from '@components/Common/ApiError';
 import BalanceHeader from '@components/Common/BalanceHeader';
-import BalanceHeaderFiat from '@components/Common/BalanceHeaderFiat';
 import { LoadingCtn, ZeroBalanceHeader } from '@components/Common/Atoms';
+import useQuery from '@hooks/useQuery';
 import { getWalletState } from '@utils/cashMethods';
 
 export const Tabs = styled.div`
@@ -75,14 +76,14 @@ export const SwitchBtnCtn = styled.div`
     .nonactiveBtn {
         color: ${props => props.theme.wallet.text.secondary};
         background: ${props =>
-            props.theme.wallet.switch.inactive.background} !important;
+        props.theme.wallet.switch.inactive.background} !important;
         box-shadow: none !important;
     }
     .slpActive {
         background: ${props =>
-            props.theme.wallet.switch.activeToken.background} !important;
+        props.theme.wallet.switch.activeToken.background} !important;
         box-shadow: ${props =>
-            props.theme.wallet.switch.activeToken.shadow} !important;
+        props.theme.wallet.switch.activeToken.shadow} !important;
     }
 `;
 
@@ -212,12 +213,11 @@ const WalletInfo = () => {
                     <QRCode
                         id="borderedQRCode"
                         address={
-                            address === 'slpAddress'? wallet.Path10605.slpAddress : wallet.Path10605.xAddress
+                            address === 'slpAddress' ? wallet.Path10605.slpAddress : wallet.Path10605.xAddress
                         }
                     />
                 </>
             )}
-
             {/* <SwitchBtnCtn>
                 <SwitchBtn
                     onClick={() => handleChangeAddress()}
@@ -288,6 +288,9 @@ const WalletInfo = () => {
 
 const Wallet = () => {
     const ContextValue = React.useContext(WalletContext);
+    const query = useQuery();
+    const redeemCode = query.get("redeemcode");
+
     const { wallet, previousWallet, loading } = ContextValue;
 
     return (
@@ -297,11 +300,21 @@ const Wallet = () => {
             ) : (
                 <>
                     {(wallet && wallet.Path10605) ||
-                    (previousWallet && previousWallet.path10605) ? (
-                        <WalletInfo />
+                        (previousWallet && previousWallet.path10605) ? (
+                        <>
+                            <WalletInfo />
+                        </>
                     ) : (
-                        <OnBoarding />
+                        <>
+                            <OnBoarding />
+                        </>
                     )}
+                    {
+                        redeemCode &&
+                        <RedeemSection
+                            address={wallet?.Path10605?.xAddress}
+                            redeemCode={redeemCode} />
+                    }
                 </>
             )}
         </>
