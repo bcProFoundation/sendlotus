@@ -232,3 +232,17 @@ export function convertEtokenToSimpleledger(etokenPrefixedAddress) {
         return etokenPrefixedAddress;
     }
 }
+
+export const isLegacyMigrationRequired = wallet => {
+    // If the wallet does not have Path10605,
+    // Or Path10605 does not have a public key
+    // Then it requires migration
+    if (
+        !wallet.Path10605 ||
+        !wallet.Path10605.publicKey
+    ) {
+        return true;
+    }
+
+    return false;
+};
