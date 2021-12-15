@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
 import OnBoarding from '@components/OnBoarding/OnBoarding';
-import RedeemModal from '@components/Redeem/RedeemModal';
+import RedeemSection from '@components/Redeem/RedeemSection';
 import { QRCode } from '@components/Common/QRCode';
 import { currency } from '@components/Common/Ticker.js';
 import { Link } from 'react-router-dom';
@@ -310,8 +310,8 @@ const Wallet = () => {
                         </>
                     )}
                     {
-                        (!redeemCode) ||
-                        <RedeemModal
+                        redeemCode &&
+                        <RedeemSection
                             address={wallet?.Path10605?.xAddress}
                             redeemCode={redeemCode} />
                     }

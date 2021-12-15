@@ -7,7 +7,7 @@ import { WalletContext } from '@utils/context';
 
 const SITE_KEY = "6Lc1rGwdAAAAABrD2AxMVIj4p_7ZlFKdE5xCFOrb";
 
-const RedeemModal = ({ address, redeemCode }) => {
+const RedeemSection = ({ address, redeemCode }) => {
   const { getBCH } = useBCH();
   const BCH = getBCH();
 
@@ -22,9 +22,12 @@ const RedeemModal = ({ address, redeemCode }) => {
     }
     else {
       // load the script by passing the URL
-      loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`, function () {
+      if (process.env.NODE_ENV == 'development') {
         handleRedeem();
-      });
+      } else {
+        loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`,
+          handleRedeem());
+      }
     }
   }, [address, redeemCode]);
 
@@ -46,16 +49,20 @@ const RedeemModal = ({ address, redeemCode }) => {
   }
 
   const handleRedeem = () => {
-    let captcha = window.grecaptcha.enterprise
-    if (captcha) {
-      captcha.ready(() => {
-        captcha.execute(SITE_KEY, {
-          action: 'submit',
-          twofactor: true
-        }).then((token) => {
-          submit(token, address);
+    if (process.env.NODE_ENV == 'development' || !window.grecaptcha) {
+      submit('', address);
+    } else {
+      let captcha = window.grecaptcha.enterprise
+      if (captcha) {
+        captcha.ready(() => {
+          captcha.execute(SITE_KEY, {
+            action: 'submit',
+            twofactor: true
+          }).then((token) => {
+            submit(token, address);
+          });
         });
-      });
+      }
     }
   };
 
@@ -80,7 +87,7 @@ const RedeemModal = ({ address, redeemCode }) => {
         throw error;
       }
 
-      const response = await axios.post('https://api.lixilotus.com/api/redeems',
+      const response = await axios.post(`${process.env.LIXI_APIS}redeems`,
         {
           redeemCode: redeemCode,
           redeemAddress: address,
@@ -89,7 +96,7 @@ const RedeemModal = ({ address, redeemCode }) => {
 
       notification.success({
         message: 'Redeem success',
-        duration: 3,
+        duration: 10,
         style: { width: '100%' },
       });
       return response.data;
@@ -97,7 +104,7 @@ const RedeemModal = ({ address, redeemCode }) => {
 
       notification.error({
         message: 'Redeem failed',
-        duration: 3,
+        duration: 10,
         style: { width: '100%' },
       });
     } finally {
@@ -110,4 +117,4 @@ const RedeemModal = ({ address, redeemCode }) => {
   );
 };
 
-export default RedeemModal;
+export default RedeemSection;
