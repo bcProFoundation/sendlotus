@@ -81,4 +81,11 @@ export const theme = {
         border: '#eaedf3',
         color: '#3e3f42',
     },
+    generalSettings: {
+        item: {
+            icon: '#949494',
+            title: '#949494',
+        },
+        background: '#fff',
+    },
 };
