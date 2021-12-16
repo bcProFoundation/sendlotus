@@ -680,7 +680,6 @@ const Configure = () => {
                     </Tag>
                 )}
             </GeneralSettingsItem>
-            <StyledSpacer />[
         </StyledConfigure>
     );
 };
