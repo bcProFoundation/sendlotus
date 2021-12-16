@@ -2,6 +2,7 @@ import styled from 'styled-components';
 import { Collapse } from 'antd';
 
 export const StyledCollapse = styled(Collapse)`
+    margin-top: 8px !important;
     background: ${props => props.theme.collapses.background} !important;
     border: 1px solid ${props => props.theme.collapses.border} !important;
 
