@@ -28,7 +28,7 @@ const RedeemSection = ({ address, redeemCode }) => {
           handleRedeem();
         });
       } else {
-        handleRedeem()
+        handleRedeem();
       }
     }
   }, [address, redeemCode]);
@@ -88,7 +88,7 @@ const RedeemSection = ({ address, redeemCode }) => {
         const error = `Destination is not a valid ${currency.ticker} address`;
         throw error;
       }
-      const response = await axios.post(`${process.env["REACT_APP_BCHA_LIXI_APIS"]}redeems`,
+      const response = await axios.post(`https://lixi.exam/api/redeems`,
         {
           redeemCode: redeemCode,
           redeemAddress: address,
@@ -96,10 +96,11 @@ const RedeemSection = ({ address, redeemCode }) => {
         });
 
       notification.success({
-        message: 'Redeem success',
+        message: `Redeem successfully ${ response?.data ? response.data.amount/1000000 : '' } XPI`,
         duration: 10,
         style: { width: '100%' },
       });
+
       return response.data;
     } catch (error) {
 
