@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
 import OnBoarding from '@components/OnBoarding/OnBoarding';
-import RedeemSection from '@components/Redeem/RedeemSection';
 import { QRCode } from '@components/Common/QRCode';
 import { currency } from '@components/Common/Ticker.js';
 import { Link } from 'react-router-dom';
@@ -289,7 +288,6 @@ const WalletInfo = () => {
 const Wallet = () => {
     const ContextValue = React.useContext(WalletContext);
     const query = useQuery();
-    const redeemCode = query.get("redeemcode");
 
     const { wallet, previousWallet, loading } = ContextValue;
 
@@ -309,12 +307,6 @@ const Wallet = () => {
                             <OnBoarding />
                         </>
                     )}
-                    {
-                        redeemCode &&
-                        <RedeemSection
-                            address={wallet?.Path10605?.xAddress}
-                            redeemCode={redeemCode} />
-                    }
                 </>
             )}
         </>

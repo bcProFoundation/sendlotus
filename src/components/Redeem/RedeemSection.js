@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { useHistory } from 'react-router-dom'
-import { notification } from 'antd';
+import { Modal, notification } from 'antd';
 import axios from 'axios';
 import useBCH from '@hooks/useBCH';
+import { fromSmallestDenomination } from '@utils/cashMethods';
 import { WalletContext } from '@utils/context';
 
 const SITE_KEY = "6Lc1rGwdAAAAABrD2AxMVIj4p_7ZlFKdE5xCFOrb";
@@ -14,19 +15,21 @@ const RedeemSection = ({ address, redeemCode }) => {
   const history = useHistory()
 
   const ContextValue = React.useContext(WalletContext);
+  const [modal, contextHolder] = Modal.useModal();
   const { createWallet } = ContextValue;
 
   useEffect(() => {
     if (!address) {
-      createWallet()
+      showRedemModal();
     }
     else {
       // load the script by passing the URL
-      if (process.env.NODE_ENV == 'development') {
-        handleRedeem();
+      if (process.env.NODE_ENV !== 'development') {
+        loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`, () => {
+          handleRedeem();
+        });
       } else {
-        loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`,
-          handleRedeem());
+        handleRedeem();
       }
     }
   }, [address, redeemCode]);
@@ -86,8 +89,7 @@ const RedeemSection = ({ address, redeemCode }) => {
         const error = `Destination is not a valid ${currency.ticker} address`;
         throw error;
       }
-
-      const response = await axios.post(`${process.env.LIXI_APIS}redeems`,
+      const response = await axios.post(`https://lixi.exam/api/redeems`,
         {
           redeemCode: redeemCode,
           redeemAddress: address,
@@ -95,10 +97,11 @@ const RedeemSection = ({ address, redeemCode }) => {
         });
 
       notification.success({
-        message: 'Redeem success',
+        message: `Redeem successfully ${ response?.data ? fromSmallestDenomination(response.data.amount) : '' } XPI`,
         duration: 10,
         style: { width: '100%' },
       });
+
       return response.data;
     } catch (error) {
 
@@ -112,8 +115,21 @@ const RedeemSection = ({ address, redeemCode }) => {
     }
   }
 
+
+  function showRedemModal() {
+    modal.success({
+      title: "Lixi Program sent you a small gift!",
+      content: `Special thanks for using our service!`,
+      okText: 'Redeem!',
+      zIndex: 2,
+      onOk() {
+        createWallet();
+      },
+    });
+  }
+
   return (
-    <></>
+    <>{ contextHolder }</>
   );
 };
 

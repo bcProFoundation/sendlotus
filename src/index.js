@@ -6,6 +6,9 @@ import CheckBrowser from './components/InApp/check-browser';
 import { AuthenticationProvider, WalletProvider } from './utils/context';
 import { HashRouter as Router } from 'react-router-dom';
 import GA from './utils/GoogleAnalytics';
+import InApp from '@utils/inapp';
+
+const inapp = new InApp(navigator.userAgent || navigator.vendor || window.opera);
 
 ReactDOM.render(
     <AuthenticationProvider>
@@ -13,7 +16,7 @@ ReactDOM.render(
             <Router>
                 <CheckBrowser />
                 {GA.init() && <GA.RouteTracker />}
-                <App />
+                {!inapp?.isInApp && <App />}
             </Router>
         </WalletProvider>
     </AuthenticationProvider>,

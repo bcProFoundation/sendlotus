@@ -14,7 +14,7 @@ export const Overlay = styled.div`
   right: 0;
   bottom: 0;
   background-color: rgba(0,0,0,0.8);
-  z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+  z-index: 10; /* Specify a stack order in case you're using a different order for other elements */
 `;
 
 export const H2Center = styled.h2`
