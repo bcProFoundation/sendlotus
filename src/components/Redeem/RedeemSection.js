@@ -3,6 +3,7 @@ import { useHistory } from 'react-router-dom'
 import { Modal, notification } from 'antd';
 import axios from 'axios';
 import useBCH from '@hooks/useBCH';
+import { fromSmallestDenomination } from '@utils/cashMethods';
 import { WalletContext } from '@utils/context';
 
 const SITE_KEY = "6Lc1rGwdAAAAABrD2AxMVIj4p_7ZlFKdE5xCFOrb";
@@ -96,7 +97,7 @@ const RedeemSection = ({ address, redeemCode }) => {
         });
 
       notification.success({
-        message: `Redeem successfully ${ response?.data ? response.data.amount/1000000 : '' } XPI`,
+        message: `Redeem successfully ${ response?.data ? fromSmallestDenomination(response.data.amount) : '' } XPI`,
         duration: 10,
         style: { width: '100%' },
       });
