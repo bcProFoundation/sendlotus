@@ -19,7 +19,7 @@ const RedeemSection = ({ address, redeemCode }) => {
 
   useEffect(() => {
     if (!address) {
-      showRedemModal()
+      showRedemModal();
     }
     else {
       // load the script by passing the URL
