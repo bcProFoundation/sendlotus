@@ -15,6 +15,7 @@ import Wallet from '@components/Wallet/Wallet';
 import Tokens from '@components/Tokens/Tokens';
 import Send from '@components/Send/Send';
 import SendToken from '@components/Send/SendToken';
+import RedeemSection from '@components/Redeem/RedeemSection';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
@@ -69,7 +70,7 @@ const GlobalStyle = createGlobalStyle`
     }
     #addrSwitch.ant-switch-checked {
         background-image: ${props =>
-            props.theme.buttons.primary.backgroundImage} !important;
+        props.theme.buttons.primary.backgroundImage} !important;
     }
 `;
 
@@ -237,11 +238,10 @@ const App = () => {
     // Easter egg boolean not used in extension/src/components/App.js
     const hasTab = validWallet
         ? checkForTokenById(
-              wallet.state.tokens,
-              '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
-          )
+            wallet.state.tokens,
+            '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+        )
         : false;
-
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />
@@ -255,7 +255,7 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
-                            <LotusLogo src={LogoLotusPink} alt="lotus" />
+                                <LotusLogo src={LogoLotusPink} alt="lotus" />
                                 <CashTabLogo src={CashTab} alt="cashtab" />
                                 {/*Begin component not included in extension as desktop only*/}
                                 {hasTab && (
@@ -264,7 +264,7 @@ const App = () => {
                                 {/*End component not included in extension as desktop only*/}
                                 {/*Begin component not included in extension as replaced by open in tab link*/}
                                 <a
-                                href="https://givelotus.org//"
+                                    href="https://givelotus.org//"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
@@ -272,7 +272,7 @@ const App = () => {
                                 {/*Begin component not included in extension as replaced by open in tab link*/}
                             </HeaderCtn>
                             <ProtectableComponentWrapper>
-                            <WalletLabel name={wallet.name}></WalletLabel>
+                                <WalletLabel name={wallet.name}></WalletLabel>
                                 <Switch>
                                     <Route path="/wallet">
                                         <Wallet />
@@ -301,6 +301,12 @@ const App = () => {
                                                 }
                                             />
                                         )}
+                                    />
+                                    <Route path="/redeem/:redeemCode"
+                                        render={props => (<RedeemSection
+                                            redeemCode={props.match.params.redeemCode}
+                                            address={wallet?.Path10605?.xAddress}
+                                        />)}
                                     />
                                     <Route path="/configure">
                                         <Configure />

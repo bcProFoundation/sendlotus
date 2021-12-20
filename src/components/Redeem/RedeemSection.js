@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useHistory } from 'react-router-dom'
-import { notification } from 'antd';
+import { Modal, notification } from 'antd';
 import axios from 'axios';
 import useBCH from '@hooks/useBCH';
 import { WalletContext } from '@utils/context';
@@ -14,19 +14,21 @@ const RedeemSection = ({ address, redeemCode }) => {
   const history = useHistory()
 
   const ContextValue = React.useContext(WalletContext);
+  const [modal, contextHolder] = Modal.useModal();
   const { createWallet } = ContextValue;
 
   useEffect(() => {
     if (!address) {
-      createWallet()
+      showRedemModal()
     }
     else {
       // load the script by passing the URL
-      if (process.env.NODE_ENV == 'development') {
-        handleRedeem();
+      if (process.env.NODE_ENV !== 'development') {
+        loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`, () => {
+          handleRedeem();
+        });
       } else {
-        loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`,
-          handleRedeem());
+        handleRedeem()
       }
     }
   }, [address, redeemCode]);
@@ -86,8 +88,7 @@ const RedeemSection = ({ address, redeemCode }) => {
         const error = `Destination is not a valid ${currency.ticker} address`;
         throw error;
       }
-
-      const response = await axios.post(`${process.env.LIXI_APIS}redeems`,
+      const response = await axios.post(`${process.env["REACT_APP_BCHA_LIXI_APIS"]}redeems`,
         {
           redeemCode: redeemCode,
           redeemAddress: address,
@@ -112,8 +113,21 @@ const RedeemSection = ({ address, redeemCode }) => {
     }
   }
 
+
+  function showRedemModal() {
+    modal.success({
+      title: "Lixi Program sent you a small gift!",
+      content: `Special thanks for using our service!`,
+      okText: 'Redeem!',
+      zIndex: 2,
+      onOk() {
+        createWallet();
+      },
+    });
+  }
+
   return (
-    <></>
+    <>{ contextHolder }</>
   );
 };
 
