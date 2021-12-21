@@ -89,7 +89,7 @@ const RedeemSection = ({ address, redeemCode }) => {
         const error = `Destination is not a valid ${currency.ticker} address`;
         throw error;
       }
-      const response = await axios.post(`https://lixi.exam/api/redeems`,
+      const response = await axios.post(`${process.env["REACT_APP_BCHA_LIXI_APIS"]}redeems`,
         {
           redeemCode: redeemCode,
           redeemAddress: address,
