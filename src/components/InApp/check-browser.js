@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import OpenBrowserHint from '@assets/open_browser.jpg'
 import Arrow from '@assets/arrow.png'
+import IosOpenBrowserHint from '@assets/open_browser_IOS.jpg'
+import BottomArrow from '@assets/bottom_arrow.png'
 import InApp from '../../utils/inapp';
 
 export const Overlay = styled.div`
@@ -23,10 +25,31 @@ export const H2Center = styled.h2`
   color: white;
 `;
 
+export const H2CenterBottom = styled.h2`
+  width: 100%;
+  margin-top: 60%;
+  text-align: center;
+  color: white;
+`;
+
 export const FullWidthImg = styled.img`
   width: 80%;
   margin: auto;
   margin-top: 15%;
+  display:block;
+`;
+
+export const Bottom = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column-reverse;
+  height: 100%;
+`;
+
+export const FullWidthBottomImg = styled.img`
+  width: 80%;
+  margin: auto;
+  margin-bottom: 15%;
   display:block;
 `;
 
@@ -39,6 +62,17 @@ export const TopImg = styled.img`
   top: 0px;
   margin-right: 3%;
   margin-top: 10px;
+`;
+
+export const BottomImg = styled.img`
+  width: 10%;
+  display:block;
+  position: absolute;
+  height: auto;
+  right: 0px;
+  bottom: 0px;
+  margin-right: 3%;
+  margin-bottom: 10px;
 `;
 
 const CheckBrowser = () => {
@@ -55,9 +89,20 @@ const CheckBrowser = () => {
     <>
       {inapp?.isInApp &&
         <Overlay style={loaded && loadedArrow ? {} : { display: 'none' }}>
-          <TopImg src={Arrow} onLoad={() => setLoaded(true)} />
-          <FullWidthImg src={OpenBrowserHint} onLoad={() => setLoadedArrow(true)} />
-          <H2Center>Open browser to continue...</H2Center>
+          {!inapp?.isIOS &&
+            <>
+              <TopImg src={Arrow} onLoad={() => setLoadedArrow(true)} />
+              <FullWidthImg src={OpenBrowserHint} onLoad={() => setLoaded(true)} />
+              <H2Center>Open browser to continue...</H2Center>
+            </>
+          }
+          {inapp?.isIOS &&
+            <Bottom>
+              <FullWidthBottomImg src={IosOpenBrowserHint} onLoad={() => setLoaded(true)} />
+              <H2CenterBottom>Open browser to continue...</H2CenterBottom>
+              <BottomImg src={BottomArrow} onLoad={() => setLoadedArrow(true)} />
+            </Bottom>
+          }
         </Overlay>
       }
     </>
