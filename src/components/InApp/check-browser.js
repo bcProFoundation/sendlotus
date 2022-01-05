@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import OpenBrowserHint from '@assets/open_browser.jpg'
 import Arrow from '@assets/arrow.png'
-import IosOpenBrowserHint from '@assets/open_browser_IOS.jpg'
+import IosOpenBrowserHint from '@assets/open_browser_IOS.png'
 import BottomArrow from '@assets/bottom_arrow.png'
 import InApp from '../../utils/inapp';
 
