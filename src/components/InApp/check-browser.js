@@ -88,21 +88,29 @@ const CheckBrowser = () => {
   return (
     <>
       {inapp?.isInApp &&
-        <Overlay style={loaded && loadedArrow ? {} : { display: 'none' }}>
-          {!inapp?.isIOS &&
+        <Overlay style={loaded && loadedArrow ? {} : { display: "none" }}>
+          {inapp?.isIOS ? (
+            <Bottom>
+              <FullWidthBottomImg
+                src={IosOpenBrowserHint}
+                onLoad={() => setLoaded(true)}
+              />
+              <H2CenterBottom>Open browser to continue...</H2CenterBottom>
+              <BottomImg
+                src={BottomArrow}
+                onLoad={() => setLoadedArrow(true)}
+              />
+            </Bottom>
+          ) : (
             <>
               <TopImg src={Arrow} onLoad={() => setLoadedArrow(true)} />
-              <FullWidthImg src={OpenBrowserHint} onLoad={() => setLoaded(true)} />
+              <FullWidthImg
+                src={OpenBrowserHint}
+                onLoad={() => setLoaded(true)}
+              />
               <H2Center>Open browser to continue...</H2Center>
             </>
-          }
-          {inapp?.isIOS &&
-            <Bottom>
-              <FullWidthBottomImg src={IosOpenBrowserHint} onLoad={() => setLoaded(true)} />
-              <H2CenterBottom>Open browser to continue...</H2CenterBottom>
-              <BottomImg src={BottomArrow} onLoad={() => setLoadedArrow(true)} />
-            </Bottom>
-          }
+          )}
         </Overlay>
       }
     </>
