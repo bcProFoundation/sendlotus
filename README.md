@@ -9,6 +9,9 @@
 
 ## Development
 
+-   Rename .env.example to .env
+-   Provide the correct APIs
+
 ```
 npm install
 npm start
