@@ -88,7 +88,7 @@ const useWallet = () => {
     };
 
     const normalizeSlpBalancesAndUtxos = (slpBalancesAndUtxos, wallet) => {
-        const Accounts = [wallet.Path10605];
+        const Accounts = [wallet.Path10605, wallet.Path1899, wallet.Path899];
         slpBalancesAndUtxos.nonSlpUtxos.forEach(utxo => {
             const derivatedAccount = Accounts.find(
                 account => account.xAddress === utxo.address,
@@ -207,14 +207,16 @@ const useWallet = () => {
                 wallet.Path10605.xAddress,
                 // wallet.Path245.cashAddress,
                 // wallet.Path145.cashAddress,
-                // wallet.Path1899.cashAddress,
+                wallet.Path1899.xAddress,
+                wallet.Path899.xAddress
             ];
 
             const publicKeys = [
                 wallet.Path10605.publicKey,
                 // wallet.Path145.publicKey,
                 // wallet.Path245.publicKey,
-                // wallet.Path1899.publicKey,
+                wallet.Path1899.publicKey,
+                wallet.Path899.publicKey,
             ];
             const utxos = await getUtxos(BCH, xAddresses);
 
@@ -416,11 +418,21 @@ const useWallet = () => {
         } else {
             masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer, 'testnet');
         }
+        const Path899 = await deriveAccount(BCH, {
+            masterHDNode,
+            path: "m/44'/899'/0'/0/0",
+        });
+        const Path1899 = await deriveAccount(BCH, {
+            masterHDNode,
+            path: "m/44'/1899'/0'/0/0",
+        });
         const Path10605 = await deriveAccount(BCH, {
             masterHDNode,
             path: "m/44'/10605'/0'/0/0",
         });
 
+        wallet.Path899 = Path899;
+        wallet.Path1899 = Path1899;
         wallet.Path10605 = Path10605;
 
         try {
@@ -470,10 +482,14 @@ const useWallet = () => {
         //     masterHDNode,
         //     path: "m/44'/145'/0'/0/0",
         // });
-        // const Path1899 = await deriveAccount(BCH, {
-        //     masterHDNode,
-        //     path: "m/44'/1899'/0'/0/0",
-        // });
+        const Path899 = await deriveAccount(BCH, {
+            masterHDNode,
+            path: "m/44'/899'/0'/0/0",
+        });
+        const Path1899 = await deriveAccount(BCH, {
+            masterHDNode,
+            path: "m/44'/1899'/0'/0/0",
+        });
         const Path10605 = await deriveAccount(BCH, {
             masterHDNode,
             path: "m/44'/10605'/0'/0/0",
@@ -490,7 +506,8 @@ const useWallet = () => {
             name,
             // Path245,
             // Path145,
-            // Path1899,
+            Path899,
+            Path1899,
             Path10605
         };
     };
@@ -577,6 +594,8 @@ const useWallet = () => {
                 if (isLegacyMigrationRequired(savedWallets[i])) {
                     // Case 1, described above
                     savedWallets[i].Path10605 = currentlyActiveWallet.Path10605;
+                    savedWallets[i].Path1899 = currentlyActiveWallet.Path1899;
+                    savedWallets[i].Path899 = currentlyActiveWallet.Path899;
                 }
 
                 /*
@@ -612,15 +631,12 @@ const useWallet = () => {
             }
         }
     
-        // If wallet does not have Path10605, add it
-        // or Path10605 does not have a public key, add it
+        // If wallet does not have Path10605, Path1899, Path899, add it
+        // or each of the Path10605, Path1899, Path899 does not have a public key, add it
         // by calling migrateLagacyWallet()
         if (isLegacyMigrationRequired(walletToActivate)) {
             // Case 2, described above
-            console.log(`Case 2: Wallet to activate does not have Path10605`);
-            console.log(
-                `Wallet to activate from SavedWallets does not have Path10605`,
-            );
+            console.log(`Legacy Wallet. Migrating...`);
             console.log(`walletToActivate`, walletToActivate);
             walletToActivate = await migrateLegacyWallet(BCH, walletToActivate);
         } else {
