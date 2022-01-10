@@ -1048,8 +1048,7 @@ export default function useBCH() {
         let ConstructedSlpWallet;
 
         ConstructedSlpWallet = new SlpWallet('', {
-            restURL: getRestUrl(apiIndex),
-            hdPath: "m/44'/10605'/0'/0/0"
+            restURL: getRestUrl(apiIndex)
         });
         return ConstructedSlpWallet.bchjs;
     };
