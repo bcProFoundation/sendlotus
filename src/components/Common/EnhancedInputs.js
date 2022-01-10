@@ -1,10 +1,11 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { Form, Input, Select } from 'antd';
+import { Form, FormItemProps, Input, Select } from 'antd';
 import {
     ThemedDollarOutlined,
     ThemedWalletOutlined,
 } from '@components/Common/CustomIcons';
+import { LockOutlined } from '@ant-design/icons';
 import styled, { css } from 'styled-components';
 import ScanQRCode from './ScanQRCode';
 import useBCH from '@hooks/useBCH';
@@ -13,14 +14,14 @@ import { currency } from '@components/Common/Ticker.js';
 export const AntdFormCss = css`
     .ant-input-group-addon {
         background-color: ${props =>
-            props.theme.forms.addonBackground} !important;
+        props.theme.forms.addonBackground} !important;
         border: 1px solid ${props => props.theme.forms.border};
         color: ${props => props.theme.forms.addonForeground} !important;
     }
     input.ant-input,
     .ant-select-selection {
         background-color: ${props =>
-            props.theme.forms.selectionBackground} !important;
+        props.theme.forms.selectionBackground} !important;
         box-shadow: none !important;
         border-radius: 4px;
         font-weight: bold;
@@ -269,6 +270,29 @@ FormItemWithQRCodeAddon.propTypes = {
     inputProps: PropTypes.object,
 };
 
+export const FormItemRedeemCodeXpiInput = ({
+    inputProps,
+    ...otherProps }) => {
+    return (
+        <AntdFormWrapper {...otherProps}>
+            <Form.Item {...otherProps}>
+                <Input
+                    prefix={<LockOutlined />}
+                    placeholder="Redeem Code"
+                    name="redeemCode"
+                    autoComplete="off"
+                    required
+                    {...inputProps}
+                />
+            </Form.Item>
+        </AntdFormWrapper>
+    );
+}
+
+FormItemRedeemCodeXpiInput.propTypes = {
+    inputProps: PropTypes.object
+};
+
 export const CurrencySelectDropdown = selectProps => {
     const { Option } = Select;
 
@@ -279,9 +303,8 @@ export const CurrencySelectDropdown = selectProps => {
         const currencyMenuOption = {};
         currencyMenuOption.value =
             currency.fiatCurrencies[currencyKeys[i]].slug;
-        currencyMenuOption.label = `${
-            currency.fiatCurrencies[currencyKeys[i]].name
-        } (${currency.fiatCurrencies[currencyKeys[i]].symbol})`;
+        currencyMenuOption.label = `${currency.fiatCurrencies[currencyKeys[i]].name
+            } (${currency.fiatCurrencies[currencyKeys[i]].symbol})`;
         currencyMenuOptions.push(currencyMenuOption);
     }
     const currencyOptions = currencyMenuOptions.map(currencyMenuOption => {

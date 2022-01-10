@@ -10,18 +10,19 @@ import {
     CaretRightOutlined,
     SettingFilled,
     AppstoreAddOutlined,
+		GiftOutlined,
 } from '@ant-design/icons';
 import Wallet from '@components/Wallet/Wallet';
 import Tokens from '@components/Tokens/Tokens';
 import Send from '@components/Send/Send';
 import SendToken from '@components/Send/SendToken';
+import RedeemComponent from '@components/Redeem/RedeemComponent';
 import RedeemSection from '@components/Redeem/RedeemSection';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
 import LogoLotusPink from '@assets/lotus-pink-logo.png'
 import TabCash from '@assets/tabcash.png';
-import ABC from '@assets/logo_topright.png';
 import './App.css';
 import { WalletContext } from '@utils/context';
 import { isValidStoredWallet } from '@utils/cashMethods';
@@ -99,16 +100,16 @@ export const NavButton = styled.button`
         outline: none;
     }
     cursor: pointer;
-    padding: 24px 12px 12px 12px;
-    margin: 0 28px;
+    padding: 18px 9px 9px 9px;
+    margin: 0 20px;
     @media (max-width: 475px) {
-        margin: 0 20px;
+        margin: 0 14px;
     }
     @media (max-width: 420px) {
-        margin: 0 12px;
+        margin: 0 8px;
     }
     @media (max-width: 350px) {
-        margin: 0 8px;
+        margin: 0 6px;
     }
     background-color: ${props => props.theme.footer.background};
     border: none;
@@ -308,6 +309,12 @@ const App = () => {
                                             address={wallet?.Path10605?.xAddress}
                                         />)}
                                     />
+                                    <Route path="/redeem"
+                                        render={props => (<RedeemComponent
+                                            redeemCode={props.match.params.redeemCode}
+                                            address={wallet?.Path10605?.xAddress}
+                                        />)}
+                                    />
                                     <Route path="/configure">
                                         <Configure />
                                     </Route>
@@ -341,6 +348,14 @@ const App = () => {
                                 >
                                     <CaretRightOutlined />
                                     Send
+                                </NavButton>
+
+                                <NavButton
+                                    active={selectedKey === 'redeem'}
+                                    onClick={() => history.push('/redeem')}
+                                >
+																	<GiftOutlined />
+                                    Redeem
                                 </NavButton>
                                 <NavButton
                                     active={selectedKey === 'configure'}
