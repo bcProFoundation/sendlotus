@@ -7,6 +7,7 @@ import {
 } from '@components/Common/CustomIcons';
 import { LockOutlined } from '@ant-design/icons';
 import styled, { css } from 'styled-components';
+import ScanRedeemQRCode from './ScanRedeemQRCode';
 import ScanQRCode from './ScanQRCode';
 import useBCH from '@hooks/useBCH';
 import { currency } from '@components/Common/Ticker.js';
@@ -270,27 +271,36 @@ FormItemWithQRCodeAddon.propTypes = {
     inputProps: PropTypes.object,
 };
 
-export const FormItemRedeemCodeXpiInput = ({
-    inputProps,
-    ...otherProps }) => {
-    return (
-        <AntdFormWrapper {...otherProps}>
-            <Form.Item {...otherProps}>
-                <Input
-                    prefix={<LockOutlined />}
-                    placeholder="Redeem Code"
-                    name="redeemCode"
-                    autoComplete="off"
-                    required
-                    {...inputProps}
-                />
-            </Form.Item>
-        </AntdFormWrapper>
-    );
-}
+// loadWithCameraOpen prop: if true, load page with camera scanning open
+export const FormItemWithScanRedeemQRCodeAddon = ({
+	onScan,
+	loadWithCameraOpen,
+	inputProps,
+	...otherProps
+}) => {
+	return (
+			<AntdFormWrapper>
+					<Form.Item {...otherProps}>
+							<Input
+									prefix={<LockOutlined />}
+									autoComplete="off"
+									addonAfter={
+											<ScanRedeemQRCode
+													loadWithCameraOpen={loadWithCameraOpen}
+													onScan={onScan}
+											/>
+									}
+									{...inputProps}
+							/>
+					</Form.Item>
+			</AntdFormWrapper>
+	);
+};
 
-FormItemRedeemCodeXpiInput.propTypes = {
-    inputProps: PropTypes.object
+FormItemWithScanRedeemQRCodeAddon.propTypes = {
+	onScan: PropTypes.func,
+	loadWithCameraOpen: PropTypes.bool,
+	inputProps: PropTypes.object,
 };
 
 export const CurrencySelectDropdown = selectProps => {

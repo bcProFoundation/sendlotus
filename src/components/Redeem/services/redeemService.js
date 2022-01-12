@@ -61,7 +61,7 @@ const redeemService = {
       callback();
     });
   },
-  reCaptchaReady(address, callback) {
+  reCaptchaReady(redeemCode, address, callback) {
     let captcha = window.grecaptcha.enterprise
     if (captcha) {
       captcha.ready(() => {
@@ -69,7 +69,7 @@ const redeemService = {
           action: 'submit',
           twofactor: true
         }).then((token) => {
-          callback(token, address);
+          callback(token, address, redeemCode);
         });
       });
     }

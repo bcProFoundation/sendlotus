@@ -34,13 +34,13 @@ const RedeemSection = ({ address, redeemCode }) => {
     if (process.env.NODE_ENV == 'development' || !window.grecaptcha) {
       submit('', address);
     } else {
-      redeemService.reCaptchaReady(address, submit);
+      redeemService.reCaptchaReady(redeemCode, address, submit);
     }
   };
 
-  async function submit(token, currentAddress) {
+  async function submit(token, currentAddress, currentRedeemCode) {
     try {
-      const response = await redeemService.submit(token, currentAddress, redeemCode);
+      const response = await redeemService.submit(token, currentAddress, currentRedeemCode);
 
       notification.success({
         message: `Redeem successfully ${ response?.data ? fromSmallestDenomination(response.data.amount) : '' } XPI`,

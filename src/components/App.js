@@ -10,7 +10,7 @@ import {
     CaretRightOutlined,
     SettingFilled,
     AppstoreAddOutlined,
-		GiftOutlined,
+    RedEnvelopeOutlined,
 } from '@ant-design/icons';
 import Wallet from '@components/Wallet/Wallet';
 import Tokens from '@components/Tokens/Tokens';
@@ -309,7 +309,7 @@ const App = () => {
                                             address={wallet?.Path10605?.xAddress}
                                         />)}
                                     />
-                                    <Route path="/redeem"
+                                    <Route path="/lixi"
                                         render={props => (<RedeemComponent
                                             redeemCode={props.match.params.redeemCode}
                                             address={wallet?.Path10605?.xAddress}
@@ -351,11 +351,11 @@ const App = () => {
                                 </NavButton>
 
                                 <NavButton
-                                    active={selectedKey === 'redeem'}
-                                    onClick={() => history.push('/redeem')}
+                                    active={selectedKey === 'lixi'}
+                                    onClick={() => history.push('/lixi')}
                                 >
-																	<GiftOutlined />
-                                    Redeem
+																	<RedEnvelopeOutlined />
+                                    Lixi
                                 </NavButton>
                                 <NavButton
                                     active={selectedKey === 'configure'}
