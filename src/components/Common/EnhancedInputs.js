@@ -1,13 +1,12 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { Form, FormItemProps, Input, Select } from 'antd';
+import { Form, Input, Select } from 'antd';
 import {
     ThemedDollarOutlined,
     ThemedWalletOutlined,
 } from '@components/Common/CustomIcons';
 import { LockOutlined } from '@ant-design/icons';
 import styled, { css } from 'styled-components';
-import ScanRedeemQRCode from './ScanRedeemQRCode';
 import ScanQRCode from './ScanQRCode';
 import useBCH from '@hooks/useBCH';
 import { currency } from '@components/Common/Ticker.js';
@@ -244,18 +243,20 @@ export const FormItemWithQRCodeAddon = ({
     onScan,
     loadWithCameraOpen,
     inputProps,
+    codeType = 'address',
     ...otherProps
 }) => {
     return (
         <AntdFormWrapper>
             <Form.Item {...otherProps}>
                 <Input
-                    prefix={<ThemedWalletOutlined />}
+                    prefix={codeType == 'address' ? <ThemedWalletOutlined /> : <LockOutlined />}
                     autoComplete="off"
                     addonAfter={
                         <ScanQRCode
                             loadWithCameraOpen={loadWithCameraOpen}
                             onScan={onScan}
+                            codeType={codeType}
                         />
                     }
                     {...inputProps}
@@ -269,38 +270,7 @@ FormItemWithQRCodeAddon.propTypes = {
     onScan: PropTypes.func,
     loadWithCameraOpen: PropTypes.bool,
     inputProps: PropTypes.object,
-};
-
-// loadWithCameraOpen prop: if true, load page with camera scanning open
-export const FormItemWithScanRedeemQRCodeAddon = ({
-	onScan,
-	loadWithCameraOpen,
-	inputProps,
-	...otherProps
-}) => {
-	return (
-			<AntdFormWrapper>
-					<Form.Item {...otherProps}>
-							<Input
-									prefix={<LockOutlined />}
-									autoComplete="off"
-									addonAfter={
-											<ScanRedeemQRCode
-													loadWithCameraOpen={loadWithCameraOpen}
-													onScan={onScan}
-											/>
-									}
-									{...inputProps}
-							/>
-					</Form.Item>
-			</AntdFormWrapper>
-	);
-};
-
-FormItemWithScanRedeemQRCodeAddon.propTypes = {
-	onScan: PropTypes.func,
-	loadWithCameraOpen: PropTypes.bool,
-	inputProps: PropTypes.object,
+    codeType: PropTypes.string,
 };
 
 export const CurrencySelectDropdown = selectProps => {
