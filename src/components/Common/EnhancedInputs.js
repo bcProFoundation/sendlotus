@@ -243,7 +243,7 @@ export const FormItemWithQRCodeAddon = ({
     onScan,
     loadWithCameraOpen,
     inputProps,
-    codeType = 'address',
+    codeType,
     ...otherProps
 }) => {
     return (
