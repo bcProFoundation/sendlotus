@@ -9,19 +9,18 @@ import {
     FolderOpenFilled,
     CaretRightOutlined,
     SettingFilled,
-    AppstoreAddOutlined,
 } from '@ant-design/icons';
+import Icon from '@ant-design/icons';
+import { ReactComponent as IconLixi } from '@assets/icon_lixi.svg';
 import Wallet from '@components/Wallet/Wallet';
-import Tokens from '@components/Tokens/Tokens';
 import Send from '@components/Send/Send';
-import SendToken from '@components/Send/SendToken';
+import RedeemComponent from '@components/Redeem/RedeemComponent';
 import RedeemSection from '@components/Redeem/RedeemSection';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
 import LogoLotusPink from '@assets/lotus-pink-logo.png'
 import TabCash from '@assets/tabcash.png';
-import ABC from '@assets/logo_topright.png';
 import './App.css';
 import { WalletContext } from '@utils/context';
 import { isValidStoredWallet } from '@utils/cashMethods';
@@ -277,13 +276,6 @@ const App = () => {
                                     <Route path="/wallet">
                                         <Wallet />
                                     </Route>
-                                    <Route path="/tokens">
-                                        <Tokens
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    </Route>
                                     <Route path="/send">
                                         <Send
                                             passLoadingStatus={
@@ -291,19 +283,14 @@ const App = () => {
                                             }
                                         />
                                     </Route>
-                                    <Route
-                                        path="/send-token/:tokenId"
-                                        render={props => (
-                                            <SendToken
-                                                tokenId={props.match.params.tokenId}
-                                                passLoadingStatus={
-                                                    setLoadingUtxosAfterSend
-                                                }
-                                            />
-                                        )}
-                                    />
                                     <Route path="/redeem/:redeemCode"
                                         render={props => (<RedeemSection
+                                            redeemCode={props.match.params.redeemCode}
+                                            address={wallet?.Path10605?.xAddress}
+                                        />)}
+                                    />
+                                    <Route path="/lixi"
+                                        render={props => (<RedeemComponent
                                             redeemCode={props.match.params.redeemCode}
                                             address={wallet?.Path10605?.xAddress}
                                         />)}
@@ -327,20 +314,19 @@ const App = () => {
                                 </NavButton>
 
                                 <NavButton
-                                    disabled
-                                    active={selectedKey === 'tokens'}
-                                    onClick={() => history.push('/tokens')}
-                                >
-                                    <AppstoreAddOutlined />
-                                    Tokens
-                                </NavButton>
-
-                                <NavButton
                                     active={selectedKey === 'send'}
                                     onClick={() => history.push('/send')}
                                 >
                                     <CaretRightOutlined />
                                     Send
+                                </NavButton>
+
+                                <NavButton
+                                    active={selectedKey === 'lixi'}
+                                    onClick={() => history.push('/lixi')}
+                                >
+                                    <Icon component={IconLixi} />
+                                    Lixi
                                 </NavButton>
                                 <NavButton
                                     active={selectedKey === 'configure'}

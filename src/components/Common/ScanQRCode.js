@@ -31,6 +31,7 @@ const QRPreview = styled.video`
 
 const ScanQRCode = ({
     loadWithCameraOpen,
+    codeType = 'address',
     onScan = () => null,
     ...otherProps
 }) => {
@@ -53,14 +54,14 @@ const ScanQRCode = ({
         }
     };
 
-    const parseContent = content => {
+    const parseAddressContent = content => {
         let type = 'unknown';
         let values = {};
 
         // If what scanner reads from QR code begins with 'bitcoincash:' or 'simpleledger:' or their successor prefixes
         if (isValidCashPrefix(content) || isValidTokenPrefix(content)) {
             type = 'address';
-            values = { address: content };
+            values = { result: content };
             // Event("Category", "Action", "Label")
             // Track number of successful QR code scans
             // BCH or slp?
@@ -71,6 +72,13 @@ const ScanQRCode = ({
             }
             Event('ScanQRCode.js', 'Address Scanned', eventLabel);
         }
+        return { type, values };
+    };
+
+    // Have to apply logic parse redeem code 
+    const parseRedeemContent = content => {
+        let type = 'redeemCode';
+        let values = { result: content };
         return { type, values };
     };
 
@@ -95,13 +103,25 @@ const ScanQRCode = ({
                 undefined,
                 'test-area-qr-code-webcam',
             );
-            const result = parseContent(content.text);
+            let result = null;
+
+            switch (codeType) {
+                case 'address':
+                    result = parseAddressContent(content.text);
+                    break;
+                case 'redeemCode':
+                    result = parseRedeemContent(content.text);
+                    break;
+
+                default:
+                    break;
+            }
 
             // stop scanning and fill form if it's an address
-            if (result.type === 'address') {
+            if (result?.type === codeType) {
                 // Hide the scanner
                 setVisible(false);
-                onScan(result.values.address);
+                onScan(result.values?.result);
                 return teardownCodeReader(codeReader);
             }
         } catch (err) {
@@ -171,6 +191,7 @@ const ScanQRCode = ({
 
 ScanQRCode.propTypes = {
     loadWithCameraOpen: PropTypes.bool,
+    codeType: PropTypes.string,
     onScan: PropTypes.func,
 };
 
