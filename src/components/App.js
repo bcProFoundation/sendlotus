@@ -9,8 +9,9 @@ import {
     FolderOpenFilled,
     CaretRightOutlined,
     SettingFilled,
-    RedEnvelopeOutlined,
 } from '@ant-design/icons';
+import Icon from '@ant-design/icons';
+import { ReactComponent as IconLixi } from '@assets/icon_lixi.svg';
 import Wallet from '@components/Wallet/Wallet';
 import Send from '@components/Send/Send';
 import RedeemComponent from '@components/Redeem/RedeemComponent';
@@ -324,7 +325,7 @@ const App = () => {
                                     active={selectedKey === 'lixi'}
                                     onClick={() => history.push('/lixi')}
                                 >
-																	<RedEnvelopeOutlined />
+                                    <Icon component={IconLixi} />
                                     Lixi
                                 </NavButton>
                                 <NavButton
