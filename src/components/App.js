@@ -9,13 +9,10 @@ import {
     FolderOpenFilled,
     CaretRightOutlined,
     SettingFilled,
-    AppstoreAddOutlined,
     RedEnvelopeOutlined,
 } from '@ant-design/icons';
 import Wallet from '@components/Wallet/Wallet';
-import Tokens from '@components/Tokens/Tokens';
 import Send from '@components/Send/Send';
-import SendToken from '@components/Send/SendToken';
 import RedeemComponent from '@components/Redeem/RedeemComponent';
 import RedeemSection from '@components/Redeem/RedeemSection';
 import Configure from '@components/Configure/Configure';
@@ -100,16 +97,16 @@ export const NavButton = styled.button`
         outline: none;
     }
     cursor: pointer;
-    padding: 18px 9px 9px 9px;
-    margin: 0 20px;
+    padding: 24px 12px 12px 12px;
+    margin: 0 28px;
     @media (max-width: 475px) {
-        margin: 0 14px;
+        margin: 0 20px;
     }
     @media (max-width: 420px) {
-        margin: 0 8px;
+        margin: 0 12px;
     }
     @media (max-width: 350px) {
-        margin: 0 6px;
+        margin: 0 8px;
     }
     background-color: ${props => props.theme.footer.background};
     border: none;
@@ -278,13 +275,6 @@ const App = () => {
                                     <Route path="/wallet">
                                         <Wallet />
                                     </Route>
-                                    <Route path="/tokens">
-                                        <Tokens
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    </Route>
                                     <Route path="/send">
                                         <Send
                                             passLoadingStatus={
@@ -292,17 +282,6 @@ const App = () => {
                                             }
                                         />
                                     </Route>
-                                    <Route
-                                        path="/send-token/:tokenId"
-                                        render={props => (
-                                            <SendToken
-                                                tokenId={props.match.params.tokenId}
-                                                passLoadingStatus={
-                                                    setLoadingUtxosAfterSend
-                                                }
-                                            />
-                                        )}
-                                    />
                                     <Route path="/redeem/:redeemCode"
                                         render={props => (<RedeemSection
                                             redeemCode={props.match.params.redeemCode}
@@ -331,15 +310,6 @@ const App = () => {
                                 >
                                     <FolderOpenFilled />
                                     Wallet
-                                </NavButton>
-
-                                <NavButton
-                                    disabled
-                                    active={selectedKey === 'tokens'}
-                                    onClick={() => history.push('/tokens')}
-                                >
-                                    <AppstoreAddOutlined />
-                                    Tokens
                                 </NavButton>
 
                                 <NavButton

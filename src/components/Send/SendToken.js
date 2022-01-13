@@ -281,6 +281,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                             ? sendTokenAddressError
                                             : ''
                                     }
+                                    codeType='address'
                                     onScan={result =>
                                         handleTokenAddressChange({
                                             target: {

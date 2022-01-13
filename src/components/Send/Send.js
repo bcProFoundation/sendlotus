@@ -440,6 +440,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                     },
                                 })
                             }
+                            codeType='address'
                             inputProps={{
                                 placeholder: `${currency.ticker} Address`,
                                 name: 'address',

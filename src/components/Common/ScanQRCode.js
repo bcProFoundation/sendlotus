@@ -118,10 +118,10 @@ const ScanQRCode = ({
             }
 
             // stop scanning and fill form if it's an address
-            if (result.type === codeType) {
+            if (result?.type === codeType) {
                 // Hide the scanner
                 setVisible(false);
-                onScan(result.values.result);
+                onScan(result.values?.result);
                 return teardownCodeReader(codeReader);
             }
         } catch (err) {
