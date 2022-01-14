@@ -7,6 +7,8 @@ import { FormItemWithQRCodeAddon } from '@components/Common/EnhancedInputs';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import useRedeem from '@hooks/useRedeem';
+import { fromSmallestDenomination } from '@utils/cashMethods';
+
 
 const RedeemComponent = ({ address }) => {
     const history = useHistory();

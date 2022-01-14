@@ -61,10 +61,9 @@ const useRedeem = (address, callback) => {
                     redeemAddress: address,
                     captchaToken: token
                 });
-
-            return response.data;
+            return response;
         } catch (error) {
-            throw error;
+            throw error?.response?.data;
         }
     }
 
