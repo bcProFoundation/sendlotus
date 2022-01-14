@@ -62,9 +62,9 @@ const useRedeem = (address, callback) => {
                     captchaToken: token
                 });
 
-            return response.data;
+            return response;
         } catch (error) {
-            throw error;
+            throw error?.response?.data;
         }
     }
 
