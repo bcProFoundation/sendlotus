@@ -8,6 +8,7 @@ import {
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Event } from '@utils/GoogleAnalytics';
 import { convertToEcashPrefix } from '@utils/cashMethods';
+import FormattedWalletAddress from './FormattedWalletAddress';
 
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
@@ -31,63 +32,47 @@ export const StyledRawQRCode = styled(RawQRCode)`
 `;
 
 const Copied = styled.div`
-    font-size: 18px;
-    font-weight: bold;
     width: 100%;
     text-align: center;
     background-color: ${({ xpi = 0, ...props }) =>
-        xpi === 1 ? props.theme.primary : props.theme.qr.token};
-    border: 1px solid;
-    border-color: ${({ xpi = 0, ...props }) =>
-        xpi === 1
-            ? props.theme.qr.copyBorderCash
-            : props.theme.qr.copyBorderToken};
+        xpi === 1 ? props.theme.primary : props.theme.qr.token}; 
     color: ${props => props.theme.contrast};
     position: absolute;
     top: 65px;
     padding: 30px 0;
+
+    .heading {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .text {
+        font-size: 12px
+    }
+
     @media (max-width: 768px) {
         top: 52px;
         padding: 20px 0;
-    }
-`;
-const PrefixLabel = styled.span`
-    text-align: right;
-    font-size: 14px;
-    font-weight: bold;
-    @media (max-width: 768px) {
-        font-size: 12px;
-    }
-    @media (max-width: 400px) {
-        font-size: 10px;
-    }
-`;
-const AddressHighlightTrim = styled.span`
-    font-weight: bold;
-    font-size: 14px;
-    @media (max-width: 768px) {
-        font-size: 12px;
-    }
-    @media (max-width: 400px) {
-        font-size: 10px;
+
+        .heading {
+            font-size: 14px;
+        }
+
+        .text {
+            font-size: 10px;
+        }
     }
 `;
 
 const CustomInput = styled.div`
-    font-size: 15px;
-    color: ${props => props.theme.wallet.text.secondary};
+    font-size: 12px;
+    color: ${props => props.theme.wallet.text.primary};
     text-align: center;
     cursor: pointer;
     margin-bottom: 0px;
     padding: 6px 0;
     font-family: 'Roboto Mono', monospace;
-    border-radius: 5px;
 
-    span {
-        font-weight: bold;
-        color: ${props => props.theme.wallet.text.primary};
-        font-size: 16px;
-    }
     input {
         border: none;
         width: 100%;
@@ -111,22 +96,16 @@ const CustomInput = styled.div`
         color: ${props => props.theme.wallet.text.primary};
     }
     @media (max-width: 768px) {
-        font-size: 11px;
-        span {
-            font-size: 12px;
-        }
+        font-size: 10px;
         input {
-            font-size: 11px;
+            font-size: 10px;
             margin-bottom: 10px;
         }
     }
     @media (max-width: 340px) {
-        font-size: 10px;
-        span {
-            font-size: 11px;
-        }
+        font-size: 8px;
         input {
-            font-size: 11px;
+            font-size: 10px;
             margin-bottom: 10px;
         }
     }
@@ -189,8 +168,11 @@ export const QRCode = ({
                     xpi={address ? 1 : 0}
                     style={{ display: visible ? null : 'none' }}
                 >
-                    Copied <br />
-                    <span style={{ fontSize: '12px' }}>{address}</span>
+                    <span className='heading'>
+                        Copied
+                    </span>
+                    <br />
+                    <span className='text'>{address}</span>
                 </Copied>
 
                 <StyledRawQRCode
@@ -222,9 +204,7 @@ export const QRCode = ({
                             spellCheck="false"
                             type="text"
                         />
-                        <span>
-                            {address}
-                        </span>
+                        <FormattedWalletAddress address={address} />
                     </CustomInput>
                 )}
             </div>
