@@ -217,68 +217,18 @@ const WalletInfo = () => {
                     />
                 </>
             )}
-            {/* <SwitchBtnCtn>
-                <SwitchBtn
-                    onClick={() => handleChangeAddress()}
-                    className={
-                        address !== 'xAddress' ? 'nonactiveBtn' : null
-                    }
-                >
-                    {currency.ticker}
-                </SwitchBtn>
-                <SwitchBtn
-                    onClick={() => handleChangeAddress()}
-                    className={
-                        address === 'xAddress' ? 'nonactiveBtn' : 'slpActive'
-                    }
-                >
-                    {currency.tokenTicker}
-                </SwitchBtn>
-            </SwitchBtnCtn> */}
 
             {hasHistory && parsedTxHistory && (
                 <>
-                    <Tabs>
-                        <TabLabel
-                            active={activeTab === 'txHistory'}
-                            onClick={() => setActiveTab('txHistory')}
-                        >
-                            Transaction History
-                        </TabLabel>
-                        {/* <TabLabel
-                            active={activeTab === 'tokens'}
-                            onClick={() => setActiveTab('tokens')}
-                        >
-                            Tokens
-                        </TabLabel> */}
-                        <TabLine left={activeTab === 'txHistory'} />
-                    </Tabs>
-
-                    <TabPane active={activeTab === 'txHistory'}>
-                        <TxHistory
-                            txs={parsedTxHistory}
-                            fiatPrice={fiatPrice}
-                            fiatCurrency={
-                                cashtabSettings && cashtabSettings.fiatCurrency
-                                    ? cashtabSettings.fiatCurrency
-                                    : 'usd'
-                            }
-                        />
-                    </TabPane>
-                    <TabPane active={activeTab === 'tokens'}>
-                        {tokens && tokens.length > 0 ? (
-                            <TokenList
-                                wallet={wallet}
-                                tokens={tokens}
-                                jestBCH={false}
-                            />
-                        ) : (
-                            <p>
-                                Tokens sent to your {currency.tokenTicker}{' '}
-                                address will appear here
-                            </p>
-                        )}
-                    </TabPane>
+                    <TxHistory
+                        txs={parsedTxHistory}
+                        fiatPrice={fiatPrice}
+                        fiatCurrency={
+                            cashtabSettings && cashtabSettings.fiatCurrency
+                            ? cashtabSettings.fiatCurrency
+                            : 'usd'
+                        }
+                    />
                 </>
             )}
         </>
