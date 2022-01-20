@@ -244,9 +244,20 @@ const useWallet = () => {
                 return;
             }
 
+
+            // @TODO: we does not support slp here, so comment out below code and keep it as reference
+            // const hydratedUtxoDetails = await getHydratedUtxoDetails(
+            //     BCH,
+            //     utxos,
+            // );
+
             // We do not support slp here, so we assume all uxtos are invalid (in slp context)
-            for (let i = 0; i < utxos.length; i += 1) {
-                let theseUtxos = utxos[i].utxos;
+            // This simulates the effect of hydrating utxos with slp details
+            //  with all utxos marked as not valid slp - meaning it is not part of slp transaction
+            //  we do this to avoid actually hit the api server
+            let slpUtxos = JSON.parse(JSON.stringify(utxos)); // deep clone the utxos
+            for (let i = 0; i < slpUtxos.length; i += 1) {
+                let theseUtxos = slpUtxos[i].utxos;
                 for (let j = 0; j < theseUtxos.length; j += 1) {
                     const utxo = theseUtxos[j];
                     utxo.txid = utxo.tx_hash;
@@ -254,13 +265,7 @@ const useWallet = () => {
                     utxo.isValid = false;
                 }
             }
-
-            // @TODO: we does not support slp here, so comment out below code and keep it as reference
-            // const hydratedUtxoDetails = await getHydratedUtxoDetails(
-            //     BCH,
-            //     utxos,
-            // );
-            const hydratedUtxoDetails = { slpUtxos: utxos };
+            const hydratedUtxoDetails = { slpUtxos };
 
             const slpBalancesAndUtxos = await getSlpBalancesAndUtxos(
                 hydratedUtxoDetails,
