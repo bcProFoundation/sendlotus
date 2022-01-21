@@ -14,6 +14,7 @@
         "dotenv-expand": "^5.1.0",
         "ecashaddrjs": "^1.0.1",
         "ethereum-blockies-base64": "^1.0.2",
+        "file-saver": "^2.0.5",
         "localforage": "^1.9.0",
         "lodash.isempty": "^4.4.0",
         "lodash.isequal": "^4.5.0",
@@ -28,6 +29,8 @@
         "react-image": "^4.0.3",
         "react-router": "^5.2.0",
         "react-router-dom": "^5.2.0",
+        "react-share": "^4.4.0",
+        "react-web-share": "^1.1.1",
         "styled-components": "^4.4.0"
     },
     "lint-staged": {

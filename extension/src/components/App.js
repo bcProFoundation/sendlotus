@@ -52,7 +52,7 @@ const GlobalStyle = createGlobalStyle`
         background-color: ${props => props.theme.contrast} !important;
     }
     .cashLoadingIcon {
-        color: ${props => props.theme.primary} !important
+        color: ${props => props.theme.primary} !important;
         font-size: 48px !important;
     }
     .selectedCurrencyOption:hover {
@@ -66,7 +66,7 @@ const GlobalStyle = createGlobalStyle`
     }
     #addrSwitch.ant-switch-checked {
         background-image: ${props =>
-            props.theme.buttons.primary.backgroundImage} !important;
+        props.theme.buttons.primary.backgroundImage} !important;
     }
 `;
 
@@ -123,7 +123,11 @@ export const NavButton = styled.button`
         .anticon {
             color: ${props.theme.primary};
         }
-  `}
+  ` }
+    .ant-popover-inner {
+        background-color: ${props =>
+        props.theme.app.background} !important;
+    }
 `;
 
 export const WalletBody = styled.div`
@@ -138,7 +142,7 @@ export const WalletBody = styled.div`
 
 export const WalletCtn = styled.div`
     position: relative;
-    width: 500px;
+    width: 520px;
     background-color: ${props => props.theme.footerBackground};
     min-height: 100vh;
     padding: 10px 30px 120px 30px;
@@ -232,7 +236,7 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
-                            <LotusLogo src={LogoLotusPink} alt="lotus" />
+                                <LotusLogo src={LogoLotusPink} alt="lotus" />
                                 <CashTabLogo src={CashTab} alt="cashtab" />
                                 {/*Begin extension-only components*/}
                                 <OpenInTabBtn

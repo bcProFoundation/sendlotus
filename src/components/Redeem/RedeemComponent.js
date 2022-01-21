@@ -31,13 +31,14 @@ const RedeemComponent = ({ address }) => {
         }
     }, []);
 
-    const handleOnClick = e => {
+    const handleOnClick = async e => {
         e.preventDefault();
 
         if (process.env.NODE_ENV == 'development' || !window.grecaptcha) {
             submit(null, address, formData.redeemCode);
         } else {
-            reCaptchaReady(formData.redeemCode, address, submit);
+            const token = await reCaptchaReady(formData.redeemCode, address);
+            await submit(token, address, formData.redeemCode);
         }
     }
 

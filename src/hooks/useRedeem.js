@@ -1,36 +1,44 @@
 import { useEffect } from 'react';
 import axios from 'axios';
 import useBCH from '@hooks/useBCH';
+import * as resolve from 'resolve';
 
 const SITE_KEY = "6Lc1rGwdAAAAABrD2AxMVIj4p_7ZlFKdE5xCFOrb";
 
-const loadScriptByURL = (id, url, callback) => {
-    const isScriptExist = document.getElementById(id);
+const loadScriptByURL = async (id, url) => {
 
-    if (!isScriptExist) {
-        let script = document.createElement("script");
-        script.type = "text/javascript";
-        script.src = url;
-        script.id = id;
-        script.onload = function () {
-            if (callback) callback();
-        };
-        document.body.appendChild(script);
-    }
+    return new Promise((resolve, reject) => {
 
-    if (isScriptExist && callback) callback();
+        try {
+            const isScriptExist = document.getElementById(id);
+
+            if (!isScriptExist) {
+                let script = document.createElement("script");
+                script.type = "text/javascript";
+                script.src = url;
+                script.id = id;
+                script.onload = function () {
+                    resolve();
+                };
+                document.body.appendChild(script);
+            } else {
+                resolve();
+            }
+
+        } catch (e) {
+            reject(e);
+        }
+    });
 }
 
-const useRedeem = (address, callback) => {
+const useRedeem = (address) => {
     const { getBCH } = useBCH();
     const BCH = getBCH();
 
-    useEffect(() => {
+    useEffect(async () => {
         if (address) {
             if (process.env.NODE_ENV !== 'development') {
-                loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`, callback);
-            } else if (callback) {
-                callback();
+                loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`);
             }
         }
     }, [address]);
@@ -68,23 +76,50 @@ const useRedeem = (address, callback) => {
         }
     }
 
-    const reCaptchaReady = (redeemCode, address, callback) => {
-        let captcha = window.grecaptcha.enterprise
-        if (captcha) {
-            captcha.ready(() => {
-                captcha.execute(SITE_KEY, {
-                    action: 'submit',
-                    twofactor: true
-                }).then((token) => {
-                    callback(token, address, redeemCode);
-                });
-            });
+    const getLixi = async (lixiId) => {
+        try {
+            const url = `${process.env.REACT_APP_BCHA_LIXI_APIS}vaults/${lixiId}`;
+            const response = await axios.get(url);
+            return response.data;
+        } catch (error) {
+            console.log(`Unable to get the lixi`);
+            throw error?.response?.data;
         }
+    }
+
+    const getRedeem = async (redeemId) => {
+        try {
+            const url = `${process.env.REACT_APP_BCHA_LIXI_APIS}redeems/${redeemId}`;
+            const response = await axios.get(url);
+            return response.data;
+        } catch (error) {
+            console.log(`Unable to get the redeem`);
+            throw error?.response?.data;
+        }
+    }
+
+    const reCaptchaReady = (redeemCode, address) => {
+        return new Promise((resolve, reject) => {
+            let captcha = window.grecaptcha.enterprise;
+            if (captcha) {
+                captcha.ready(() => {
+                    captcha.execute(SITE_KEY, {
+                        action: 'submit',
+                        twofactor: true
+                    }).then((token) => {
+                        resolve(token);
+                    }).catch(err => {
+                        reject();
+                    })
+                });
+            }
+        });
     }
 
     return {
         redeem,
-        reCaptchaReady
+        reCaptchaReady,
+        getLixi
     };
 }
 

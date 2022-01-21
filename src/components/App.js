@@ -15,7 +15,7 @@ import { ReactComponent as IconLixi } from '@assets/icon_lixi.svg';
 import Wallet from '@components/Wallet/Wallet';
 import Send from '@components/Send/Send';
 import RedeemComponent from '@components/Redeem/RedeemComponent';
-import RedeemSection from '@components/Redeem/RedeemSection';
+import StyledRedeemSection from '@components/Redeem/RedeemSection';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
@@ -55,7 +55,7 @@ const GlobalStyle = createGlobalStyle`
         background-color: ${props => props.theme.contrast} !important;
     }
     .cashLoadingIcon {
-        color: ${props => props.theme.primary} !important
+        color: ${props => props.theme.primary} !important;
         font-size: 48px !important;
     }
     .selectedCurrencyOption:hover {
@@ -71,6 +71,10 @@ const GlobalStyle = createGlobalStyle`
         background-image: ${props =>
         props.theme.buttons.primary.backgroundImage} !important;
     }
+    .ant-popover-inner {
+        background-color: ${props =>
+        props.theme.app.background} !important;
+    }
 `;
 
 const CustomApp = styled.div`
@@ -85,7 +89,7 @@ const Footer = styled.div`
     border-radius: 20px;
     position: fixed;
     bottom: 0;
-    width: 500px;
+    width: 520px;
     @media (max-width: 768px) {
         width: 100%;
     }
@@ -141,7 +145,7 @@ export const WalletBody = styled.div`
 
 export const WalletCtn = styled.div`
     position: relative;
-    width: 500px;
+    width: 520px;
     background-color: ${props => props.theme.footerBackground};
     min-height: 100vh;
     padding: 10px 30px 120px 30px;
@@ -284,7 +288,13 @@ const App = () => {
                                         />
                                     </Route>
                                     <Route path="/redeem/:redeemCode"
-                                        render={props => (<RedeemSection
+                                        render={props => (<StyledRedeemSection
+                                            redeemCode={props.match.params.redeemCode}
+                                            address={wallet?.Path10605?.xAddress}
+                                        />)}
+                                    />
+                                    <Route path="/lixi/:redeemCode"
+                                        render={props => (<StyledRedeemSection
                                             redeemCode={props.match.params.redeemCode}
                                             address={wallet?.Path10605?.xAddress}
                                         />)}
