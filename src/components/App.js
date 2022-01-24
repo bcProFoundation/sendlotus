@@ -15,7 +15,6 @@ import { ReactComponent as IconLixi } from '@assets/icon_lixi.svg';
 import Wallet from '@components/Wallet/Wallet';
 import Send from '@components/Send/Send';
 import RedeemComponent from '@components/Redeem/RedeemComponent';
-import StyledRedeemSection from '@components/Redeem/RedeemSection';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
@@ -81,6 +80,7 @@ const CustomApp = styled.div`
     text-align: center;
     font-family: 'Gilroy', sans-serif;
     background-color: ${props => props.theme.app.background};
+    overflow-y: scroll;
 `;
 
 const Footer = styled.div`
@@ -288,20 +288,19 @@ const App = () => {
                                         />
                                     </Route>
                                     <Route path="/redeem/:redeemCode"
-                                        render={props => (<StyledRedeemSection
+                                        render={props => (<RedeemComponent
                                             redeemCode={props.match.params.redeemCode}
                                             address={wallet?.Path10605?.xAddress}
                                         />)}
                                     />
                                     <Route path="/lixi/:redeemCode"
-                                        render={props => (<StyledRedeemSection
+                                        render={props => (<RedeemComponent
                                             redeemCode={props.match.params.redeemCode}
                                             address={wallet?.Path10605?.xAddress}
                                         />)}
                                     />
                                     <Route path="/lixi"
                                         render={props => (<RedeemComponent
-                                            redeemCode={props.match.params.redeemCode}
                                             address={wallet?.Path10605?.xAddress}
                                         />)}
                                     />

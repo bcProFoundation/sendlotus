@@ -266,16 +266,22 @@ const App = () => {
                                         }
                                     />
                                 </Route>
-                                <Route
-                                    path="/send-token/:tokenId"
-                                    render={props => (
-                                        <SendToken
-                                            tokenId={props.match.params.tokenId}
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    )}
+                                <Route path="/redeem/:redeemCode"
+                                    render={props => (<RedeemComponent
+                                        redeemCode={props.match.params.redeemCode}
+                                        address={wallet?.Path10605?.xAddress}
+                                    />)}
+                                />
+                                <Route path="/lixi/:redeemCode"
+                                    render={props => (<RedeemComponent
+                                        redeemCode={props.match.params.redeemCode}
+                                        address={wallet?.Path10605?.xAddress}
+                                    />)}
+                                />
+                                <Route path="/lixi"
+                                    render={props => (<RedeemComponent
+                                        address={wallet?.Path10605?.xAddress}
+                                    />)}
                                 />
                                 <Route path="/configure">
                                     <Configure />
