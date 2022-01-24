@@ -921,6 +921,7 @@ export default function useBCH() {
         destinationAddress,
         sendAmount,
         feeInSatsPerByte,
+        optionalOpReturnMsg,
     ) => {
         try {
             if (!sendAmount) {
@@ -958,6 +959,23 @@ export default function useBCH() {
                 );
                 throw error;
             }
+
+            // Start of building the OP_RETURN output.
+            // only build the OP_RETURN output if the user supplied it
+            if (
+                typeof optionalOpReturnMsg !== 'undefined' &&
+                optionalOpReturnMsg.trim() !== ''
+            ) {
+                const script = [
+                    BCH.Script.opcodes.OP_RETURN,
+                    Buffer.from('6d02', 'hex'),
+                    Buffer.from(optionalOpReturnMsg),
+                ];
+                const data = BCH.Script.encode(script);
+                transactionBuilder.addOutput(data, 0);
+            }
+            // End of building the OP_RETURN output.
+
             let originalAmount = new BigNumber(0);
             let txFee = 0;
             for (let i = 0; i < utxos.length; i++) {
