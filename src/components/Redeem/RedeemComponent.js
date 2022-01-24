@@ -25,7 +25,7 @@ const base62ToNumber = (text) => {
     return result;
 }
 
-const RedeemComponent = ({ className, address, redeemCode }) => {
+const RedeemComponent = ({ address, redeemCode }) => {
     const history = useHistory();
     const { reCaptchaReady, redeem, getLixi } = useRedeem(address);
 
@@ -46,12 +46,6 @@ const RedeemComponent = ({ className, address, redeemCode }) => {
     const [showLixiModal, setShowLixiModal] = useState(false);
     const [lixiRedeemed, setLixiRedeemed] = useState(null);
     const [isWaitingToOpenLixi, setIsWaitingToOpenLixi] = useState(false);
-
-    useEffect(() => {
-        if (!address) {
-            history.push("/wallet");
-        }
-    }, []);
 
     useEffect(() => {
         if (redeemCode) {
@@ -157,7 +151,7 @@ const RedeemComponent = ({ className, address, redeemCode }) => {
     }
 
     return (
-        <section className={className}>
+        <>
             {lixiModal}
             <Row style={{
                 display: 'flex'
@@ -200,7 +194,7 @@ const RedeemComponent = ({ className, address, redeemCode }) => {
                     </Form>
                 </Col>
             </Row>
-        </section>
+        </>
     )
 };
 

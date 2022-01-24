@@ -4,7 +4,7 @@ import './index.css';
 import App from './components/App';
 import CheckBrowser from './components/InApp/check-browser';
 import { AuthenticationProvider, WalletProvider } from './utils/context';
-import { HashRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import GA from './utils/GoogleAnalytics';
 import InApp from '@utils/inapp';
 

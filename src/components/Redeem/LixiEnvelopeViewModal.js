@@ -88,7 +88,7 @@ const SocialSharePanel = ({ className, shareUrl }) => {
                 <TwitterShareButton
                     url={shareUrl}
                     title={title}
-                    className="Demo__some-network__share-button"
+                    className="socialshare"
                 >
                     <TwitterIcon size={32} round />
                 </TwitterShareButton>
