@@ -30,6 +30,7 @@ import {
     Switch,
     useLocation,
     useHistory,
+    Link,
 } from 'react-router-dom';
 // Easter egg imports not used in extension/src/components/App.js
 import { checkForTokenById } from '@utils/tokenMethods.js';
@@ -258,8 +259,8 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
-                                <LotusLogo src={LogoLotusPink} alt="lotus" />
-                                <CashTabLogo src={CashTab} alt="cashtab" />
+                                <Link to="/"><LotusLogo src={LogoLotusPink} alt="lotus" /></Link>
+                                <Link to="/"><CashTabLogo src={CashTab} alt="cashtab" /></Link>
                                 {/*Begin component not included in extension as desktop only*/}
                                 {hasTab && (
                                     <EasterEgg src={TabCash} alt="tabcash" />

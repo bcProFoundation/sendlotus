@@ -25,6 +25,7 @@ import { isValidStoredWallet } from '@utils/cashMethods';
 import WalletLabel from '@components/Common/WalletLabel.js';
 import {
     Route,
+    Link,
     Redirect,
     Switch,
     useLocation,
@@ -236,8 +237,8 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
-                                <LotusLogo src={LogoLotusPink} alt="lotus" />
-                                <CashTabLogo src={CashTab} alt="cashtab" />
+                                <Link to="/"><LotusLogo src={LogoLotusPink} alt="lotus" /></Link>
+                                <Link><CashTabLogo src={CashTab} alt="cashtab" /></Link>
                                 {/*Begin extension-only components*/}
                                 <OpenInTabBtn
                                     data-tip="Open in tab"

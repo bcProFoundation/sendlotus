@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Row, Col, Form, notification } from 'antd';
 import { useHistory } from 'react-router-dom'
-import PrimaryButton from '@components/Common/PrimaryButton';
+import { SmartButton } from '@components/Common/PrimaryButton';
 import { FormItemWithQRCodeAddon } from '@components/Common/EnhancedInputs';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -40,12 +40,13 @@ const RedeemComponent = ({ address, redeemCode }) => {
         value: '',
         redeemCode: '',
     });
-
+    
     const [envelopeUrl, setEnvelopeUrl] = useState('');
     const [shareUrl, setShareUrl] = useState('');
     const [showLixiModal, setShowLixiModal] = useState(false);
     const [lixiRedeemed, setLixiRedeemed] = useState(null);
     const [isWaitingToOpenLixi, setIsWaitingToOpenLixi] = useState(false);
+    const canRedeem = address && formData.redeemCode;
 
     useEffect(() => {
         if (redeemCode) {
@@ -81,14 +82,16 @@ const RedeemComponent = ({ address, redeemCode }) => {
 
             const lixi = await getLixi(vaultId);
 
-            let token;
+            let token = null;
+            let lixiRedeemed = null;
             if (process.env.NODE_ENV == 'development' || !window.grecaptcha) {
-                token = null;
+                lixiRedeemed = await submit(token, address, formData.redeemCode);
             } else {
                 token = await reCaptchaReady(redeemCode, address);
+                if (token) {
+                    lixiRedeemed = await submit(token, address, formData.redeemCode);
+                }
             }
-
-            const lixiRedeemed = await submit(token, address, formData.redeemCode);
 
             if (lixiRedeemed) {
 
@@ -187,9 +190,10 @@ const RedeemComponent = ({ address, redeemCode }) => {
                                 paddingTop: '12px',
                             }}
                         >
-                            <PrimaryButton
+                            <SmartButton
                                 onClick={handleOnClick}
-                            >Redeem</PrimaryButton>
+                                disabled={!canRedeem}
+                            >Redeem</SmartButton>
                         </div>
                     </Form>
                 </Col>
