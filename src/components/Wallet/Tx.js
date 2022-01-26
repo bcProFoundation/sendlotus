@@ -31,14 +31,15 @@ const DateType = styled.div`
         font-size: 0.8rem;
     }
 `;
-const OpReturnType = styled.div`
+const OpReturnType = styled.span`
     text-align: left;
-    width: 260px;
-    max-height: 100px;
+    width: 300%;
+    max-height: 170px;
     padding: 3px;
+    margin: auto;
     word-break: break-word;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding-left: 13px;
+    padding-right: 30px;
 `;
 const SentLabel = styled.span`
     font-weight: bold;
@@ -49,9 +50,17 @@ const ReceivedLabel = styled.span`
     font-weight: bold;
     color: ${props => props.theme.primary} !important;
 `;
+const LotusChatMessageLabel = styled.span`
+    text-align: left;
+    font-weight: bold;
+    color: ${props => props.theme.primary} !important;
+    white-space: nowrap;
+`;
 const MessageLabel = styled.span`
+    text-align: left;
     font-weight: bold;
     color: ${props => props.theme.secondary} !important;
+    white-space: nowrap;
 `;
 const TxIcon = styled.div`
     svg {
@@ -216,18 +225,25 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                         {txDate}
                         {data.opReturnMessage && (
                             <>
+                            <br />
+                            <OpReturnType>
+                                {data.isLotusChatMessage ? (
+                                    <LotusChatMessageLabel>
+                                        LotusChat Message
+                                    </LotusChatMessageLabel>
+                                ) : (
+                                    <MessageLabel>
+                                        External Message
+                                    </MessageLabel>
+                                )}
                                 <br />
-                                <br />
-                                <MessageLabel>Message</MessageLabel>
-                                <br />
-                                <OpReturnType>
-                                    {data.opReturnMessage
-                                        ? Buffer.from(
-                                              data.opReturnMessage,
-                                          ).toString()
-                                        : ''}
-                                </OpReturnType>
-                            </>
+                                {data.opReturnMessage
+                                    ? Buffer.from(
+                                          data.opReturnMessage,
+                                      ).toString()
+                                    : ''}
+                            </OpReturnType>
+                        </>
                         )}
                     </DateType>
                     {data.tokenTx ? (

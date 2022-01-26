@@ -25,6 +25,16 @@ export const currency = {
     txHistoryCount: 10,
     hydrateUtxoBatchSize: 20,
     defaultSettings: { fiatCurrency: 'usd' },
+    opReturn: {
+        opReturnPrefixHex: '6a',
+        opReturnPushDataHex: '04',
+        opReturnAppPrefixLengthHex: '04',
+        appPrefixesHex: {
+            eToken: '534c5000',
+            // cashtab: '00746162',
+            lotusChat: '02020202',
+        },
+    },
     settingsValidation: {
         fiatCurrency: [
             'usd',
@@ -62,6 +72,55 @@ export const currency = {
         vnd: { name: 'Vietnamese đồng', symbol: 'đ', slug: 'vnd' },
     },
 };
+
+export function getETokenEncodingSubstring() {
+    let encodingStr =
+        currency.opReturn.opReturnPrefixHex + // 6a
+        currency.opReturn.opReturnAppPrefixLengthHex + // 04
+        currency.opReturn.appPrefixesHex.eToken; // 534c5000
+
+    return encodingStr;
+}
+
+export function getLotusChatEncodingSubstring() {
+    let encodingStr =
+        currency.opReturn.opReturnPrefixHex + // 6a
+        currency.opReturn.opReturnAppPrefixLengthHex + // 04
+        currency.opReturn.appPrefixesHex.lotusChat; // 02020202
+
+    return encodingStr;
+}
+
+export function isLotusChatOutput(hexStr) {
+    if (!hexStr || typeof hexStr !== 'string') {
+        return false;
+    }
+    return hexStr.startsWith(getLotusChatEncodingSubstring());
+}
+
+export function isEtokenOutput(hexStr) {
+    if (!hexStr || typeof hexStr !== 'string') {
+        return false;
+    }
+    return hexStr.startsWith(getETokenEncodingSubstring());
+}
+
+export function extractLotusChatMessage(hexSubstring) {
+    if (!hexSubstring || typeof hexSubstring !== 'string') {
+        return '';
+    }
+    let substring = hexSubstring.replace(getLotusChatEncodingSubstring(), ''); // remove the LotusChat encoding
+    substring = substring.slice(2); // remove the 2 bytes indicating the size of the next element on the stack e.g. a0 -> 160 bytes
+    return substring;
+}
+
+export function extractExternalMessage(hexSubstring) {
+    if (!hexSubstring || typeof hexSubstring !== 'string') {
+        return '';
+    }
+    let substring = hexSubstring.slice(4); // remove the preceding OP_RETURN prefixes
+    return substring;
+}
 
 export function isValidCashPrefix(addressString) {
     // Note that this function validates prefix only
