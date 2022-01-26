@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import {
@@ -34,7 +35,7 @@ const DateType = styled.div`
 const OpReturnType = styled.span`
     text-align: left;
     width: 300%;
-    max-height: 170px;
+    max-height: 200px;
     padding: 3px;
     margin: auto;
     word-break: break-word;
@@ -61,6 +62,9 @@ const MessageLabel = styled.span`
     font-weight: bold;
     color: ${props => props.theme.secondary} !important;
     white-space: nowrap;
+`;
+const ReplyMessageLabel = styled.span`
+    color: ${props => props.theme.primary} !important;
 `;
 const TxIcon = styled.div`
     svg {
@@ -223,28 +227,6 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                         )}
                         <br />
                         {txDate}
-                        {data.opReturnMessage && (
-                            <>
-                            <br />
-                            <OpReturnType>
-                                {data.isLotusChatMessage ? (
-                                    <LotusChatMessageLabel>
-                                        LotusChat Message
-                                    </LotusChatMessageLabel>
-                                ) : (
-                                    <MessageLabel>
-                                        External Message
-                                    </MessageLabel>
-                                )}
-                                <br />
-                                {data.opReturnMessage
-                                    ? Buffer.from(
-                                          data.opReturnMessage,
-                                      ).toString()
-                                    : ''}
-                            </OpReturnType>
-                        </>
-                        )}
                     </DateType>
                     {data.tokenTx ? (
                         <TokenInfo outgoing={data.outgoingTx}>
@@ -367,6 +349,46 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                             </TxInfo>
                         </>
                     )}
+                    {data.opReturnMessage && (
+                            <>
+                            <br />
+                            <OpReturnType>
+                                {data.isLotusChatMessage ? (
+                                    <LotusChatMessageLabel>
+                                        LotusChat Message
+                                    </LotusChatMessageLabel>
+                                ) : (
+                                    <MessageLabel>
+                                        External Message
+                                    </MessageLabel>
+                                )}
+                                <br />
+                                {data.opReturnMessage
+                                    ? Buffer.from(
+                                          data.opReturnMessage,
+                                      ).toString()
+                                    : ''}
+                                {!data.outgoingTx && data.replyAddress ? (
+                                    <Link
+                                        to={{
+                                            pathname: `/send`,
+                                            state: {
+                                                replyAddress: data.replyAddress,
+                                            },
+                                        }}
+                                    >
+                                        <br />
+                                        <br />
+                                        <ReplyMessageLabel>
+                                            Reply To Message
+                                        </ReplyMessageLabel>
+                                    </Link>
+                                ) : (
+                                    ''
+                                )}
+                            </OpReturnType>
+                        </>
+                        )}
                 </TxWrapper>
             )}
         </>

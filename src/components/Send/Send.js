@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
@@ -54,6 +55,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // If the wallet object from ContextValue has a `state key`, then check which keys are in the wallet object
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
+    const location = useLocation();
     const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
 
     const currentAddress = wallet && wallet.Path10605 ? wallet.Path10605.xAddress : undefined;
@@ -107,6 +109,15 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     useEffect(() => {
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
+
+        // if this was routed from Wallet screen's Reply to message link then prepopulate the address and value field
+        if (location && location.state && location.state.replyAddress) {
+            setFormData({
+                address: location.state.replyAddress,
+                // @TODO: should be set in constant
+                value: 1,
+            });
+        }
 
         // Do not set txInfo in state if query strings are not present
         if (
@@ -506,37 +517,35 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 style={{
                                     marginBottom: '24px',
                                 }}
+                                defaultActiveKey={
+                                    location &&
+                                    location.state &&
+                                    location.state.replyAddress
+                                        ? ['1']
+                                        : ['0']
+                                }
                             >
                                 <Panel header="Advanced" key="1">
-                                    <AntdFormWrapper>
-                                        <Form
-                                            size="small"
-                                            style={{
-                                                width: 'auto',
-                                            }}
-                                        >
-                                            <Form.Item>
-                                            <TextAreaLabel>
-                                                    Message:
-                                                </TextAreaLabel>
-                                                <TextArea
-                                                    name="opReturnMsg"
-                                                    placeholder="(max 160 characters)"
-                                                    onChange={e =>
-                                                        handleOpReturnMsgChange(
-                                                            e,
-                                                        )
-                                                    }
-                                                    showCount
-                                                    maxLength={160}
-                                                    onKeyDown={e =>
-                                                        e.keyCode == 13
-                                                            ? e.preventDefault()
-                                                            : ''
-                                                    }
-                                                />
-                                            </Form.Item>
-                                        </Form>
+                                    <AntdFormWrapper
+                                        style={{
+                                            marginBottom: '20px',
+                                        }}
+                                    >
+                                        <TextAreaLabel>Message:</TextAreaLabel>
+                                        <TextArea
+                                            name="opReturnMsg"
+                                            placeholder="(max 160 characters)"
+                                            onChange={e =>
+                                                handleOpReturnMsgChange(e)
+                                            }
+                                            showCount
+                                            maxLength={160}
+                                            onKeyDown={e =>
+                                                e.keyCode == 13
+                                                    ? e.preventDefault()
+                                                    : ''
+                                            }
+                                        />
                                     </AntdFormWrapper>
                                 </Panel>
                             </AdvancedCollapse>

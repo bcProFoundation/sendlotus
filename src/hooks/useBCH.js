@@ -17,6 +17,7 @@ import {
     checkNullUtxosForTokenStatus,
     confirmNonEtokenUtxos,
 } from '@utils/cashMethods';
+import cashaddr from 'ecashaddrjs';
 
 export default function useBCH() {
     const SEND_BCH_ERRORS = {
@@ -127,6 +128,7 @@ export default function useBCH() {
             let tokenTx = false;
             let substring = '';
 
+
             // If vin's scriptSig contains one of the publicKeys of this wallet
             // This is an outgoing tx
             for (let j = 0; j < tx.vin.length; j += 1) {
@@ -218,6 +220,30 @@ export default function useBCH() {
                     destinationAddress = thisOutput.scriptPubKey.addresses[0];
                 }
             }
+
+             // If the tx is incoming and have a message attached
+            // get the address of the sender for this tx and encode into lotus address
+            let senderAddress = null;
+            if (!outgoingTx && opReturnMessage !== '') {
+                const firstVin = tx.vin[0];
+                try {
+                    // get the tx that generated the first vin of this tx
+                    const firstVinTxData =
+                        await BCH.RawTransactions.getRawTransaction(
+                            firstVin.txid,
+                            true,
+                        );
+                    // extract the address of the tx output
+                    senderAddress =
+                        firstVinTxData.vout[firstVin.vout].scriptPubKey
+                            .addresses[0];
+                } catch (err) {
+                    console.log(
+                        `Error in BCH.RawTransactions.getRawTransaction(${firstVin.txid}, true)`,
+                    );
+                }
+            }
+
             // Construct parsedTx
             parsedTx.amountSent = amountSent;
             parsedTx.amountReceived = amountReceived;
@@ -226,6 +252,7 @@ export default function useBCH() {
             parsedTx.destinationAddress = destinationAddress;
             parsedTx.opReturnMessage = opReturnMessage;
             parsedTx.isLotusChatMessage = isLotusChatMessage;
+            parsedTx.replyAddress = senderAddress;
 
             parsedTxHistory.push(parsedTx);
         }
