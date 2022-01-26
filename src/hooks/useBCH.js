@@ -520,6 +520,19 @@ export default function useBCH() {
         }
     };
 
+    const fetchTxDataPromise = (BCH, txidBatch) => {
+        return new Promise((resolve, reject) => {
+            BCH.Electrumx.txData(txidBatch).then(
+                result => {
+                    resolve(result);
+                },
+                err => {
+                    reject(err);
+                },
+            );
+        });
+    };
+
     const fetchTxDataForNullUtxos = async (BCH, nullUtxos) => {
         // Check nullUtxos. If they aren't eToken txs, count them
         console.log(
@@ -530,16 +543,39 @@ export default function useBCH() {
             // Batch API call to get their OP_RETURN asm info
             txids.push(nullUtxos[i].tx_hash);
         }
-        let nullUtxoTxData;
+
+        // segment the txids array into chunks under the api limit
+        const batchedTxids = batchArray(txids, currency.xecApiBatchSize);
+
+        // build an array of promises
+        let txDataPromises = [];
+        // loop through each batch of 20 txids
+        for (let j = 0; j < batchedTxids.length; j += 1) {
+            const txidsForThisPromise = batchedTxids[j];
+            // build the promise for the api call with the 20 txids in current batch
+            const thisTxDataPromise = fetchTxDataPromise(
+                BCH,
+                txidsForThisPromise,
+            );
+            txDataPromises.push(thisTxDataPromise);
+        }
+
         try {
-            nullUtxoTxData = await BCH.Electrumx.txData(txids);
-            console.log(`nullUtxoTxData`, nullUtxoTxData.transactions);
+            const nullUtxoTxData = await Promise.all(txDataPromises);
             // Scan tx data for each utxo to confirm they are not eToken txs
-            const txDataResults = nullUtxoTxData.transactions;
-            const nonEtokenUtxos = checkNullUtxosForTokenStatus(txDataResults);
+            let thisTxDataResult;
+            let nonEtokenUtxos = [];
+            for (let k = 0; k < nullUtxoTxData.length; k += 1) {
+                thisTxDataResult = nullUtxoTxData[k].transactions;
+                nonEtokenUtxos = nonEtokenUtxos.concat(
+                    checkNullUtxosForTokenStatus(thisTxDataResult),
+                );
+            }
             return nonEtokenUtxos;
         } catch (err) {
-            console.log(`Error in checkNullUtxosForTokenStatus(nullUtxos)`);
+            console.log(
+                `Error in checkNullUtxosForTokenStatus(nullUtxos)` + err,
+            );
             console.log(`nullUtxos`, nullUtxos);
             // If error, ignore these utxos, will be updated next utxo set refresh
             return [];
@@ -859,18 +895,16 @@ export default function useBCH() {
         );
 
         const bchECPair = BCH.ECPair.fromWIF(largestBchUtxo.wif);
-        const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(
-            (utxo, index) => {
-                if (
-                    utxo && // UTXO is associated with a token.
-                    utxo.tokenId === tokenId && // UTXO matches the token ID.
-                    utxo.utxoType === 'token' // UTXO is not a minting baton.
-                ) {
-                    return true;
-                }
-                return false;
-            },
-        );
+        const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(utxo => {
+            if (
+                utxo && // UTXO is associated with a token.
+                utxo.tokenId === tokenId && // UTXO matches the token ID.
+                utxo.utxoType === 'token' // UTXO is not a minting baton.
+            ) {
+                return true;
+            }
+            return false;
+        });
 
         if (tokenUtxos.length === 0) {
             throw new Error(
