@@ -1,10 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { 
     currency,
-    isLotusChatOutput,
-    isEtokenOutput,
-    extractLotusChatMessage,
-    extractExternalMessage,
+    parseOpReturn,
 } from '@components/Common/Ticker';
 import { isValidTokenStats } from '@utils/validation';
 import SlpWallet from '@abcpros/minimal-xpi-slp-wallet';
@@ -172,33 +169,55 @@ export default function useBCH() {
                     !Object.keys(thisOutput.scriptPubKey).includes('addresses')
                 ) {
                     let hex = thisOutput.scriptPubKey.hex;
-                    if (isEtokenOutput(hex)) {
+                    let parsedOpReturnArray = parseOpReturn(hex);
+
+                    if (!parsedOpReturnArray) {
+                        console.log(
+                            'useBCH.parsedTxData() error: parsed array is empty',
+                        );
+                        break;
+                    }
+
+                    let message = '';
+                    let txType = parsedOpReturnArray[0];
+                    if (txType === currency.opReturn.appPrefixesHex.eToken) {
                         // this is an eToken transaction
                         tokenTx = true;
-                    } else if (isLotusChatOutput(hex)) {
+                    } else if (
+                        txType === currency.opReturn.appPrefixesHex.lotusChat
+                    ) {
                         // this is a LotusChat message
                         try {
-                            substring = extractLotusChatMessage(hex);
-                            opReturnMessage = Buffer.from(substring, 'hex');
+                            opReturnMessage = Buffer.from(
+                                parsedOpReturnArray[1],
+                                'hex',
+                            );
                             isLotusChatMessage = true;
                         } catch (err) {
-                            // soft error if an unexpected or invalid LotusChat hex is encountered
+                            // soft error if an unexpected or invalid cashtab hex is encountered
                             opReturnMessage = '';
                             console.log(
-                                'useBCH.parsedTxHistory() error: invalid LotusChat msg hex: ' +
-                                    substring,
+                                'useBCH.parsedTxData() error: invalid cashtab msg hex: ' +
+                                    parsedOpReturnArray[1],
                             );
                         }
                     } else {
                         // this is an externally generated message
+                        message = txType; // index 0 is the message content in this instance
+
+                        // if there are more than one part to the external message
+                        const arrayLength = parsedOpReturnArray.length;
+                        for (let i = 1; i < arrayLength; i++) {
+                            message = message + parsedOpReturnArray[i];
+                        }
+
                         try {
-                            substring = extractExternalMessage(hex);
-                            opReturnMessage = Buffer.from(substring, 'hex');
+                            opReturnMessage = Buffer.from(message, 'hex');
                         } catch (err) {
-                            // soft error if an unexpected or invalid hex is encountered
+                            // soft error if an unexpected or invalid cashtab hex is encountered
                             opReturnMessage = '';
                             console.log(
-                                'useBCH.parsedTxHistory() error: invalid external msg hex: ' +
+                                'useBCH.parsedTxData() error: invalid external msg hex: ' +
                                     substring,
                             );
                         }
