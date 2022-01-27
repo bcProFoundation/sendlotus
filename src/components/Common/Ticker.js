@@ -33,7 +33,10 @@ export const currency = {
             eToken: '534c5000',
             // cashtab: '00746162',
             lotusChat: '02020202',
+            lotusChatEncrypted: '03030303'
         },
+        encryptedMsgCharLimit: 94,
+        unencryptedMsgCharLimit: 160,
     },
     settingsValidation: {
         fiatCurrency: [
@@ -117,10 +120,16 @@ export function parseOpReturn(hexStr) {
             break;
         } else if (
             i === 0 &&
-            message === currency.opReturn.appPrefixesHex.cashtab
+            message === currency.opReturn.appPrefixesHex.lotusChat
         ) {
             // add the extracted Cashtab prefix to array
-            resultArray[i] = currency.opReturn.appPrefixesHex.cashtab;
+            resultArray[i] = currency.opReturn.appPrefixesHex.lotusChat;
+        } else if (
+            i === 0 &&
+            message === currency.opReturn.appPrefixesHex.lotusChatEncrypted
+        ) {
+            // add the Cashtab encryption prefix to array
+            resultArray[i] = currency.opReturn.appPrefixesHex.lotusChatEncrypted;
         } else {
             // this is either an external message or a subsequent cashtab message loop to extract the message
             resultArray[i] = message;
