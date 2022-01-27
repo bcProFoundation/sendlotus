@@ -393,27 +393,19 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                 <br />
                                 {/*unencrypted OP_RETURN Message*/}
                                 {data.opReturnMessage &&
-                                !data.isEncryptedMessage
-                                    ? Buffer.from(
-                                          data.opReturnMessage,
-                                      ).toString()
-                                    : ''}
+                                !data.isEncryptedMessage ? data.opReturnMessage : ''}
                                 {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
                                 {data.opReturnMessage &&
                                 data.isEncryptedMessage &&
                                 data.decryptionSuccess
-                                    ? Buffer.from(
-                                          data.opReturnMessage,
-                                      ).toString()
+                                    ? data.opReturnMessage
                                     : ''}
                                 {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
                                 {data.opReturnMessage &&
                                 data.isEncryptedMessage &&
                                 !data.decryptionSuccess ? (
                                     <UnauthorizedDecryptionMessage>
-                                        {Buffer.from(
-                                            data.opReturnMessage,
-                                        ).toString()}
+                                        { data.opReturnMessage }
                                     </UnauthorizedDecryptionMessage>
                                 ) : (
                                     ''

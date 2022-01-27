@@ -324,7 +324,7 @@ export default function useBCH() {
             parsedTx.tokenTx = tokenTx;
             parsedTx.outgoingTx = outgoingTx;
             parsedTx.destinationAddress = destinationAddress;
-            parsedTx.opReturnMessage = opReturnMessage;
+            parsedTx.opReturnMessage = Buffer.from(opReturnMessage).toString();
             parsedTx.isLotusChatMessage = isLotusChatMessage;
             parsedTx.replyAddress = senderAddress;
             parsedTx.isEncryptedMessage = isEncryptedMessage;
