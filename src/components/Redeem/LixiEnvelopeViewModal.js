@@ -196,6 +196,7 @@ const LixiEnvelopeViewModal =
                 onCancel={handleCancelLixiModal}
                 getContainer={false}
                 footer={null}
+                maskClosable={false}
             >
                 {lixiRedeemed && <BalanceHeader
                     balance={fromSmallestDenomination(lixiRedeemed.amount)}

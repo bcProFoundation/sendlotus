@@ -2,6 +2,7 @@ import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Row, Col, Form, notification } from 'antd';
 import { useHistory } from 'react-router-dom'
+import { WalletContext } from '@utils/context';
 import { SmartButton } from '@components/Common/PrimaryButton';
 import { FormItemWithQRCodeAddon } from '@components/Common/EnhancedInputs';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
@@ -27,6 +28,8 @@ const base62ToNumber = (text) => {
 
 const RedeemComponent = ({ address, redeemCode }) => {
     const history = useHistory();
+    const ContextValue = React.useContext(WalletContext);
+    const { createWallet } = ContextValue;
     const { reCaptchaReady, redeem, getLixi } = useRedeem(address);
 
     // Get device window width
@@ -46,7 +49,8 @@ const RedeemComponent = ({ address, redeemCode }) => {
     const [showLixiModal, setShowLixiModal] = useState(false);
     const [lixiRedeemed, setLixiRedeemed] = useState(null);
     const [isWaitingToOpenLixi, setIsWaitingToOpenLixi] = useState(false);
-    const canRedeem = address && formData.redeemCode;
+    const [enableRedeem, setEnableRedeem] = useState(true);
+    const [enableOpenLixi, setEnableOpenLixi] = useState(true);
 
     useEffect(() => {
         if (redeemCode) {
@@ -58,11 +62,16 @@ const RedeemComponent = ({ address, redeemCode }) => {
     }, [redeemCode]);
 
     const handleOnClick = async e => {
+        setEnableRedeem(false);
         e.preventDefault();
         setLixiRedeemed(null);
         setEnvelopeUrl('');
+        if (!address && formData.redeemCode) {
+            const wallet = await createWallet();
+        }
         setShowLixiModal(true);
         setIsWaitingToOpenLixi(true);
+        setEnableRedeem(true);
     }
 
     async function submit(token, currentAddress, redeemCode) {
@@ -75,6 +84,10 @@ const RedeemComponent = ({ address, redeemCode }) => {
     }
 
     const handleOpenLixi = async () => {
+
+        if (!enableOpenLixi) return;
+
+        setEnableOpenLixi(false);
         const encodedVaultId = formData.redeemCode.slice(8);
         const vaultId = base62ToNumber(encodedVaultId);
 
@@ -121,6 +134,8 @@ const RedeemComponent = ({ address, redeemCode }) => {
             });
             setShowLixiModal(false);
             setIsWaitingToOpenLixi(false);
+        } finally {
+            setEnableOpenLixi(true);
         }
     }
 
@@ -192,8 +207,8 @@ const RedeemComponent = ({ address, redeemCode }) => {
                         >
                             <SmartButton
                                 onClick={handleOnClick}
-                                disabled={!canRedeem}
-                            >Redeem</SmartButton>
+                                disabled={!enableRedeem}
+                            >Redeem Lixi</SmartButton>
                         </div>
                     </Form>
                 </Col>
