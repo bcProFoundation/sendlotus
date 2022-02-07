@@ -2,6 +2,11 @@ export const theme = {
     primary: '#6f2dbd',
     brandSecondary: '#CD0BC3',
     contrast: '#fff',
+    secondary: '#bb98ff',
+    tertiary: '#ddcbff',
+    grey: '#adaeae',
+    greyLight: '#d5d5d5',
+    greyDark: '#757575',
     app: {
         sidebars: `url("/cashtab_bg.png")`,
         gradient : 'linear-gradient(-225deg, #231557 0%, #44107A 29%, #FF1361 67%, #d38cad 100%)',
@@ -50,7 +55,12 @@ export const theme = {
         addonForeground: '#6f2dbd',
         selectionBackground: '#fff',
     },
-    icons: { outlined: '#6f2dbd' },
+    icons: { 
+        outlined: '#6f2dbd',
+        outlinedFaded: '#bb98ff',
+        filled: '#6f2dbd',
+        filledFaded: '#bb98ff'
+    },
     modals: {
         buttons: { background: '#fff' },
     },

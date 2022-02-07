@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import {
@@ -13,7 +14,7 @@ import { Img } from 'react-image';
 import { formatBalance, fromLegacyDecimals } from '@utils/cashMethods';
 
 const SentTx = styled(ArrowUpOutlined)`
-    color: ${props => props.theme.secondary} !important;
+    color: ${props => props.theme.greyDark} !important;
 `;
 const ReceivedTx = styled(ArrowDownOutlined)`
     color: ${props => props.theme.primary} !important;
@@ -27,19 +28,63 @@ const UnparsedTx = styled(ExclamationOutlined)`
 const DateType = styled.div`
     text-align: left;
     padding: 12px;
+    color: ${props => props.theme.greyDark} !important;
     @media screen and (max-width: 500px) {
         font-size: 0.8rem;
     }
 `;
-
+const OpReturnType = styled.span`
+    text-align: left;
+    width: 300%;
+    max-height: 200px;
+    padding: 3px;
+    margin: auto;
+    word-break: break-word;
+    padding-left: 13px;
+    padding-right: 30px;
+    /* invisible scrollbar */
+    overflow: hidden;
+    height: 100%;
+    margin-right: -50px; /* Maximum width of scrollbar */
+    padding-right: 50px; /* Maximum width of scrollbar */
+    overflow-y: scroll;
+    ::-webkit-scrollbar {
+        display: none;
+    }
+`;
 const SentLabel = styled.span`
     font-weight: bold;
 
-    color: ${props => props.theme.secondary} !important;
+    color: ${props => props.theme.greyDark} !important;
 `;
 const ReceivedLabel = styled.span`
     font-weight: bold;
     color: ${props => props.theme.primary} !important;
+`;
+const LotusChatMessageLabel = styled.span`
+    text-align: left;
+    color: ${props => props.theme.greyLight} !important;
+    white-space: nowrap;
+`;
+const EncryptionMessageLabel = styled.span`
+    text-align: left;
+    color: ${props => props.theme.greyLight} !important;
+    white-space: nowrap;
+`;
+const UnauthorizedDecryptionMessage = styled.span`
+    text-align: left;
+    color: ${props => props.theme.greyLight} !important;
+    white-space: nowrap;
+    font-style: italic;
+`;
+const MessageLabel = styled.span`
+    text-align: left;
+    font-weight: bold;
+    color: ${props => props.theme.secondary} !important;
+    white-space: nowrap;
+`;
+const ReplyMessageLabel = styled.span`
+    color: ${props => props.theme.greyLight} !important;
 `;
 const TxIcon = styled.div`
     svg {
@@ -64,7 +109,7 @@ const TxInfo = styled.div`
     text-align: right;
 
     color: ${props =>
-        props.outgoing ? props.theme.secondary : props.theme.primary};
+        props.outgoing ? props.theme.greyDark : props.theme.primary};
 
     @media screen and (max-width: 500px) {
         font-size: 0.8rem;
@@ -324,6 +369,67 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                             </TxInfo>
                         </>
                     )}
+                    {data.opReturnMessage && (
+                            <>
+                            <br />
+                            <OpReturnType>
+                                {data.isLotusChatMessage ? (
+                                    <LotusChatMessageLabel>
+                                        Message
+                                    </LotusChatMessageLabel>
+                                ) : (
+                                    <MessageLabel>
+                                        External Message
+                                    </MessageLabel>
+                                )}
+                                {data.isEncryptedMessage ? (
+                                    <EncryptionMessageLabel>
+                                        &nbsp;-&nbsp;Encrypted
+                                    </EncryptionMessageLabel>
+                                ) : (
+                                    ''
+                                )}
+                                <br />
+                                {/*unencrypted OP_RETURN Message*/}
+                                {data.opReturnMessage &&
+                                !data.isEncryptedMessage ? data.opReturnMessage : ''}
+                                {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
+                                {data.opReturnMessage &&
+                                data.isEncryptedMessage &&
+                                data.decryptionSuccess
+                                    ? data.opReturnMessage
+                                    : ''}
+                                {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
+                                {data.opReturnMessage &&
+                                data.isEncryptedMessage &&
+                                !data.decryptionSuccess ? (
+                                    <UnauthorizedDecryptionMessage>
+                                        { data.opReturnMessage }
+                                    </UnauthorizedDecryptionMessage>
+                                ) : (
+                                    ''
+                                )}
+                                {!data.outgoingTx && data.replyAddress ? (
+                                    <Link
+                                        to={{
+                                            pathname: `/send`,
+                                            state: {
+                                                replyAddress: data.replyAddress,
+                                            },
+                                        }}
+                                    >
+                                        <br />
+                                        <br />
+                                        <ReplyMessageLabel>
+                                            Reply To Message
+                                        </ReplyMessageLabel>
+                                    </Link>
+                                ) : (
+                                    ''
+                                )}
+                            </OpReturnType>
+                        </>
+                        )}
                 </TxWrapper>
             )}
         </>

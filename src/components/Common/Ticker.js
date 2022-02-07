@@ -25,6 +25,19 @@ export const currency = {
     txHistoryCount: 10,
     hydrateUtxoBatchSize: 20,
     defaultSettings: { fiatCurrency: 'usd' },
+    opReturn: {
+        opReturnPrefixHex: '6a',
+        opReturnAppPrefixLengthHex: '04',
+        opPushDataOne: '4c',
+        appPrefixesHex: {
+            eToken: '534c5000',
+            // cashtab: '00746162',
+            lotusChat: '02020202',
+            lotusChatEncrypted: '03030303'
+        },
+        encryptedMsgCharLimit: 94,
+        unencryptedMsgCharLimit: 160,
+    },
     settingsValidation: {
         fiatCurrency: [
             'usd',

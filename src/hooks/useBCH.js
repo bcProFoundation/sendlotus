@@ -8,7 +8,15 @@ import {
     batchArray,
     flattenBatchedHydratedUtxos,
     isValidStoredWallet,
+    checkNullUtxosForTokenStatus,
+    confirmNonEtokenUtxos,
+    convertToEncryptStruct,
+    getPublicKey,
+    parseOpReturn,
 } from '@utils/cashMethods';
+import cashaddr from 'ecashaddrjs';
+import ecies from 'ecies-lite';
+import wif from 'wif';
 
 export default function useBCH() {
     const SEND_BCH_ERRORS = {
@@ -69,7 +77,7 @@ export default function useBCH() {
         return flatTxHistory.splice(0, txCount);
     };
 
-    const parseTxData = async (BCH, txData, publicKeys) => {
+    const parseTxData = async (BCH, txData, publicKeys, wallet) => {
         /*
         Desired output
         [
@@ -84,6 +92,7 @@ export default function useBCH() {
             tokenQty:
             txType: mint, send, other
         }
+        opReturnMessage: 'message extracted from asm' or ''
         }
         ]
         */
@@ -111,9 +120,15 @@ export default function useBCH() {
             parsedTx.blocktime = tx.blocktime;
             let amountSent = 0;
             let amountReceived = 0;
+            let opReturnMessage = '';
+            let isLotusChatMessage = false;
+            let isEncryptedMessage = false;
+            let decryptionSuccess = false;
             // Assume an incoming transaction
             let outgoingTx = false;
             let tokenTx = false;
+            let substring = '';
+
 
             // If vin's scriptSig contains one of the publicKeys of this wallet
             // This is an outgoing tx
@@ -153,13 +168,116 @@ export default function useBCH() {
             for (let j = 0; j < tx.vout.length; j += 1) {
                 const thisOutput = tx.vout[j];
 
-                // If there is no addresses object in the output, OP_RETURN or token tx
+                // If there is no addresses object in the output, it is OP_RETURN msg or token tx
                 if (
                     !Object.keys(thisOutput.scriptPubKey).includes('addresses')
                 ) {
-                    // For now, assume this is a token tx
-                    tokenTx = true;
-                    continue;
+                    let hex = thisOutput.scriptPubKey.hex;
+                    let parsedOpReturnArray = parseOpReturn(hex);
+
+                    if (!parsedOpReturnArray) {
+                        console.log(
+                            'useBCH.parsedTxData() error: parsed array is empty',
+                        );
+                        break;
+                    }
+
+                    let message = '';
+                    let txType = parsedOpReturnArray[0];
+                    if (txType === currency.opReturn.appPrefixesHex.eToken) {
+                        // this is an eToken transaction
+                        tokenTx = true;
+                    } else if (
+                        txType === currency.opReturn.appPrefixesHex.lotusChat
+                    ) {
+                        // this is a LotusChat message
+                        try {
+                            opReturnMessage = Buffer.from(
+                                parsedOpReturnArray[1],
+                                'hex',
+                            );
+                            isLotusChatMessage = true;
+                        } catch (err) {
+                            // soft error if an unexpected or invalid cashtab hex is encountered
+                            opReturnMessage = '';
+                            console.log(
+                                'useBCH.parsedTxData() error: invalid cashtab msg hex: ' +
+                                    parsedOpReturnArray[1],
+                            );
+                        }
+                    } else if (
+                        txType ===
+                        currency.opReturn.appPrefixesHex.lotusChatEncrypted
+                    ) {
+                        // this is an encrypted LotusChat message
+                        let msgString = parsedOpReturnArray[1];
+                        let fundingWif, privateKeyObj, privateKeyBuff;
+                        if (
+                            wallet &&
+                            wallet.state &&
+                            wallet.state.slpBalancesAndUtxos &&
+                            wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
+                        ) {
+                            fundingWif =
+                                wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
+                                    .wif;
+                            privateKeyObj = wif.decode(fundingWif);
+                            privateKeyBuff = privateKeyObj.privateKey;
+                            if (!privateKeyBuff) {
+                                throw new Error('Private key extraction error');
+                            }
+                        } else {
+                            break;
+                        }
+
+                        let structData;
+                        let decryptedMessage;
+
+                        try {
+                            // Convert the hex encoded message to a buffer
+                            const msgBuf = Buffer.from(msgString, 'hex');
+
+                            // Convert the bufer into a structured object.
+                            structData = convertToEncryptStruct(msgBuf);
+
+                            decryptedMessage = await ecies.decrypt(
+                                privateKeyBuff,
+                                structData,
+                            );
+                            decryptionSuccess = true;
+                        } catch (err) {
+                            console.log(
+                                'useBCH.parsedTxData() decryption error: ' +
+                                    err,
+                            );
+                            decryptedMessage =
+                                'Only the message recipient can view this';
+                        }
+                        isLotusChatMessage = true;
+                        isEncryptedMessage = true;
+                        opReturnMessage = decryptedMessage;
+                    } else {
+                        // this is an externally generated message
+                        message = txType; // index 0 is the message content in this instance
+
+                        // if there are more than one part to the external message
+                        const arrayLength = parsedOpReturnArray.length;
+                        for (let i = 1; i < arrayLength; i++) {
+                            message = message + parsedOpReturnArray[i];
+                        }
+
+                        try {
+                            opReturnMessage = Buffer.from(message, 'hex');
+                        } catch (err) {
+                            // soft error if an unexpected or invalid cashtab hex is encountered
+                            opReturnMessage = '';
+                            console.log(
+                                'useBCH.parsedTxData() error: invalid external msg hex: ' +
+                                    substring,
+                            );
+                        }
+                    }
+                    continue; // skipping the remainder of tx data parsing logic in both token and OP_RETURN tx cases
                 }
                 if (
                     thisOutput.scriptPubKey.addresses &&
@@ -176,13 +294,41 @@ export default function useBCH() {
                     destinationAddress = thisOutput.scriptPubKey.addresses[0];
                 }
             }
+
+             // If the tx is incoming and have a message attached
+            // get the address of the sender for this tx and encode into lotus address
+            let senderAddress = null;
+            if (!outgoingTx && opReturnMessage !== '') {
+                const firstVin = tx.vin[0];
+                try {
+                    // get the tx that generated the first vin of this tx
+                    const firstVinTxData =
+                        await BCH.RawTransactions.getRawTransaction(
+                            firstVin.txid,
+                            true,
+                        );
+                    // extract the address of the tx output
+                    senderAddress =
+                        firstVinTxData.vout[firstVin.vout].scriptPubKey
+                            .addresses[0];
+                } catch (err) {
+                    console.log(
+                        `Error in BCH.RawTransactions.getRawTransaction(${firstVin.txid}, true)`,
+                    );
+                }
+            }
+
             // Construct parsedTx
             parsedTx.amountSent = amountSent;
             parsedTx.amountReceived = amountReceived;
             parsedTx.tokenTx = tokenTx;
             parsedTx.outgoingTx = outgoingTx;
             parsedTx.destinationAddress = destinationAddress;
-
+            parsedTx.opReturnMessage = Buffer.from(opReturnMessage).toString();
+            parsedTx.isLotusChatMessage = isLotusChatMessage;
+            parsedTx.replyAddress = senderAddress;
+            parsedTx.isEncryptedMessage = isEncryptedMessage;
+            parsedTx.decryptionSuccess = decryptionSuccess;
             parsedTxHistory.push(parsedTx);
         }
         return parsedTxHistory;
@@ -231,7 +377,7 @@ export default function useBCH() {
         return txDataWithPassThrough;
     };
 
-    const getTxData = async (BCH, txHistory, publicKeys) => {
+    const getTxData = async (BCH, txHistory, publicKeys, wallet) => {
         // Flatten tx history
         let flatTxs = flattenTransactions(txHistory);
 
@@ -250,7 +396,7 @@ export default function useBCH() {
         try {
             txDataPromiseResponse = await Promise.all(txDataPromises);
 
-            const parsed = parseTxData(BCH, txDataPromiseResponse, publicKeys);
+            const parsed = parseTxData(BCH, txDataPromiseResponse, publicKeys, wallet);
 
             return parsed;
         } catch (err) {
@@ -430,8 +576,70 @@ export default function useBCH() {
         }
     };
 
-    const getSlpBalancesAndUtxos = hydratedUtxoDetails => {
-        const hydratedUtxos = [];
+    const fetchTxDataPromise = (BCH, txidBatch) => {
+        return new Promise((resolve, reject) => {
+            BCH.Electrumx.txData(txidBatch).then(
+                result => {
+                    resolve(result);
+                },
+                err => {
+                    reject(err);
+                },
+            );
+        });
+    };
+
+    const fetchTxDataForNullUtxos = async (BCH, nullUtxos) => {
+        // Check nullUtxos. If they aren't eToken txs, count them
+        console.log(
+            `Null utxos found, checking OP_RETURN fields to confirm they are not eToken txs.`,
+        );
+        const txids = [];
+        for (let i = 0; i < nullUtxos.length; i += 1) {
+            // Batch API call to get their OP_RETURN asm info
+            txids.push(nullUtxos[i].tx_hash);
+        }
+
+        // segment the txids array into chunks under the api limit
+        const batchedTxids = batchArray(txids, currency.xecApiBatchSize);
+
+        // build an array of promises
+        let txDataPromises = [];
+        // loop through each batch of 20 txids
+        for (let j = 0; j < batchedTxids.length; j += 1) {
+            const txidsForThisPromise = batchedTxids[j];
+            // build the promise for the api call with the 20 txids in current batch
+            const thisTxDataPromise = fetchTxDataPromise(
+                BCH,
+                txidsForThisPromise,
+            );
+            txDataPromises.push(thisTxDataPromise);
+        }
+
+        try {
+            const nullUtxoTxData = await Promise.all(txDataPromises);
+            // Scan tx data for each utxo to confirm they are not eToken txs
+            let thisTxDataResult;
+            let nonEtokenUtxos = [];
+            for (let k = 0; k < nullUtxoTxData.length; k += 1) {
+                thisTxDataResult = nullUtxoTxData[k].transactions;
+                nonEtokenUtxos = nonEtokenUtxos.concat(
+                    checkNullUtxosForTokenStatus(thisTxDataResult),
+                );
+            }
+            return nonEtokenUtxos;
+        } catch (err) {
+            console.log(
+                `Error in checkNullUtxosForTokenStatus(nullUtxos)` + err,
+            );
+            console.log(`nullUtxos`, nullUtxos);
+            // If error, ignore these utxos, will be updated next utxo set refresh
+            return [];
+        }
+    };
+
+    const getSlpBalancesAndUtxos = async (BCH, hydratedUtxoDetails) => {
+        let hydratedUtxos = [];
         for (let i = 0; i < hydratedUtxoDetails.slpUtxos.length; i += 1) {
             const hydratedUtxosAtAddress = hydratedUtxoDetails.slpUtxos[i];
             for (let j = 0; j < hydratedUtxosAtAddress.utxos.length; j += 1) {
@@ -447,18 +655,25 @@ export default function useBCH() {
         // If you hit rate limits, your above utxos object will come back with `isValid` as null, but otherwise ok
         // You need to throw an error before setting nonSlpUtxos and slpUtxos in this case
         const nullUtxos = hydratedUtxos.filter(utxo => utxo.isValid === null);
-        //console.log(`nullUtxos`, nullUtxos);
-        // @TODO: Temporary disable checking
-        // if (nullUtxos.length > 0) {
-        //     console.log(
-        //         `${nullUtxos.length} null utxos found, ignoring results`,
-        //     );
-        //     throw new Error('Null utxos found, ignoring results');
-        // }
+      
+        if (nullUtxos.length > 0) {
+            console.log(`${nullUtxos.length} null utxos found!`);
+            console.log('nullUtxos', nullUtxos);
+            const nullNonEtokenUtxos = await fetchTxDataForNullUtxos(
+                BCH,
+                nullUtxos,
+            );
+
+            // Set isValid === false for nullUtxos that are confirmed non-eToken
+            hydratedUtxos = confirmNonEtokenUtxos(
+                hydratedUtxos,
+                nullNonEtokenUtxos,
+            );
+        }
 
         // Prevent app from treating slpUtxos as nonSlpUtxos
         // Must enforce === false as api will occasionally return utxo.isValid === null
-        // Do not classify utxos with 546 satoshis as nonSlpUtxos as a precaution
+
         // Do not classify any utxos that include token information as nonSlpUtxos
         const nonSlpUtxos = hydratedUtxos.filter(
             utxo =>
@@ -736,18 +951,16 @@ export default function useBCH() {
         );
 
         const bchECPair = BCH.ECPair.fromWIF(largestBchUtxo.wif);
-        const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(
-            (utxo, index) => {
-                if (
-                    utxo && // UTXO is associated with a token.
-                    utxo.tokenId === tokenId && // UTXO matches the token ID.
-                    utxo.utxoType === 'token' // UTXO is not a minting baton.
-                ) {
-                    return true;
-                }
-                return false;
-            },
-        );
+        const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(utxo => {
+            if (
+                utxo && // UTXO is associated with a token.
+                utxo.tokenId === tokenId && // UTXO matches the token ID.
+                utxo.utxoType === 'token' // UTXO is not a minting baton.
+            ) {
+                return true;
+            }
+            return false;
+        });
 
         if (tokenUtxos.length === 0) {
             throw new Error(
@@ -892,6 +1105,60 @@ export default function useBCH() {
         return link;
     };
 
+    const getRecipientPublicKey = async (BCH, recipientAddress) => {
+        let recipientPubKey;
+        try {
+            recipientPubKey = await getPublicKey(BCH, recipientAddress);
+        } catch (err) {
+            console.log(`useBCH.getRecipientPublicKey() error: ` + err);
+            throw err;
+        }
+        return recipientPubKey;
+    };
+
+    const handleEncryptedOpReturn = async (
+        BCH,
+        destinationAddress,
+        optionalOpReturnMsg,
+    ) => {
+        let recipientPubKey, encryptedEj;
+        try {
+            recipientPubKey = await getRecipientPublicKey(
+                BCH,
+                destinationAddress,
+            );
+        } catch (err) {
+            console.log(`useBCH.handleEncryptedOpReturn() error: ` + err);
+            throw err;
+        }
+
+        if (recipientPubKey === 'not found') {
+            // if the API can't find a pub key, it is due to the wallet having no outbound tx
+            throw new Error(
+                'Cannot send an encrypted message to a wallet with no outgoing transactions',
+            );
+        }
+
+        try {
+            const pubKeyBuf = Buffer.from(recipientPubKey, 'hex');
+            const bufferedFile = Buffer.from(optionalOpReturnMsg);
+            const structuredEj = await ecies.encrypt(pubKeyBuf, bufferedFile);
+
+            // Serialize the encrypted data object
+            encryptedEj = Buffer.concat([
+                structuredEj.epk,
+                structuredEj.iv,
+                structuredEj.ct,
+                structuredEj.mac,
+            ]);
+        } catch (err) {
+            console.log(`useBCH.handleEncryptedOpReturn() error: ` + err);
+            throw err;
+        }
+
+        return encryptedEj;
+    };
+
     const sendBch = async (
         BCH,
         wallet,
@@ -899,6 +1166,8 @@ export default function useBCH() {
         destinationAddress,
         sendAmount,
         feeInSatsPerByte,
+        optionalOpReturnMsg,
+        encryptionFlag,
     ) => {
         try {
             if (!sendAmount) {
@@ -936,6 +1205,54 @@ export default function useBCH() {
                 );
                 throw error;
             }
+
+            let script;
+            // Start of building the OP_RETURN output.
+            // only build the OP_RETURN output if the user supplied it
+            if (
+                optionalOpReturnMsg &&
+                typeof optionalOpReturnMsg !== 'undefined' &&
+                optionalOpReturnMsg.trim() !== ''
+            ) {
+                if (encryptionFlag) {
+                    // if the user has opted to encrypt this message
+                    let encryptedEj;
+                    try {
+                        encryptedEj = await handleEncryptedOpReturn(
+                            BCH,
+                            destinationAddress,
+                            optionalOpReturnMsg,
+                        );
+                    } catch (err) {
+                        console.log(`useBCH.sendBch() encryption error.`);
+                        throw err;
+                    }
+
+                    // build the OP_RETURN script with the encryption prefix
+                    script = [
+                        BCH.Script.opcodes.OP_RETURN, // 6a
+                        Buffer.from(
+                            currency.opReturn.appPrefixesHex.lotusChatEncrypted,
+                            'hex',
+                        ), // 03030303
+                        Buffer.from(encryptedEj),
+                    ];
+                } else {
+                    // this is un-encrypted message 
+                    script = [
+                        BCH.Script.opcodes.OP_RETURN, // 6a
+                        Buffer.from(
+                            currency.opReturn.appPrefixesHex.lotusChat,
+                            'hex',
+                        ), // 02020202
+                        Buffer.from(optionalOpReturnMsg),
+                    ];
+                }
+                const data = BCH.Script.encode(script);
+                transactionBuilder.addOutput(data, 0);
+            }
+            // End of building the OP_RETURN output.
+
             let originalAmount = new BigNumber(0);
             let txFee = 0;
             for (let i = 0; i < utxos.length; i++) {
@@ -1070,5 +1387,7 @@ export default function useBCH() {
         sendToken,
         createToken,
         getTokenStats,
+        handleEncryptedOpReturn,
+        getRecipientPublicKey,
     };
 }

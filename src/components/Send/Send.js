@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
-import { Form, notification, message, Modal, Alert } from 'antd';
-import { Row, Col } from 'antd';
+import { Form, notification, message, Modal, Alert, Input, Collapse, Checkbox } from 'antd';
+const { Panel } = Collapse;
+const { TextArea } = Input;
+import { Row, Col, Switch } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton, {
     SecondaryButton,
@@ -10,7 +14,12 @@ import PrimaryButton, {
 import {
     SendBchInput,
     FormItemWithQRCodeAddon,
+    AntdFormWrapper,
+    OpReturnMessageInput
 } from '@components/Common/EnhancedInputs';
+import {
+    AdvancedCollapse,
+} from '@components/Common/StyledCollapse';
 import useBCH from '@hooks/useBCH';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
@@ -30,8 +39,60 @@ import {
     AlertMsg,
 } from '@components/Common/Atoms';
 import { getWalletState } from '@utils/cashMethods';
-import { CashReceivedNotificationIcon } from '@components/Common/CustomIcons';
+import { 
+    CashReceivedNotificationIcon,
+    ThemedQuerstionCircleOutlinedFaded
+} from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
+
+const TextAreaLabel = styled.div`
+    text-align: left;
+    color: #0074c2;
+    padding-left: 1px;
+`;
+
+const OpReturnMessageHelp = styled.div`
+    margin-top: 20px;
+    font-size: 12px;
+
+    .heading {
+        margin-left: -20px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    ul {
+        padding-left: 0;
+    }
+
+    em {
+        // color: ${props => props.theme.primary} !important;
+        // TODO: should be able to access the theme as above
+        // but it return undefined - need to figure out what causes the error
+
+        color: #6f2dbd !important
+    }
+    
+`;
+
+const StyledCheckbox = styled(Checkbox)`
+    .ant-checkbox-inner {
+        background-color: #fff !important;
+        border: 1px solid ${props => props.theme.forms.border} !important
+    }
+
+    .ant-checkbox-checked .ant-checkbox-inner::after {
+        position: absolute;
+        display: table;
+        border: 2px solid ${props => props.theme.primary};
+        border-top: 0;
+        border-left: 0;
+        transform: rotate(45deg) scale(1) translate(-50%, -50%);
+        opacity: 1;
+        transition: all 0.2s cubic-bezier(0.12, 0.4, 0.29, 1.46) 0.1s;
+        content: ' ';
+    }
+`
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
@@ -41,11 +102,18 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // If the wallet object from ContextValue has a `state key`, then check which keys are in the wallet object
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
+    const location = useLocation();
     const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
 
     const currentAddress = wallet && wallet.Path10605 ? wallet.Path10605.xAddress : undefined;
     const walletState = getWalletState(wallet);
     const { balances, slpBalancesAndUtxos } = walletState;
+
+    const [opReturnMsg, setOpReturnMsg] = useState(false);
+    const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] =
+        useState(true);
+    const [bchObj, setBchObj] = useState(false);
+
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
     const { width } = useWindowDimensions();
@@ -83,9 +151,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const { getBCH, getRestUrl, sendBch, calcFee } = useBCH();
 
-    // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-    const BCH = jestBCH ? jestBCH : getBCH();
-
     // If the balance has changed, unlock the UI
     // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
     useEffect(() => {
@@ -93,7 +158,22 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     }, [balances.totalBalance]);
 
     useEffect(() => {
+         // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
+         const BCH = jestBCH ? jestBCH : getBCH();
+
+         // set the BCH instance to state, for other functions to reference
+         setBchObj(BCH);
+
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
+
+        // if this was routed from Wallet screen's Reply to message link then prepopulate the address and value field
+        if (location && location.state && location.state.replyAddress) {
+            setFormData({
+                address: location.state.replyAddress,
+                // @TODO: should be set in constant
+                value: 1,
+            });
+        }
 
         // Do not set txInfo in state if query strings are not present
         if (
@@ -156,7 +236,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // Ensure address has bitcoincash: prefix and checksum
         // cleanAddress = toLegacy(cleanAddress);
 
-        const isValidAddress = BCH.Address.isXAddress(cleanAddress);
+        const isValidAddress = bchObj.Address.isXAddress(cleanAddress);
         // try {
         //     hasValidLotusPrefix = cleanAddress.startsWith(
         //         currency.legacyPrefix + ':',
@@ -184,14 +264,27 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         //     bchValue = fiatToCrypto(value, fiatPrice);
         // }
 
+        // encrypted message limit truncation
+        let optionalOpReturnMsg;
+        if (isEncryptedOptionalOpReturnMsg) {
+            optionalOpReturnMsg = opReturnMsg.substring(
+                0,
+                currency.opReturn.encryptedMsgCharLimit,
+            );
+        } else {
+            optionalOpReturnMsg = opReturnMsg;
+        }
+
         try {
             const link = await sendBch(
-                BCH,
+                bchObj,
                 wallet,
                 slpBalancesAndUtxos.nonSlpUtxos,
                 cleanAddress,
                 bchValue,
                 currency.defaultFee,
+                optionalOpReturnMsg,
+                isEncryptedOptionalOpReturnMsg,
             );
 
             notification.success({
@@ -247,7 +340,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         let addressString = value;
 
         // parse address
-        const addressInfo = parseAddress(BCH, addressString);
+        const addressInfo = parseAddress(bchObj, addressString);
         /*
         Model
 
@@ -341,7 +434,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // Set currency to BCH
         setSelectedCurrency(currency.ticker);
         try {
-            const txFeeSats = calcFee(BCH, slpBalancesAndUtxos.nonSlpUtxos);
+            const txFeeSats = calcFee(bchObj, slpBalancesAndUtxos.nonSlpUtxos);
 
             const txFeeBch = txFeeSats / 10 ** currency.cashDecimals;
             let value =
@@ -472,6 +565,104 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 onChange: e => handleSelectedCurrencyChange(e),
                             }}
                         ></SendBchInput>
+                        {/* OP_RETURN message */}
+                        <div
+                            style={{
+                                paddingTop: '10px',
+                            }}
+                        >
+                            {/* OP_RETURN message heading */}
+                             <div
+                                css={`
+                                    display: flex;
+                                    justify-content: space-between;
+                                    align-items: baseline,
+                                `}
+                            >
+                                <div>
+                                    Optional Message
+                                    <ThemedQuerstionCircleOutlinedFaded 
+                                        onClick={() => {
+                                            Modal.info({
+                                                centered: true,
+                                                okText: 'Got It',
+                                                title: 'Optional Message',
+                                                maskClosable: 'true',
+                                                content: (
+                                                    <OpReturnMessageHelp>
+                                                        <div className='heading'>Higher Fee</div>
+                                                        <ul>
+                                                            <li>Transaction with attached message will incur <em>higher fee.</em></li>
+                                                        </ul>
+                                                        <div className='heading'>Encryption</div>
+                                                        <ul>
+                                                            <li><em>Un-encrypted message is readable to everybody.</em></li>
+                                                            <li>Encrypted message is only readable to the intended recipient.</li>
+                                                            <li>Encrypted message can only be sent to wallets with at least 1 outgoing transaction.</li>
+                                                        </ul>
+                                                        <div className='heading'>Message Length</div>
+                                                        <ul>
+                                                            <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
+                                                            <li>Un-encrypted message max length is 215 bytes.</li>
+                                                            <li>Encrypted message max length is 94 bytes.</li>
+                                                        </ul>
+                                                    </OpReturnMessageHelp>
+                                                ),
+                                            })
+                                        }}
+                                    />
+                                </div>
+                                {/* Encryption Checkbox */}
+                                <div>
+                                    encrypted: &nbsp;
+                                    <StyledCheckbox
+                                        checked={
+                                            isEncryptedOptionalOpReturnMsg
+                                        }
+                                        onChange={() =>
+                                            setIsEncryptedOptionalOpReturnMsg(
+                                                prev => !prev,
+                                            )
+                                        }
+                                    />
+                                </div>
+                            </div>
+                            <OpReturnMessageInput
+                                 name="opReturnMsg"
+                                 rows={4}
+                                 allowClear={true}
+                                 placeholder={
+                                     isEncryptedOptionalOpReturnMsg
+                                         ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
+                                         : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
+                                 }
+                                 value={
+                                     opReturnMsg
+                                         ? isEncryptedOptionalOpReturnMsg
+                                             ? opReturnMsg.substring(
+                                                     0,
+                                                     currency.opReturn
+                                                         .encryptedMsgCharLimit +
+                                                         1,
+                                                 )
+                                             : opReturnMsg
+                                         : ''
+                                 }
+                                 onChange={e =>
+                                     setOpReturnMsg(e.target.value)
+                                 }
+                                 showCount
+                                 maxLength={
+                                     isEncryptedOptionalOpReturnMsg
+                                         ? currency.opReturn
+                                                 .encryptedMsgCharLimit
+                                         : currency.opReturn
+                                                 .unencryptedMsgCharLimit
+                                 }
+                                 onPressEnter={e => e.preventDefault() }
+                            />
+                        </div>
+                        {/* END OF OP_RETURN message */}
                         <div
                             style={{
                                 paddingTop: '12px',
