@@ -659,7 +659,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                          : currency.opReturn
                                                  .unencryptedMsgCharLimit
                                  }
-                                 onPressEnter={e => e.preventDefault() }
+                                
                             />
                         </div>
                         {/* END OF OP_RETURN message */}
