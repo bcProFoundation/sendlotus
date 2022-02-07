@@ -614,7 +614,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 </div>
                                 {/* Encryption Checkbox */}
                                 <div>
-                                    encrypted: &nbsp;
+                                    encrypted &nbsp;
                                     <StyledCheckbox
                                         checked={
                                             isEncryptedOptionalOpReturnMsg
