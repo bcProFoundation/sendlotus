@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
-import { Form, notification, message, Modal, Alert, Input, Collapse } from 'antd';
+import { Form, notification, message, Modal, Alert, Input, Collapse, Checkbox } from 'antd';
 const { Panel } = Collapse;
 const { TextArea } = Input;
 import { Row, Col, Switch } from 'antd';
@@ -15,6 +15,7 @@ import {
     SendBchInput,
     FormItemWithQRCodeAddon,
     AntdFormWrapper,
+    OpReturnMessageInput
 } from '@components/Common/EnhancedInputs';
 import {
     AdvancedCollapse,
@@ -38,7 +39,10 @@ import {
     AlertMsg,
 } from '@components/Common/Atoms';
 import { getWalletState } from '@utils/cashMethods';
-import { CashReceivedNotificationIcon } from '@components/Common/CustomIcons';
+import { 
+    CashReceivedNotificationIcon,
+    ThemedQuerstionCircleOutlinedFaded
+} from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
 
 const TextAreaLabel = styled.div`
@@ -46,6 +50,49 @@ const TextAreaLabel = styled.div`
     color: #0074c2;
     padding-left: 1px;
 `;
+
+const OpReturnMessageHelp = styled.div`
+    margin-top: 20px;
+    font-size: 12px;
+
+    .heading {
+        margin-left: -20px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    ul {
+        padding-left: 0;
+    }
+
+    em {
+        // color: ${props => props.theme.primary} !important;
+        // TODO: should be able to access the theme as above
+        // but it return undefined - need to figure out what causes the error
+
+        color: #6f2dbd !important
+    }
+    
+`;
+
+const StyledCheckbox = styled(Checkbox)`
+    .ant-checkbox-inner {
+        background-color: #fff !important;
+        border: 1px solid ${props => props.theme.forms.border} !important
+    }
+
+    .ant-checkbox-checked .ant-checkbox-inner::after {
+        position: absolute;
+        display: table;
+        border: 2px solid ${props => props.theme.primary};
+        border-top: 0;
+        border-left: 0;
+        transform: rotate(45deg) scale(1) translate(-50%, -50%);
+        opacity: 1;
+        transition: all 0.2s cubic-bezier(0.12, 0.4, 0.29, 1.46) 0.1s;
+        content: ' ';
+    }
+`
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
@@ -64,7 +111,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] =
-        useState(false);
+        useState(true);
     const [bchObj, setBchObj] = useState(false);
 
     // Get device window width
@@ -518,110 +565,104 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 onChange: e => handleSelectedCurrencyChange(e),
                             }}
                         ></SendBchInput>
+                        {/* OP_RETURN message */}
                         <div
                             style={{
-                                paddingTop: '32px',
+                                paddingTop: '10px',
                             }}
                         >
-                            <AdvancedCollapse
-                                style={{
-                                    marginBottom: '24px',
-                                }}
-                                defaultActiveKey={
-                                    location &&
-                                    location.state &&
-                                    location.state.replyAddress
-                                        ? ['1']
-                                        : ['0']
-                                }
+                            {/* OP_RETURN message heading */}
+                             <div
+                                css={`
+                                    display: flex;
+                                    justify-content: space-between;
+                                    align-items: baseline,
+                                `}
                             >
-                                <Panel header="Advanced" key="1">
-                                    <AntdFormWrapper
-                                        style={{
-                                            marginBottom: '20px',
+                                <div>
+                                    Optional Message
+                                    <ThemedQuerstionCircleOutlinedFaded 
+                                        onClick={() => {
+                                            Modal.info({
+                                                centered: true,
+                                                okText: 'Got It',
+                                                title: 'Optional Message',
+                                                maskClosable: 'true',
+                                                content: (
+                                                    <OpReturnMessageHelp>
+                                                        <div className='heading'>Higher Fee</div>
+                                                        <ul>
+                                                            <li>Transaction with attached message will incur <em>higher fee.</em></li>
+                                                        </ul>
+                                                        <div className='heading'>Encryption</div>
+                                                        <ul>
+                                                            <li><em>Un-encrypted message is readable to everybody.</em></li>
+                                                            <li>Encrypted message is only readable to the intended recipient.</li>
+                                                            <li>Encrypted message can only be sent to wallets with at least 1 outgoing transaction.</li>
+                                                        </ul>
+                                                        <div className='heading'>Message Length</div>
+                                                        <ul>
+                                                            <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
+                                                            <li>Un-encrypted message max length is 215 bytes.</li>
+                                                            <li>Encrypted message max length is 94 bytes.</li>
+                                                        </ul>
+                                                    </OpReturnMessageHelp>
+                                                ),
+                                            })
                                         }}
-                                    >
-                                        <TextAreaLabel>
-                                            Message:&nbsp;&nbsp;
-                                            {/* show Public or Private message switch */}
-                                            <Switch
-                                                checkedChildren="Private"
-                                                unCheckedChildren="Public"
-                                                defaultunchecked="true"
-                                                checked={
-                                                    isEncryptedOptionalOpReturnMsg
-                                                }
-                                                onChange={() =>
-                                                    setIsEncryptedOptionalOpReturnMsg(
-                                                        prev => !prev,
-                                                    )
-                                                }
-                                                style={{
-                                                    marginBottom: '7px',
-                                                }}
-                                            />
-                                        </TextAreaLabel>
-                                        {/* show notes depending on message being public or private */}
-                                        {isEncryptedOptionalOpReturnMsg ? (
-                                            <Alert
-                                                style={{
-                                                    marginBottom: '10px',
-                                                }}
-                                                description="Please note encrypted messages can only be sent to wallets with at least 1 outgoing transaction."
-                                                type="warning"
-                                                showIcon
-                                            />
-                                        ) : (
-                                            <Alert
-                                                style={{
-                                                    marginBottom: '10px',
-                                                }}
-                                                description="Please note this message will be public."
-                                                type="warning"
-                                                showIcon
-                                            />
-                                        )}
-                                        {/* Message Input TextArea */}
-                                        <TextArea
-                                            name="opReturnMsg"
-                                            placeholder={
-                                                isEncryptedOptionalOpReturnMsg
-                                                    ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
-                                                    : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
-                                            }
-                                            value={
-                                                opReturnMsg
-                                                    ? isEncryptedOptionalOpReturnMsg
-                                                        ? opReturnMsg.substring(
-                                                              0,
-                                                              currency.opReturn
-                                                                  .encryptedMsgCharLimit +
-                                                                  1,
-                                                          )
-                                                        : opReturnMsg
-                                                    : ''
-                                            }
-                                            onChange={e =>
-                                                setOpReturnMsg(e.target.value)
-                                            }
-                                            showCount
-                                            maxLength={
-                                                isEncryptedOptionalOpReturnMsg
-                                                    ? currency.opReturn
-                                                          .encryptedMsgCharLimit
-                                                    : currency.opReturn
-                                                          .unencryptedMsgCharLimit
-                                            }
-                                            onKeyDown={e =>
-                                                e.keyCode == 13
-                                                    ? e.preventDefault()
-                                                    : ''
-                                            }
-                                        />
-                                    </AntdFormWrapper>
-                                </Panel>
-                            </AdvancedCollapse>
+                                    />
+                                </div>
+                                {/* Encryption Checkbox */}
+                                <div>
+                                    encrypted: &nbsp;
+                                    <StyledCheckbox
+                                        checked={
+                                            isEncryptedOptionalOpReturnMsg
+                                        }
+                                        onChange={() =>
+                                            setIsEncryptedOptionalOpReturnMsg(
+                                                prev => !prev,
+                                            )
+                                        }
+                                    />
+                                </div>
+                            </div>
+                            <OpReturnMessageInput
+                                 name="opReturnMsg"
+                                 rows={4}
+                                 allowClear={true}
+                                 placeholder={
+                                     isEncryptedOptionalOpReturnMsg
+                                         ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
+                                         : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
+                                 }
+                                 value={
+                                     opReturnMsg
+                                         ? isEncryptedOptionalOpReturnMsg
+                                             ? opReturnMsg.substring(
+                                                     0,
+                                                     currency.opReturn
+                                                         .encryptedMsgCharLimit +
+                                                         1,
+                                                 )
+                                             : opReturnMsg
+                                         : ''
+                                 }
+                                 onChange={e =>
+                                     setOpReturnMsg(e.target.value)
+                                 }
+                                 showCount
+                                 maxLength={
+                                     isEncryptedOptionalOpReturnMsg
+                                         ? currency.opReturn
+                                                 .encryptedMsgCharLimit
+                                         : currency.opReturn
+                                                 .unencryptedMsgCharLimit
+                                 }
+                                 onPressEnter={e => e.preventDefault() }
+                            />
                         </div>
+                        {/* END OF OP_RETURN message */}
                         <div
                             style={{
                                 paddingTop: '12px',

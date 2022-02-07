@@ -333,3 +333,29 @@ export const AddressValidators = () => {
             AddressValidators.safelyDetectAddressFormat(value) === 'xaddr',
     }();
 };
+
+
+const StyledOpReturnMessageTextArea = styled.div`
+    textarea.ant-input {
+        background-color: ${props => props.theme.forms.selectionBackground} !important;
+        border-radius: 4px;
+        color: ${props => props.theme.forms.text};
+        border: 1px solid ${props => props.theme.forms.border};
+        opacity: 1;
+    }
+
+    .ant-input-affix-wrapper {
+        background-color: ${props => props.theme.forms.addonBackground};
+        border: 1px solid ${props => props.theme.forms.border};;
+    }
+` 
+
+export const OpReturnMessageInput = (props) => {
+    return (
+        <StyledOpReturnMessageTextArea>
+            <Form.Item>
+                <Input.TextArea {...props}/>
+            </Form.Item>
+        </StyledOpReturnMessageTextArea>
+    )
+}

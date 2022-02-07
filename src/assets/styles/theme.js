@@ -50,7 +50,12 @@ export const theme = {
         addonForeground: '#6f2dbd',
         selectionBackground: '#fff',
     },
-    icons: { outlined: '#6f2dbd' },
+    icons: { 
+        outlined: '#6f2dbd',
+        outlinedFaded: '#bb98ff',
+        filled: '#6f2dbd',
+        filledFaded: '#bb98ff'
+    },
     modals: {
         buttons: { background: '#fff' },
     },

@@ -8,6 +8,7 @@ import {
     QrcodeOutlined,
     SettingOutlined,
     LockOutlined,
+    QuestionCircleOutlined
 } from '@ant-design/icons';
 import { Image } from 'antd';
 import { currency } from '@components/Common/Ticker';
@@ -43,6 +44,9 @@ export const ThemedSettingOutlined = styled(SettingOutlined)`
 `;
 export const ThemedLockOutlined = styled(LockOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
+`;
+export const ThemedQuerstionCircleOutlinedFaded = styled(QuestionCircleOutlined)`
+    color: ${props => props.theme.icons.outlinedFaded} !important;
 `;
 
 export const LoadingBlock = styled.div`
