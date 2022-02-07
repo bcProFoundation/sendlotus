@@ -14,7 +14,7 @@ import { Img } from 'react-image';
 import { formatBalance, fromLegacyDecimals } from '@utils/cashMethods';
 
 const SentTx = styled(ArrowUpOutlined)`
-    color: ${props => props.theme.secondary} !important;
+    color: ${props => props.theme.greyDark} !important;
 `;
 const ReceivedTx = styled(ArrowDownOutlined)`
     color: ${props => props.theme.primary} !important;
@@ -28,6 +28,7 @@ const UnparsedTx = styled(ExclamationOutlined)`
 const DateType = styled.div`
     text-align: left;
     padding: 12px;
+    color: ${props => props.theme.greyDark} !important;
     @media screen and (max-width: 500px) {
         font-size: 0.8rem;
     }
@@ -54,7 +55,7 @@ const OpReturnType = styled.span`
 const SentLabel = styled.span`
     font-weight: bold;
 
-    color: ${props => props.theme.secondary} !important;
+    color: ${props => props.theme.greyDark} !important;
 `;
 const ReceivedLabel = styled.span`
     font-weight: bold;
@@ -62,19 +63,17 @@ const ReceivedLabel = styled.span`
 `;
 const LotusChatMessageLabel = styled.span`
     text-align: left;
-    font-weight: bold;
-    color: ${props => props.theme.primary} !important;
+    color: ${props => props.theme.greyLight} !important;
     white-space: nowrap;
 `;
 const EncryptionMessageLabel = styled.span`
     text-align: left;
-    font-weight: bold;
-    color: red;
+    color: ${props => props.theme.greyLight} !important;
     white-space: nowrap;
 `;
 const UnauthorizedDecryptionMessage = styled.span`
     text-align: left;
-    color: red;
+    color: ${props => props.theme.greyLight} !important;
     white-space: nowrap;
     font-style: italic;
 `;
@@ -85,7 +84,7 @@ const MessageLabel = styled.span`
     white-space: nowrap;
 `;
 const ReplyMessageLabel = styled.span`
-    color: ${props => props.theme.primary} !important;
+    color: ${props => props.theme.greyLight} !important;
 `;
 const TxIcon = styled.div`
     svg {
@@ -110,7 +109,7 @@ const TxInfo = styled.div`
     text-align: right;
 
     color: ${props =>
-        props.outgoing ? props.theme.secondary : props.theme.primary};
+        props.outgoing ? props.theme.greyDark : props.theme.primary};
 
     @media screen and (max-width: 500px) {
         font-size: 0.8rem;
@@ -376,7 +375,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                             <OpReturnType>
                                 {data.isLotusChatMessage ? (
                                     <LotusChatMessageLabel>
-                                        LotusChat Message
+                                        Message
                                     </LotusChatMessageLabel>
                                 ) : (
                                     <MessageLabel>
