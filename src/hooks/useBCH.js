@@ -251,7 +251,7 @@ export default function useBCH() {
                                     err,
                             );
                             decryptedMessage =
-                                'Only the message recipient can view this';
+                                'Only readable by the recipient';
                         }
                         isLotusChatMessage = true;
                         isEncryptedMessage = true;
