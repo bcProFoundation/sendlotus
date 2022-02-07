@@ -37,6 +37,7 @@ export const currency = {
         },
         encryptedMsgCharLimit: 94,
         unencryptedMsgCharLimit: 160,
+        defaultAmount: 0.00055, // dust / 1.000.000
     },
     settingsValidation: {
         fiatCurrency: [

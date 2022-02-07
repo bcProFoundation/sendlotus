@@ -171,7 +171,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             setFormData({
                 address: location.state.replyAddress,
                 // @TODO: should be set in constant
-                value: 1,
+                value: currency.opReturn.defaultAmount,
             });
         }
 
