@@ -378,6 +378,25 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                         <>
                             <br />
                             <OpReturnType>
+                                {/*unencrypted OP_RETURN Message*/}
+                                {data.opReturnMessage &&
+                                !data.isEncryptedMessage ? data.opReturnMessage : ''}
+                                {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
+                                {data.opReturnMessage &&
+                                data.isEncryptedMessage &&
+                                data.decryptionSuccess
+                                    ? data.opReturnMessage
+                                    : ''}
+                                {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
+                                {data.opReturnMessage &&
+                                data.isEncryptedMessage &&
+                                !data.decryptionSuccess ? (
+                                    <UnauthorizedDecryptionMessage>
+                                        { data.opReturnMessage }
+                                    </UnauthorizedDecryptionMessage>
+                                ) : (
+                                    ''
+                                )}
                                 <div
                                     css={`
                                         display: flex;
@@ -391,7 +410,6 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                             </EncryptionMessageLabel>
                                         ) : (
                                             <LotusChatMessageLabel>
-                                                <ThemedUnlockFilledGrey />
                                             </LotusChatMessageLabel>
                                         )
                                         
@@ -420,25 +438,6 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                         ''
                                     )}
                                 </div>
-                                {/*unencrypted OP_RETURN Message*/}
-                                {data.opReturnMessage &&
-                                !data.isEncryptedMessage ? data.opReturnMessage : ''}
-                                {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
-                                {data.opReturnMessage &&
-                                data.isEncryptedMessage &&
-                                data.decryptionSuccess
-                                    ? data.opReturnMessage
-                                    : ''}
-                                {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
-                                {data.opReturnMessage &&
-                                data.isEncryptedMessage &&
-                                !data.decryptionSuccess ? (
-                                    <UnauthorizedDecryptionMessage>
-                                        { data.opReturnMessage }
-                                    </UnauthorizedDecryptionMessage>
-                                ) : (
-                                    ''
-                                )}
                             </OpReturnType>
                         </>
                     )}
