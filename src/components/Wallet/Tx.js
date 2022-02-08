@@ -13,6 +13,7 @@ import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
 import { formatBalance, fromLegacyDecimals } from '@utils/cashMethods';
 import { ThemedLockFilledGrey, ThemedUnlockFilledGrey } from 'components/Common/CustomIcons';
+import { Button } from 'antd';
 
 const SentTx = styled(ArrowUpOutlined)`
     color: ${props => props.theme.greyDark} !important;
@@ -80,7 +81,6 @@ const UnauthorizedDecryptionMessage = styled.span`
 `;
 const MessageLabel = styled.span`
     text-align: left;
-    font-weight: bold;
     color: ${props => props.theme.secondary} !important;
     white-space: nowrap;
 `;
@@ -191,6 +191,10 @@ const TxWrapper = styled.div`
         padding: 12px 12px;
     }
 `;
+
+const ReplyButton = styled(Button)`
+    color: ${props => props.theme.grey } !important;
+`
 
 const Tx = ({ data, fiatPrice, fiatCurrency }) => {
     const txDate =
@@ -371,26 +375,51 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                         </>
                     )}
                     {data.opReturnMessage && (
-                            <>
+                        <>
                             <br />
                             <OpReturnType>
-                                {data.isLotusChatMessage ? (
-                                    data.isEncryptedMessage ? (
-                                        <EncryptionMessageLabel>
-                                            <ThemedLockFilledGrey />
-                                        </EncryptionMessageLabel>
+                                <div
+                                    css={`
+                                        display: flex;
+                                        justify-content: space-between;
+                                    `}
+                                >
+                                    {data.isLotusChatMessage ? (
+                                        data.isEncryptedMessage ? (
+                                            <EncryptionMessageLabel>
+                                                <ThemedLockFilledGrey />
+                                            </EncryptionMessageLabel>
+                                        ) : (
+                                            <LotusChatMessageLabel>
+                                                <ThemedUnlockFilledGrey />
+                                            </LotusChatMessageLabel>
+                                        )
+                                        
                                     ) : (
-                                        <LotusChatMessageLabel>
-                                            <ThemedUnlockFilledGrey />
-                                        </LotusChatMessageLabel>
-                                    )
-                                    
-                                ) : (
-                                    <MessageLabel>
-                                        External Message
-                                    </MessageLabel>
-                                )}
-                                <br />
+                                        <MessageLabel>
+                                            External Message
+                                        </MessageLabel>
+                                    )}
+                                    {!data.outgoingTx && data.replyAddress ? (
+                                        <Link
+                                            to={{
+                                                pathname: `/send`,
+                                                state: {
+                                                    replyAddress: data.replyAddress,
+                                                },
+                                            }}
+                                        >
+                                            <ReplyButton
+                                                size='small'
+                                                type="text"
+                                            >
+                                                Reply
+                                            </ReplyButton>
+                                        </Link>
+                                    ) : (
+                                        ''
+                                    )}
+                                </div>
                                 {/*unencrypted OP_RETURN Message*/}
                                 {data.opReturnMessage &&
                                 !data.isEncryptedMessage ? data.opReturnMessage : ''}
@@ -410,27 +439,9 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                 ) : (
                                     ''
                                 )}
-                                {!data.outgoingTx && data.replyAddress ? (
-                                    <Link
-                                        to={{
-                                            pathname: `/send`,
-                                            state: {
-                                                replyAddress: data.replyAddress,
-                                            },
-                                        }}
-                                    >
-                                        <br />
-                                        <br />
-                                        <ReplyMessageLabel>
-                                            Reply To Message
-                                        </ReplyMessageLabel>
-                                    </Link>
-                                ) : (
-                                    ''
-                                )}
                             </OpReturnType>
                         </>
-                        )}
+                    )}
                 </TxWrapper>
             )}
         </>
