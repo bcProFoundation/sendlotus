@@ -117,8 +117,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const { balances, slpBalancesAndUtxos } = walletState;
 
     const [opReturnMsg, setOpReturnMsg] = useState(false);
-    const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] =
-        useState(true);
+    const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] = useState(true);
+    const [appendWalletNameToOpReturnMsg, setAppendWalletNameToOpReturnMsg] = useState(true);
     const [bchObj, setBchObj] = useState(false);
 
     // Get device window width
@@ -273,15 +273,22 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // }
 
         // encrypted message limit truncation
-        let optionalOpReturnMsg;
-        if (isEncryptedOptionalOpReturnMsg && opReturnMsg) {
-            optionalOpReturnMsg = opReturnMsg.substring(
-                0,
-                currency.opReturn.encryptedMsgByteLimit,
-            );
-        } else {
-            optionalOpReturnMsg = opReturnMsg;
-        }
+        // NO Need this, since the OpReturn Input field make sure the message length is within limit
+        // let optionalOpReturnMsg;
+        // if (isEncryptedOptionalOpReturnMsg && opReturnMsg) {
+        //     optionalOpReturnMsg = opReturnMsg.substring(
+        //         0,
+        //         currency.opReturn.encryptedMsgByteLimit,
+        //     );
+        // } else {
+        //     optionalOpReturnMsg = opReturnMsg;
+        // }
+        
+        let optionalOpReturnMsg = opReturnMsg + (
+            appendWalletNameToOpReturnMsg
+                ? " @" + wallet.name
+                : ''
+        );
 
         try {
             const link = await sendBch(
@@ -519,6 +526,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
                                 <li>Un-encrypted message max length is 215 bytes.</li>
                                 <li>Encrypted message max length is 94 bytes.</li>
+                                <li>Appending &quot;Wallet Name&quot; to the end of the message will take up extra bytes</li>
                             </ul>
                         </OpReturnMessageHelp>
                     ),
@@ -559,6 +567,18 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         </div>
     );
 
+    const appendOpReturnLabel = (
+        <div>
+            append <em><b>{wallet.name}</b></em>&nbsp;
+            <StyledCheckbox
+                checked={appendWalletNameToOpReturnMsg}
+                onChange={() => setAppendWalletNameToOpReturnMsg(
+                    prev => !prev
+                )}
+            />
+        </div>
+    );
+
     // Only Send Mesage Checkbox
     const sendOnlyMessageCheckbox = (
         <div
@@ -578,6 +598,25 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             />
         </div>
     );
+
+    const computeOpReturnMsgMaxByteLength = () => {
+        // plus 2
+        //  1 for space
+        //  1 for @
+        const appendLength = (
+            appendWalletNameToOpReturnMsg
+                ? Buffer.from(wallet.name).length + 2
+                : 0
+        );
+
+        const maxOpReturnLimit = (
+            isEncryptedOptionalOpReturnMsg
+                ? currency.opReturn.encryptedMsgByteLimit
+                : currency.opReturn.unencryptedMsgByteLimit
+        );
+
+        return maxOpReturnLimit - appendLength;
+    }
 
     return (
         <>
@@ -684,14 +723,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                     : ''
                             }
                             onChange={msg => setOpReturnMsg(msg)}
-                            maxByteLength={
-                                isEncryptedOptionalOpReturnMsg
-                                    ? currency.opReturn
-                                            .encryptedMsgByteLimit
-                                    : currency.opReturn
-                                            .unencryptedMsgByteLimit
-                            }
-                            label={opReturnLabel} 
+                            maxByteLength={computeOpReturnMsgMaxByteLength()}
+                            labelTop={opReturnLabel} 
+                            labelBottom={appendOpReturnLabel}
                         />     
                         {/* END OF OP_RETURN message */}
                         <div>

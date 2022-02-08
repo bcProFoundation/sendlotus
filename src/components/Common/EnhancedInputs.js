@@ -350,7 +350,7 @@ const StyledOpReturnMessageTextArea = styled.div`
     }
 ` 
 
-export const OpReturnMessageInput = ({value, onChange, maxByteLength, label, ...otherProps}) => {
+export const OpReturnMessageInput = ({value, onChange, maxByteLength, labelTop, labelBottom,  ...otherProps}) => {
 
     const trimMessage = (msg) => {
         // keep trimming the message one character at time
@@ -380,17 +380,25 @@ export const OpReturnMessageInput = ({value, onChange, maxByteLength, label, ...
                     `}
                 >
                     <div>
-                        {Buffer.from(value).length} / {maxByteLength} bytes
+                        {Buffer.from(value).length}  / {maxByteLength} bytes
                     </div>
                     <div
                         css={`
                             flex-grow: 1
                         `}
                     >
-                        {label}
+                        {labelTop}
                     </div>
                 </div>
-                <Input.TextArea { ...otherProps } onChange={handleInputChange} value={value}/>
+                <Input.TextArea { ...otherProps } onChange={handleInputChange} value={value} style={{margin: 0}} />
+                <div
+                    css={`
+                        text-align: right;
+                        color: ${props => props.theme.greyLight}
+                    `}
+                >
+                    {labelBottom}
+                </div>
             </Form.Item>
         </StyledOpReturnMessageTextArea>
     )
@@ -400,5 +408,6 @@ OpReturnMessageInput.propTypes = {
     value: PropTypes.string,
     onChange: PropTypes.func,
     maxByteLength: PropTypes.number,
-    label: PropTypes.object
+    labelTop: PropTypes.object,
+    labelBottom: PropTypes.object
 }
