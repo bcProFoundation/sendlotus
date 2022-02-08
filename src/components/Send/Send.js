@@ -38,7 +38,10 @@ import {
     ConvertAmount,
     AlertMsg,
 } from '@components/Common/Atoms';
-import { getWalletState } from '@utils/cashMethods';
+import { 
+    getWalletState,
+    getDustXPI
+} from '@utils/cashMethods';
 import { 
     CashReceivedNotificationIcon,
     ThemedQuerstionCircleOutlinedFaded
@@ -151,6 +154,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const { getBCH, getRestUrl, sendBch, calcFee } = useBCH();
 
+
     // If the balance has changed, unlock the UI
     // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
     useEffect(() => {
@@ -170,8 +174,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         if (location && location.state && location.state.replyAddress) {
             setFormData({
                 address: location.state.replyAddress,
-                // @TODO: should be set in constant
-                value: currency.opReturn.defaultAmount,
+                // send dust amount
+                value: getDustXPI(),
             });
         }
 
@@ -269,7 +273,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         if (isEncryptedOptionalOpReturnMsg) {
             optionalOpReturnMsg = opReturnMsg.substring(
                 0,
-                currency.opReturn.encryptedMsgCharLimit,
+                currency.opReturn.encryptedMsgByteLimit,
             );
         } else {
             optionalOpReturnMsg = opReturnMsg;
@@ -301,6 +305,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 icon: <CashReceivedNotificationIcon />,
                 style: { width: '100%' },
             });
+
+            // redirect to wallet page
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop
             passLoadingStatus(false);
@@ -481,6 +487,92 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const priceApiError = fiatPrice === null && selectedCurrency !== 'XEC';
 
+    // Help (?) Icon that shows the OP_RETURN info
+    const helpInfoIcon = (
+        <ThemedQuerstionCircleOutlinedFaded 
+            onClick={() => {
+                Modal.info({
+                    centered: true,
+                    okText: 'Got It',
+                    title: 'Optional Message',
+                    maskClosable: 'true',
+                    content: (
+                        <OpReturnMessageHelp>
+                            <div className='heading'>Higher Fee</div>
+                            <ul>
+                                <li>Transaction with attached message will incur <em>higher fee.</em></li>
+                            </ul>
+                            <div className='heading'>Encryption</div>
+                            <ul>
+                                <li><em>Un-encrypted message is readable to everybody.</em></li>
+                                <li>Encrypted message is only readable to the intended recipient.</li>
+                                <li>Encrypted message can only be sent to wallets with at least 1 outgoing transaction.</li>
+                            </ul>
+                            <div className='heading'>Message Length</div>
+                            <ul>
+                                <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
+                                <li>Un-encrypted message max length is 215 bytes.</li>
+                                <li>Encrypted message max length is 94 bytes.</li>
+                            </ul>
+                        </OpReturnMessageHelp>
+                    ),
+                })
+            }}
+        />
+    )
+
+    // Encrypted Checkbox UI
+    const encryptedCheckbox = (
+        <div>
+            encrypted &nbsp;
+            <StyledCheckbox
+                checked={
+                    isEncryptedOptionalOpReturnMsg
+                }
+                onChange={() =>
+                    setIsEncryptedOptionalOpReturnMsg(
+                        prev => !prev,
+                    )
+                }
+            />
+        </div>
+    );
+
+    // Label for OP_RETURN message textarea
+    const opReturnLabel = (
+        <div
+            css={`
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-left: 5px;
+            `}
+        >
+            {helpInfoIcon}
+            {encryptedCheckbox}
+        </div>
+    );
+
+    // Only Send Mesage Checkbox
+    const sendOnlyMessageCheckbox = (
+        <div
+            css={`
+                text-align: right;
+            `}
+        >
+            send only message &nbsp;
+            <StyledCheckbox
+                defaultChecked={false}
+                onChange={() =>
+                    setFormData({
+                        ...formData,
+                        value: getDustXPI(),
+                    })
+                }
+            />
+        </div>
+    );
+
     return (
         <>
             <Modal
@@ -518,7 +610,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     >
                         <FormItemWithQRCodeAddon
                                 style={{
-                                    margin: '0 0 20px 0'
+                                    margin: '0 0 10px 0'
                                 }}
                             loadWithCameraOpen={scannerSupported}
                             validateStatus={sendBchAddressError ? 'error' : ''}
@@ -542,7 +634,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 value: formData.address,
                             }}
                         ></FormItemWithQRCodeAddon>
+                        {sendOnlyMessageCheckbox}
                         <SendBchInput
+                            style={{
+                                margin: '0 0 10px 0'
+                            }}
                             activeFiatCode={
                                 cashtabSettings && cashtabSettings.fiatCurrency
                                     ? cashtabSettings.fiatCurrency.toUpperCase()
@@ -566,108 +662,33 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             }}
                         ></SendBchInput>
                         {/* OP_RETURN message */}
-                        <div
-                            style={{
-                                paddingTop: '10px',
+                        <OpReturnMessageInput
+                             style={{
+                                margin: '0 0 20px 0'
                             }}
-                        >
-                            {/* OP_RETURN message heading */}
-                             <div
-                                css={`
-                                    display: flex;
-                                    justify-content: space-between;
-                                    align-items: baseline,
-                                `}
-                            >
-                                <div>
-                                    Optional Message
-                                    <ThemedQuerstionCircleOutlinedFaded 
-                                        onClick={() => {
-                                            Modal.info({
-                                                centered: true,
-                                                okText: 'Got It',
-                                                title: 'Optional Message',
-                                                maskClosable: 'true',
-                                                content: (
-                                                    <OpReturnMessageHelp>
-                                                        <div className='heading'>Higher Fee</div>
-                                                        <ul>
-                                                            <li>Transaction with attached message will incur <em>higher fee.</em></li>
-                                                        </ul>
-                                                        <div className='heading'>Encryption</div>
-                                                        <ul>
-                                                            <li><em>Un-encrypted message is readable to everybody.</em></li>
-                                                            <li>Encrypted message is only readable to the intended recipient.</li>
-                                                            <li>Encrypted message can only be sent to wallets with at least 1 outgoing transaction.</li>
-                                                        </ul>
-                                                        <div className='heading'>Message Length</div>
-                                                        <ul>
-                                                            <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
-                                                            <li>Un-encrypted message max length is 215 bytes.</li>
-                                                            <li>Encrypted message max length is 94 bytes.</li>
-                                                        </ul>
-                                                    </OpReturnMessageHelp>
-                                                ),
-                                            })
-                                        }}
-                                    />
-                                </div>
-                                {/* Encryption Checkbox */}
-                                <div>
-                                    encrypted &nbsp;
-                                    <StyledCheckbox
-                                        checked={
-                                            isEncryptedOptionalOpReturnMsg
-                                        }
-                                        onChange={() =>
-                                            setIsEncryptedOptionalOpReturnMsg(
-                                                prev => !prev,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-                            <OpReturnMessageInput
-                                 name="opReturnMsg"
-                                 rows={4}
-                                 allowClear={true}
-                                 placeholder={
-                                     isEncryptedOptionalOpReturnMsg
-                                         ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
-                                         : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
-                                 }
-                                 value={
-                                     opReturnMsg
-                                         ? isEncryptedOptionalOpReturnMsg
-                                             ? opReturnMsg.substring(
-                                                     0,
-                                                     currency.opReturn
-                                                         .encryptedMsgCharLimit +
-                                                         1,
-                                                 )
-                                             : opReturnMsg
-                                         : ''
-                                 }
-                                 onChange={e =>
-                                     setOpReturnMsg(e.target.value)
-                                 }
-                                 showCount
-                                 maxLength={
-                                     isEncryptedOptionalOpReturnMsg
-                                         ? currency.opReturn
-                                                 .encryptedMsgCharLimit
-                                         : currency.opReturn
-                                                 .unencryptedMsgCharLimit
-                                 }
-                                
-                            />
-                        </div>
+                            name="opReturnMsg"
+                            allowClear={true}
+                            autoSize={{minRows: 2, maxRows: 4}}
+                            placeholder="Optional Message"
+                            value={
+                                opReturnMsg
+                                    ? isEncryptedOptionalOpReturnMsg
+                                        ? opReturnMsg.substring(0,currency.opReturn.encryptedMsgByteLimit)
+                                        : opReturnMsg
+                                    : ''
+                            }
+                            onChange={msg => setOpReturnMsg(msg)}
+                            maxByteLength={
+                                isEncryptedOptionalOpReturnMsg
+                                    ? currency.opReturn
+                                            .encryptedMsgByteLimit
+                                    : currency.opReturn
+                                            .unencryptedMsgByteLimit
+                            }
+                            label={opReturnLabel} 
+                        />     
                         {/* END OF OP_RETURN message */}
-                        <div
-                            style={{
-                                paddingTop: '12px',
-                            }}
-                        >
+                        <div>
                             {!balances.totalBalance ||
                             apiError ||
                             sendBchAmountError ||

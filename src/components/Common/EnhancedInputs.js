@@ -350,12 +350,55 @@ const StyledOpReturnMessageTextArea = styled.div`
     }
 ` 
 
-export const OpReturnMessageInput = (props) => {
+export const OpReturnMessageInput = ({value, onChange, maxByteLength, label, ...otherProps}) => {
+
+    const trimMessage = (msg) => {
+        // keep trimming the message one character at time
+        // until the length in bytes < maxByteLength
+        let trim = msg;
+        while (Buffer.from(trim).length > maxByteLength) {
+            trim = trim.substring(0,trim.length -1);
+        }
+        return trim;
+    }
+
+    const handleInputChange = (event) => {
+        // trim the input value against to maxByteLength
+        let msg = trimMessage(event.target.value);
+        // pass the value back up to parent component
+        onChange(msg);
+    }
+
     return (
         <StyledOpReturnMessageTextArea>
             <Form.Item>
-                <Input.TextArea {...props}/>
+                <div
+                    css={`
+                        display: flex;
+                        justify-content: flex-start;
+                        align-items: flex-end;
+                    `}
+                >
+                    <div>
+                        {Buffer.from(value).length} / {maxByteLength} bytes
+                    </div>
+                    <div
+                        css={`
+                            flex-grow: 1
+                        `}
+                    >
+                        {label}
+                    </div>
+                </div>
+                <Input.TextArea { ...otherProps } onChange={handleInputChange} value={value}/>
             </Form.Item>
         </StyledOpReturnMessageTextArea>
     )
+}
+
+OpReturnMessageInput.propTypes = {
+    value: PropTypes.string,
+    onChange: PropTypes.func,
+    maxByteLength: PropTypes.number,
+    label: PropTypes.object
 }

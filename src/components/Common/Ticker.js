@@ -35,9 +35,8 @@ export const currency = {
             lotusChat: '02020202',
             lotusChatEncrypted: '03030303'
         },
-        encryptedMsgCharLimit: 94,
-        unencryptedMsgCharLimit: 160,
-        defaultAmount: 0.00055, // dust / 1.000.000
+        encryptedMsgByteLimit: 94,
+        unencryptedMsgByteLimit: 160,
     },
     settingsValidation: {
         fiatCurrency: [

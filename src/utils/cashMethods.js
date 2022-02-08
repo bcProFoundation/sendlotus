@@ -452,3 +452,7 @@ export const isLegacyMigrationRequired = wallet => {
 
     return false;
 };
+
+export const getDustXPI = () => {
+    return currency.dustSats / (10 ** currency.cashDecimals);
+}
