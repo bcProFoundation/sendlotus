@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { 
+    useLocation,
+    useHistory
+} from 'react-router-dom';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
@@ -106,6 +109,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
+    const history = useHistory();
     const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
 
     const currentAddress = wallet && wallet.Path10605 ? wallet.Path10605.xAddress : undefined;
@@ -270,7 +274,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
         // encrypted message limit truncation
         let optionalOpReturnMsg;
-        if (isEncryptedOptionalOpReturnMsg) {
+        if (isEncryptedOptionalOpReturnMsg && opReturnMsg) {
             optionalOpReturnMsg = opReturnMsg.substring(
                 0,
                 currency.opReturn.encryptedMsgByteLimit,
@@ -306,7 +310,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 style: { width: '100%' },
             });
 
-            // redirect to wallet page
+            // redirect to wallet home page
+            passLoadingStatus(false);
+            history.push('/');
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop
             passLoadingStatus(false);
