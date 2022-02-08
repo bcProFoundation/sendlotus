@@ -8,7 +8,10 @@ import {
     QrcodeOutlined,
     SettingOutlined,
     LockOutlined,
-    QuestionCircleOutlined
+    LockFilled,
+    QuestionCircleOutlined,
+    UnlockOutlined,
+    UnlockFilled
 } from '@ant-design/icons';
 import { Image } from 'antd';
 import { currency } from '@components/Common/Ticker';
@@ -44,6 +47,15 @@ export const ThemedSettingOutlined = styled(SettingOutlined)`
 `;
 export const ThemedLockOutlined = styled(LockOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
+`;
+export const ThemedUnlockOutlined = styled(UnlockOutlined)`
+    color: ${props => props.theme.icons.outlined} !important;
+`;
+export const ThemedLockFilledGrey = styled(LockFilled)`
+    color: ${props => props.theme.grey} !important;
+`;
+export const ThemedUnlockFilledGrey = styled(UnlockFilled)`
+    color: ${props => props.theme.grey} !important;
 `;
 export const ThemedQuerstionCircleOutlinedFaded = styled(QuestionCircleOutlined)`
     color: ${props => props.theme.icons.outlinedFaded} !important;

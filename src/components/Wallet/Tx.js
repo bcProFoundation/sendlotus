@@ -12,6 +12,7 @@ import { currency } from '@components/Common/Ticker';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
 import { formatBalance, fromLegacyDecimals } from '@utils/cashMethods';
+import { ThemedLockFilledGrey, ThemedUnlockFilledGrey } from 'components/Common/CustomIcons';
 
 const SentTx = styled(ArrowUpOutlined)`
     color: ${props => props.theme.greyDark} !important;
@@ -374,20 +375,20 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                             <br />
                             <OpReturnType>
                                 {data.isLotusChatMessage ? (
-                                    <LotusChatMessageLabel>
-                                        Message
-                                    </LotusChatMessageLabel>
+                                    data.isEncryptedMessage ? (
+                                        <EncryptionMessageLabel>
+                                            <ThemedLockFilledGrey />
+                                        </EncryptionMessageLabel>
+                                    ) : (
+                                        <LotusChatMessageLabel>
+                                            <ThemedUnlockFilledGrey />
+                                        </LotusChatMessageLabel>
+                                    )
+                                    
                                 ) : (
                                     <MessageLabel>
                                         External Message
                                     </MessageLabel>
-                                )}
-                                {data.isEncryptedMessage ? (
-                                    <EncryptionMessageLabel>
-                                        &nbsp;-&nbsp;Encrypted
-                                    </EncryptionMessageLabel>
-                                ) : (
-                                    ''
                                 )}
                                 <br />
                                 {/*unencrypted OP_RETURN Message*/}
