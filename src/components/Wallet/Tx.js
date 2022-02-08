@@ -410,7 +410,6 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                             </EncryptionMessageLabel>
                                         ) : (
                                             <LotusChatMessageLabel>
-                                                <ThemedUnlockFilledGrey />
                                             </LotusChatMessageLabel>
                                         )
                                         
