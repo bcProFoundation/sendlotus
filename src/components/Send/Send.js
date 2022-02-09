@@ -118,7 +118,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] = useState(true);
-    const [appendWalletNameToOpReturnMsg, setAppendWalletNameToOpReturnMsg] = useState(true);
+    const [appendWalletNameToOpReturnMsg, setAppendWalletNameToOpReturnMsg] = useState(false);
     const [bchObj, setBchObj] = useState(false);
 
     // Get device window width
@@ -724,8 +724,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             }
                             onChange={msg => setOpReturnMsg(msg)}
                             maxByteLength={computeOpReturnMsgMaxByteLength()}
-                            labelTop={opReturnLabel} 
-                            labelBottom={appendOpReturnLabel}
+                            labelTop={opReturnLabel}
+                            // the "Append Wallet Name" checkbox was removed
+                            // can be added back in later
+                            labelBottom={null}
                         />     
                         {/* END OF OP_RETURN message */}
                         <div>

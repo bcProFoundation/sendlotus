@@ -372,33 +372,37 @@ export const OpReturnMessageInput = ({value, onChange, maxByteLength, labelTop, 
     return (
         <StyledOpReturnMessageTextArea>
             <Form.Item>
-                <div
-                    css={`
-                        display: flex;
-                        justify-content: flex-start;
-                        align-items: flex-end;
-                    `}
-                >
-                    <div>
-                        {Buffer.from(value).length}  / {maxByteLength} bytes
-                    </div>
+                { labelTop && (
                     <div
                         css={`
-                            flex-grow: 1
+                            display: flex;
+                            justify-content: flex-start;
+                            align-items: flex-end;
                         `}
                     >
-                        {labelTop}
+                        <div>
+                            {Buffer.from(value).length}  / {maxByteLength} bytes
+                        </div>
+                        <div
+                            css={`
+                                flex-grow: 1
+                            `}
+                        >
+                            {labelTop}
+                        </div>
                     </div>
-                </div>
+                    )}
                 <Input.TextArea { ...otherProps } onChange={handleInputChange} value={value} style={{margin: 0}} />
-                <div
-                    css={`
-                        text-align: right;
-                        color: ${props => props.theme.greyLight}
-                    `}
-                >
-                    {labelBottom}
-                </div>
+                { labelBottom && (
+                    <div
+                        css={`
+                            text-align: right;
+                            color: ${props => props.theme.greyLight}
+                        `}
+                    >
+                        {labelBottom}
+                    </div>
+                )}
             </Form.Item>
         </StyledOpReturnMessageTextArea>
     )
