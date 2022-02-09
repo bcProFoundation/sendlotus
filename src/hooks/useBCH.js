@@ -1143,7 +1143,7 @@ export default function useBCH() {
         try {
             const pubKeyBuf = Buffer.from(recipientPubKey, 'hex');
             const bufferedFile = Buffer.from(optionalOpReturnMsg);
-            const structuredEj = await ecies.encrypt(pubKeyBuf, bufferedFile);
+            const structuredEj = await ecies.encrypt(pubKeyBuf, bufferedFile, {compressEpk: true});
 
             // Serialize the encrypted data object
             encryptedEj = Buffer.concat([
