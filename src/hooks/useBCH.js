@@ -786,12 +786,13 @@ export default function useBCH() {
         utxos,
         p2pkhOutputNumber = 2,
         satoshisPerByte = currency.defaultFee,
+        opReturnLength = 0
     ) => {
-        const byteCount = BCH.BitcoinCash.getByteCount(
+        let byteCount = BCH.BitcoinCash.getByteCount(
             { P2PKH: utxos.length },
             { P2PKH: p2pkhOutputNumber },
         );
-        const txFee = Math.ceil(satoshisPerByte * byteCount);
+        const txFee = Math.ceil(satoshisPerByte * (byteCount + opReturnLength));
         return txFee;
     };
 
@@ -1207,6 +1208,7 @@ export default function useBCH() {
             }
 
             let script;
+            let opReturnBuffer;
             // Start of building the OP_RETURN output.
             // only build the OP_RETURN output if the user supplied it
             if (
@@ -1248,8 +1250,8 @@ export default function useBCH() {
                         Buffer.from(optionalOpReturnMsg),
                     ];
                 }
-                const data = BCH.Script.encode(script);
-                transactionBuilder.addOutput(data, 0);
+                opReturnBuffer = BCH.Script.encode(script);
+                transactionBuilder.addOutput(opReturnBuffer, 0);
             }
             // End of building the OP_RETURN output.
 
@@ -1264,7 +1266,8 @@ export default function useBCH() {
                 transactionBuilder.addInput(txid, vout);
 
                 inputUtxos.push(utxo);
-                txFee = calcFee(BCH, inputUtxos, 2, feeInSatsPerByte);
+                const opReturnLength = opReturnBuffer ? opReturnBuffer.length : 0;
+                txFee = calcFee(BCH, inputUtxos, 2, feeInSatsPerByte, opReturnLength);
 
                 if (originalAmount.minus(satoshisToSend).minus(txFee).gte(0)) {
                     break;
