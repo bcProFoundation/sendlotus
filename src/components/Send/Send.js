@@ -110,7 +110,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
     const history = useHistory();
-    const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
+    const { wallet, fiatPrice, apiError, cashtabSettings, refresh } = ContextValue;
 
     const currentAddress = wallet && wallet.Path10605 ? wallet.Path10605.xAddress : undefined;
     const walletState = getWalletState(wallet);
@@ -313,6 +313,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
             // redirect to wallet home page
             passLoadingStatus(false);
+            // update the wallet the get the new utxos
+            refresh();
             history.push('/');
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop

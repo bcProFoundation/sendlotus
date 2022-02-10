@@ -1202,6 +1202,9 @@ const useWallet = () => {
         addNewSavedWallet,
         renameWallet,
         deleteWallet,
+        refresh: async () => {
+            update({walletToUpdate: wallet})
+        }
     };
 };
 
