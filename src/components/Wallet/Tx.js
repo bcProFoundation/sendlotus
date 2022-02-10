@@ -113,30 +113,6 @@ const TxFiatPrice = styled.span`
     font-size: 0.8rem;
 `;
 
-
-// const TxWrapper = styled.div`   
-//     display: grid;
-//     grid-template-columns: 36px 30% 50%;
-
-//     justify-content: space-between;
-//     align-items: center;
-//     padding: 15px 25px;
-//     border-radius: 3px;
-//     background: ${props => props.theme.tokenListItem.background};
-//     margin-bottom: 3px;
-//     box-shadow: ${props => props.theme.tokenListItem.boxShadow};
-//     border: 1px solid ${props => props.theme.tokenListItem.border};
-
-//     :hover {
-//         border-color: ${props => props.theme.primary};
-//     }
-//     @media screen and (max-width: 500px) {
-//         grid-template-columns: 24px 30% 50%;
-//         padding: 12px 12px;
-//     }
-// `;
-
-
 const TxWrapper = styled.div`
   
         display: grid;
@@ -211,7 +187,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                 <TxWrapper outgoing={data.outgoingTx}>
                     <div className='label'>
                         {data.outgoingTx 
-                            ? <SentLabel>Sent</SentLabel>
+                            ? <SentLabel>Sent to: {data.destinationAddress && data.destinationAddress.slice(-8)}</SentLabel>
                             : <ReceivedLabel>Received</ReceivedLabel>
                         }
                         <DateType>
