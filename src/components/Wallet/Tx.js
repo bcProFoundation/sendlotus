@@ -200,7 +200,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                     <div className='label'>
                         {data.outgoingTx 
                             ? <SentLabel>Sent to: {data.destinationAddress && data.destinationAddress.slice(-8)}</SentLabel>
-                            : <ReceivedLabel>From:</ReceivedLabel>
+                            : <ReceivedLabel>From: {data.fromAddress && data.fromAddress.slice(-8)}</ReceivedLabel>
                         }
                         <DateType>
                             {txDate}
@@ -274,12 +274,12 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                             External Message
                                         </MessageLabel>
                                     )}
-                                    {!data.outgoingTx && data.replyAddress ? (
+                                    {!data.outgoingTx && data.fromAddress ? (
                                         <Link
                                             to={{
                                                 pathname: `/send`,
                                                 state: {
-                                                    replyAddress: data.replyAddress,
+                                                    fromAddress: data.fromAddress,
                                                 },
                                             }}
                                         >
