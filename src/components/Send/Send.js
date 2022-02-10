@@ -110,7 +110,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
     const history = useHistory();
-    const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
+    const { wallet, fiatPrice, apiError, cashtabSettings, refresh } = ContextValue;
 
     const currentAddress = wallet && wallet.Path10605 ? wallet.Path10605.xAddress : undefined;
     const walletState = getWalletState(wallet);
@@ -118,7 +118,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] = useState(true);
-    const [appendWalletNameToOpReturnMsg, setAppendWalletNameToOpReturnMsg] = useState(true);
+    const [appendWalletNameToOpReturnMsg, setAppendWalletNameToOpReturnMsg] = useState(false);
     const [bchObj, setBchObj] = useState(false);
 
     // Get device window width
@@ -283,12 +283,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // } else {
         //     optionalOpReturnMsg = opReturnMsg;
         // }
-        
-        let optionalOpReturnMsg = opReturnMsg + (
-            appendWalletNameToOpReturnMsg
-                ? " @" + wallet.name
-                : ''
-        );
 
         try {
             const link = await sendBch(
@@ -298,7 +292,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 cleanAddress,
                 bchValue,
                 currency.defaultFee,
-                optionalOpReturnMsg,
+                opReturnMsg,
                 isEncryptedOptionalOpReturnMsg,
             );
 
@@ -319,6 +313,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
             // redirect to wallet home page
             passLoadingStatus(false);
+            // update the wallet the get the new utxos
+            // refresh();
             history.push('/');
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop
@@ -724,8 +720,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             }
                             onChange={msg => setOpReturnMsg(msg)}
                             maxByteLength={computeOpReturnMsgMaxByteLength()}
-                            labelTop={opReturnLabel} 
-                            labelBottom={appendOpReturnLabel}
+                            labelTop={opReturnLabel}
+                            // the "Append Wallet Name" checkbox was removed
+                            // can be added back in later
+                            labelBottom={null}
                         />     
                         {/* END OF OP_RETURN message */}
                         <div>

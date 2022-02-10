@@ -295,10 +295,10 @@ export default function useBCH() {
                 }
             }
 
-             // If the tx is incoming and have a message attached
+            // If the tx is incoming
             // get the address of the sender for this tx and encode into lotus address
             let senderAddress = null;
-            if (!outgoingTx && opReturnMessage !== '') {
+            if (!outgoingTx) {
                 const firstVin = tx.vin[0];
                 try {
                     // get the tx that generated the first vin of this tx
@@ -326,7 +326,7 @@ export default function useBCH() {
             parsedTx.destinationAddress = destinationAddress;
             parsedTx.opReturnMessage = Buffer.from(opReturnMessage).toString();
             parsedTx.isLotusChatMessage = isLotusChatMessage;
-            parsedTx.replyAddress = senderAddress;
+            parsedTx.fromAddress = senderAddress;
             parsedTx.isEncryptedMessage = isEncryptedMessage;
             parsedTx.decryptionSuccess = decryptionSuccess;
             parsedTxHistory.push(parsedTx);

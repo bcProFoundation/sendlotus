@@ -3,8 +3,6 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import Tx from './Tx';
 
-export const TxLink = styled.a``;
-
 const TxHistoryHeading = styled.h4`
     font-size: 20px;
     margin: 0;
@@ -22,18 +20,12 @@ const TxHistory = ({ txs, fiatPrice, fiatCurrency }) => {
                 Recent Transactions
             </TxHistoryHeading>
             {txs.map(tx => (
-                <TxLink
+                <Tx
                     key={tx.txid}
-                    href={`https://explorer.givelotus.org/tx/${tx.txid}`}
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    <Tx
-                        data={tx}
-                        fiatPrice={fiatPrice}
-                        fiatCurrency={fiatCurrency}
-                    />
-                </TxLink>
+                    data={tx}
+                    fiatPrice={fiatPrice}
+                    fiatCurrency={fiatCurrency}
+                />
             ))}
         </div>
     );

@@ -7,13 +7,15 @@ import {
     ArrowDownOutlined,
     ExperimentOutlined,
     ExclamationOutlined,
+    LinkOutlined,
 } from '@ant-design/icons';
 import { currency } from '@components/Common/Ticker';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
 import { formatBalance, fromLegacyDecimals } from '@utils/cashMethods';
 import { ThemedLockFilledGrey, ThemedUnlockFilledGrey } from 'components/Common/CustomIcons';
-import { Button } from 'antd';
+import { Button, Form } from 'antd';
+import { FormattedTxAddress } from 'components/Common/FormattedWalletAddress';
 
 const SentTx = styled(ArrowUpOutlined)`
     color: ${props => props.theme.greyDark} !important;
@@ -21,42 +23,20 @@ const SentTx = styled(ArrowUpOutlined)`
 const ReceivedTx = styled(ArrowDownOutlined)`
     color: ${props => props.theme.primary} !important;
 `;
-const GenesisTx = styled(ExperimentOutlined)`
-    color: ${props => props.theme.primary} !important;
-`;
 const UnparsedTx = styled(ExclamationOutlined)`
     color: ${props => props.theme.primary} !important;
 `;
 const DateType = styled.div`
-    text-align: left;
-    padding: 12px;
     color: ${props => props.theme.greyDark} !important;
     @media screen and (max-width: 500px) {
-        font-size: 0.8rem;
+        font-size: 0.8em;
     }
 `;
-const OpReturnType = styled.span`
-    text-align: left;
-    width: 300%;
-    max-height: 200px;
-    padding: 3px;
-    margin: auto;
-    word-break: break-word;
-    padding-left: 13px;
-    padding-right: 30px;
-    /* invisible scrollbar */
-    overflow: hidden;
-    height: 100%;
-    margin-right: -50px; /* Maximum width of scrollbar */
-    padding-right: 50px; /* Maximum width of scrollbar */
-    overflow-y: scroll;
-    ::-webkit-scrollbar {
-        display: none;
-    }
+const OpReturnType = styled.div`
+    overflow-wrap: break-word !important;
 `;
 const SentLabel = styled.span`
     font-weight: bold;
-
     color: ${props => props.theme.greyDark} !important;
 `;
 const ReceivedLabel = styled.span`
@@ -119,77 +99,51 @@ const TxInfo = styled.div`
 const TxFiatPrice = styled.span`
     font-size: 0.8rem;
 `;
-const TokenInfo = styled.div`
-    display: grid;
-    grid-template-rows: 50%;
-    grid-template-columns: 24px auto;
-    padding: 12px;
-    font-size: 1rem;
-
-    color: ${props =>
-        props.outgoing ? props.theme.secondary : props.theme.primary};
-
-    @media screen and (max-width: 500px) {
-        font-size: 0.8rem;
-        grid-template-columns: 16px auto;
-    }
-`;
-const TxTokenIcon = styled.div`
-    img {
-        height: 24px;
-        width: 24px;
-    }
-    @media screen and (max-width: 500px) {
-        img {
-            height: 16px;
-            width: 16px;
-        }
-    }
-    grid-column-start: 1;
-    grid-column-end: span 1;
-    grid-row-start: 1;
-    grid-row-end: span 2;
-    align-self: center;
-`;
-const TokenTxAmt = styled.div`
-    padding-left: 12px;
-    text-align: right;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-`;
-const TokenName = styled.div`
-    padding-left: 12px;
-    font-size: 0.8rem;
-    @media screen and (max-width: 500px) {
-        font-size: 0.6rem;
-    }
-    text-align: right;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-`;
 
 const TxWrapper = styled.div`
-    display: grid;
-    grid-template-columns: 36px 30% 50%;
+  
+        display: grid;
+        grid-template-columns: 70% 30%;
+        grid-template-rows: auto;
+        grid-gap: 10px;
+        padding: 20px;
+    
+        grid-template-areas: 
+            "header-main header-side"
+            "main main";
+    
+        border-radius: 3px;
+        background: ${props => props.theme.tokenListItem.background};
+        margin-bottom: 3px;
+        box-shadow: ${props => props.theme.tokenListItem.boxShadow};
+        border: 1px solid ${props => props.theme.tokenListItem.border};
+        color: ${props => props.outgoing ? props.theme.grey : props.theme.primary} !important;
+        text-align: left;
+    
+        :hover {
+            border-color: ${props => props.theme.primary};
+        }
+        @media screen and (max-width: 500px) {
+            // grid-template-columns: 24px 30% 50%;
+            // padding: 12px 12px;
+        }
 
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 25px;
-    border-radius: 3px;
-    background: ${props => props.theme.tokenListItem.background};
-    margin-bottom: 3px;
-    box-shadow: ${props => props.theme.tokenListItem.boxShadow};
-    border: 1px solid ${props => props.theme.tokenListItem.border};
 
-    :hover {
-        border-color: ${props => props.theme.primary};
+    .label {
+        grid-area: header-main;
     }
-    @media screen and (max-width: 500px) {
-        grid-template-columns: 24px 30% 50%;
-        padding: 12px 12px;
+    .date {
+        grid-area: header-main;
     }
+    .amount {
+        grid-area: header-side;
+    }
+    .msg {
+        grid-area: main;
+    }
+
+
+
 `;
 
 const ReplyButton = styled(Button)`
@@ -208,12 +162,33 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
         unparsedTx = true;
     }
     return (
-        <>
+        <div
+            css={`
+                position: relative;
+            `}
+        >
+            {/* Link to the Explorer */}
+            <a
+                href={`https://explorer.givelotus.org/tx/${data.txid}`}
+                target="_blank"
+                rel="noreferrer"
+                css={`
+                    position: absolute;
+                    top: 5px;
+                    right: 5px;
+                `}
+            >
+                <LinkOutlined
+                    css={`
+                        color: ${props => props.theme.greyLight} !important;
+                        :hover {
+                            color: ${props => props.theme.primary} !important;
+                        }
+                    `}
+                />
+            </a>
             {unparsedTx ? (
-                <TxWrapper>
-                    <TxIcon>
-                        <UnparsedTx />
-                    </TxIcon>
+                <TxWrapper className='container'>
                     <DateType>
                         <ReceivedLabel>Unparsed</ReceivedLabel>
                         <br />
@@ -222,161 +197,53 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                     <TxInfo>Open in Explorer</TxInfo>
                 </TxWrapper>
             ) : (
-                <TxWrapper>
-                    <TxIcon>
-                        {data.outgoingTx ? (
-                            <>
-                                {data.tokenTx &&
-                                data.tokenInfo.transactionType === 'GENESIS' ? (
-                                    <GenesisTx />
-                                ) : (
-                                    <SentTx />
-                                )}
-                            </>
-                        ) : (
-                            <ReceivedTx />
-                        )}
-                    </TxIcon>
-                    <DateType>
-                        {data.outgoingTx ? (
-                            <>
-                                {data.tokenTx &&
-                                data.tokenInfo.transactionType === 'GENESIS' ? (
-                                    <ReceivedLabel>Genesis</ReceivedLabel>
-                                ) : (
-                                    <SentLabel>Sent</SentLabel>
-                                )}
-                            </>
-                        ) : (
-                            <ReceivedLabel>Received</ReceivedLabel>
-                        )}
-                        <br />
-                        {txDate}
-                    </DateType>
-                    {data.tokenTx ? (
-                        <TokenInfo outgoing={data.outgoingTx}>
-                            {data.tokenTx && data.tokenInfo ? (
+                <TxWrapper outgoing={data.outgoingTx}>
+                    <div className='label'>
+                        {data.outgoingTx 
+                            ? <SentLabel>
+                                    Sent to: {
+                                        data.destinationAddress && 
+                                        <FormattedTxAddress address={data.destinationAddress.slice(-8)} />
+                                    }
+                                </SentLabel>
+                            : <ReceivedLabel>
+                                    From: {
+                                        data.fromAddress && 
+                                        <FormattedTxAddress address={data.fromAddress.slice(-8)} />
+                                    }
+                                </ReceivedLabel>
+                        }
+                        <DateType>
+                            {txDate}
+                        </DateType>
+                    </div>
+                    <div className='amount'>
+                        <TxInfo outgoing={data.outgoingTx} className='amount'>
+                            {data.outgoingTx ? (
                                 <>
-                                    <TxTokenIcon>
-                                        {currency.tokenIconsUrl !== '' ? (
-                                            <Img
-                                                src={`${currency.tokenIconsUrl}/${data.tokenInfo.tokenId}.png`}
-                                                unloader={
-                                                    <img
-                                                        alt={`identicon of tokenId ${data.tokenInfo.tokenId} `}
-                                                        style={{
-                                                            borderRadius: '50%',
-                                                        }}
-                                                        key={`identicon-${data.tokenInfo.tokenId}`}
-                                                        src={makeBlockie(
-                                                            data.tokenInfo
-                                                                .tokenId,
-                                                        )}
-                                                    />
-                                                }
-                                            />
-                                        ) : (
-                                            <img
-                                                alt={`identicon of tokenId ${data.tokenInfo.tokenId} `}
-                                                style={{
-                                                    borderRadius: '50%',
-                                                }}
-                                                key={`identicon-${data.tokenInfo.tokenId}`}
-                                                src={makeBlockie(
-                                                    data.tokenInfo.tokenId,
-                                                )}
-                                            />
-                                        )}
-                                    </TxTokenIcon>
-                                    {data.outgoingTx ? (
-                                        <>
-                                            {data.tokenInfo.transactionType ===
-                                            'GENESIS' ? (
-                                                <>
-                                                    <TokenTxAmt>
-                                                        +{' '}
-                                                        {data.tokenInfo.qtyReceived.toString()}
-                                                        &nbsp;
-                                                        {
-                                                            data.tokenInfo
-                                                                .tokenTicker
-                                                        }
-                                                    </TokenTxAmt>
-                                                    <TokenName>
-                                                        {
-                                                            data.tokenInfo
-                                                                .tokenName
-                                                        }
-                                                    </TokenName>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <TokenTxAmt>
-                                                        -{' '}
-                                                        {data.tokenInfo.qtySent.toString()}
-                                                        &nbsp;
-                                                        {
-                                                            data.tokenInfo
-                                                                .tokenTicker
-                                                        }
-                                                    </TokenTxAmt>
-                                                    <TokenName>
-                                                        {
-                                                            data.tokenInfo
-                                                                .tokenName
-                                                        }
-                                                    </TokenName>
-                                                </>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <TokenTxAmt>
-                                                +{' '}
-                                                {data.tokenInfo.qtyReceived.toString()}
-                                                &nbsp;
-                                                {data.tokenInfo.tokenTicker}
-                                            </TokenTxAmt>
-                                            <TokenName>
-                                                {data.tokenInfo.tokenName}
-                                            </TokenName>
-                                        </>
+                                    -{' '}
+                                    {formatBalance(
+                                        data.amountSent,
                                     )}
+                                    &nbsp;
+                                    {currency.ticker}
+                                    <br />
                                 </>
                             ) : (
-                                <span>Token Tx</span>
+                                <>
+                                    +{' '}
+                                    {formatBalance(
+                                        data.amountReceived
+                                    )}
+                                    &nbsp;
+                                    {currency.ticker}
+                                    <br />
+                                </>
                             )}
-                        </TokenInfo>
-                    ) : (
-                        <>
-                            <TxInfo outgoing={data.outgoingTx}>
-                                {data.outgoingTx ? (
-                                    <>
-                                        -{' '}
-                                        {formatBalance(
-                                            data.amountSent,
-                                        )}
-                                        &nbsp;
-                                        {currency.ticker}
-                                        <br />
-                                    </>
-                                ) : (
-                                    <>
-                                        +{' '}
-                                        {formatBalance(
-                                            data.amountReceived
-                                        )}
-                                        &nbsp;
-                                        {currency.ticker}
-                                        <br />
-                                    </>
-                                )}
-                            </TxInfo>
-                        </>
-                    )}
-                    {data.opReturnMessage && (
-                        <>
-                            <br />
+                        </TxInfo>
+                    </div>
+                    <div className='msg'>
+                        {data.opReturnMessage && (
                             <OpReturnType>
                                 {/*unencrypted OP_RETURN Message*/}
                                 {data.opReturnMessage &&
@@ -418,12 +285,12 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                             External Message
                                         </MessageLabel>
                                     )}
-                                    {!data.outgoingTx && data.replyAddress ? (
+                                    {!data.outgoingTx && data.fromAddress ? (
                                         <Link
                                             to={{
                                                 pathname: `/send`,
                                                 state: {
-                                                    replyAddress: data.replyAddress,
+                                                    replyAddress: data.fromAddress,
                                                 },
                                             }}
                                         >
@@ -439,11 +306,11 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                     )}
                                 </div>
                             </OpReturnType>
-                        </>
-                    )}
+                        )}
+                    </div>
                 </TxWrapper>
             )}
-        </>
+        </div>
     );
 };
 

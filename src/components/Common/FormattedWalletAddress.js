@@ -36,4 +36,21 @@ FormattedWalletAddress.propTypes = {
     address: PropTypes.string
 };
 
+export const FormattedTxAddress = ({address}) => {
+    return (
+        <>
+            <span style={{ fontWeight: 'normal' }}>
+                {address.slice(0,-4)}
+            </span>
+            <span style={{ fontWeight: 'bold'}}>
+                {address.slice(-4)}
+            </span>
+        </>
+    )
+}
+
+FormattedTxAddress.propTypes = {
+    address: PropTypes.string
+}
+
 export default FormattedWalletAddress;
