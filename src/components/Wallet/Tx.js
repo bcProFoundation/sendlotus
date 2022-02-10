@@ -290,7 +290,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                             to={{
                                                 pathname: `/send`,
                                                 state: {
-                                                    fromAddress: data.fromAddress,
+                                                    replyAddress: data.fromAddress,
                                                 },
                                             }}
                                         >
