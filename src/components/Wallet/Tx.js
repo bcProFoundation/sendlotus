@@ -7,6 +7,7 @@ import {
     ArrowDownOutlined,
     ExperimentOutlined,
     ExclamationOutlined,
+    LinkOutlined,
 } from '@ant-design/icons';
 import { currency } from '@components/Common/Ticker';
 import makeBlockie from 'ethereum-blockies-base64';
@@ -160,7 +161,31 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
         unparsedTx = true;
     }
     return (
-        <>
+        <div
+            css={`
+                position: relative;
+            `}
+        >
+            {/* Link to the Explorer */}
+            <a
+                href={`https://explorer.givelotus.org/tx/${data.txid}`}
+                target="_blank"
+                rel="noreferrer"
+                css={`
+                    position: absolute;
+                    top: 5px;
+                    right: 5px;
+                `}
+            >
+                <LinkOutlined
+                    css={`
+                        color: ${props => props.theme.greyLight} !important;
+                        :hover {
+                            color: ${props => props.theme.primary} !important;
+                        }
+                    `}
+                />
+            </a>
             {unparsedTx ? (
                 <TxWrapper className='container'>
                     <DateType>
@@ -274,7 +299,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                     </div>
                 </TxWrapper>
             )}
-        </>
+        </div>
     );
 };
 
