@@ -27,26 +27,11 @@ const UnparsedTx = styled(ExclamationOutlined)`
 const DateType = styled.div`
     color: ${props => props.theme.greyDark} !important;
     @media screen and (max-width: 500px) {
-        font-size: 0.8rem;
+        font-size: 0.8em;
     }
 `;
 const OpReturnType = styled.div`
-    // width: 300%;
-    // max-height: 200px;
-    // padding: 3px;
-    // margin: auto;
-    word-break: break-word;
-    // padding-left: 13px;
-    // padding-right: 30px;
-    /* invisible scrollbar */
-    overflow: hidden;
-    height: 100%;
-    margin-right: -50px; /* Maximum width of scrollbar */
-    padding-right: 50px; /* Maximum width of scrollbar */
-    overflow-y: scroll;
-    ::-webkit-scrollbar {
-        display: none;
-    }
+    overflow-wrap: break-word !important;
 `;
 const SentLabel = styled.span`
     font-weight: bold;
@@ -118,6 +103,8 @@ const TxWrapper = styled.div`
         display: grid;
         grid-template-columns: 70% 30%;
         grid-template-rows: auto;
+        grid-gap: 10px;
+        padding: 20px;
     
         grid-template-areas: 
             "header-main header-side"
@@ -188,7 +175,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                     <div className='label'>
                         {data.outgoingTx 
                             ? <SentLabel>Sent to: {data.destinationAddress && data.destinationAddress.slice(-8)}</SentLabel>
-                            : <ReceivedLabel>Received</ReceivedLabel>
+                            : <ReceivedLabel>From:</ReceivedLabel>
                         }
                         <DateType>
                             {txDate}
