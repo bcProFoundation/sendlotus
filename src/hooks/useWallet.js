@@ -196,27 +196,23 @@ const useWallet = () => {
         return !isEqual(utxos, utxosToCompare);
     };
 
-    const update = async ({ wallet }) => {
+    const update = async ({ walletToUpdate }) => {
         //console.log(`tick()`);
         //console.time("update");
         try {
-            if (!wallet) {
+            if (!walletToUpdate) {
                 return;
             }
             const xAddresses = [
-                wallet.Path10605.xAddress,
-                // wallet.Path245.cashAddress,
-                // wallet.Path145.cashAddress,
-                wallet.Path1899.xAddress,
-                wallet.Path899.xAddress
+                walletToUpdate.Path10605.xAddress,
+                walletToUpdate.Path1899.xAddress,
+                walletToUpdate.Path899.xAddress
             ];
 
             const publicKeys = [
-                wallet.Path10605.publicKey,
-                // wallet.Path145.publicKey,
-                // wallet.Path245.publicKey,
-                wallet.Path1899.publicKey,
-                wallet.Path899.publicKey,
+                walletToUpdate.Path10605.publicKey,
+                walletToUpdate.Path1899.publicKey,
+                walletToUpdate.Path899.publicKey,
             ];
             const utxos = await getUtxos(BCH, xAddresses);
 
@@ -227,9 +223,9 @@ const useWallet = () => {
                 throw new Error('Error fetching utxos');
             }
 
-            // Need to call with wallet as a parameter rather than trusting it is in state, otherwise can sometimes get wallet=false from haveUtxosChanged
+            // Need to call wToUpdateith wallet as a parameter rather than trusting it is in state, otherwise can sometimes get wallet=false from haveUtxosChanged
             const utxosHaveChanged = haveUtxosChanged(
-                wallet,
+                walletToUpdate,
                 utxos,
                 previousUtxos,
             );
@@ -293,7 +289,7 @@ const useWallet = () => {
 
             newState.slpBalancesAndUtxos = normalizeSlpBalancesAndUtxos(
                 slpBalancesAndUtxos,
-                wallet,
+                walletToUpdate,
             );
 
             newState.balances = normalizeBalance(slpBalancesAndUtxos);
@@ -305,13 +301,22 @@ const useWallet = () => {
             newState.utxos = utxos;
 
             newState.hydratedUtxoDetails = hydratedUtxoDetails;
-
+            
             // Set wallet with new state field
-            wallet.state = newState;
-            setWallet(wallet);
+            walletToUpdate.state = newState;
 
-            // Write this state to indexedDb using localForage
-            writeWalletState(wallet, newState);
+           
+            // While a wallet being updated in the background
+            //  user may choose to switch to another wallet
+            //  in this case, the wallet being updated here is not the active wallet
+            //  and shoud not be overriding the currectly active wallet
+            if (walletToUpdate.name === wallet.name) {
+                setWallet(walletToUpdate);
+                // Write this state to indexedDb using localForage
+                writeWalletState(walletToUpdate, newState);
+            }
+
+
             // If everything executed correctly, remove apiError
             setApiError(false);
         } catch (error) {
@@ -1099,9 +1104,9 @@ const useWallet = () => {
 
     // Update wallet every 10s
     useAsyncTimeout(async () => {
-        const wallet = await getWallet();
+        const walletToUpdate = await getWallet();
         update({
-            wallet,
+            walletToUpdate
         }).finally(() => {
             setLoading(false);
         });
