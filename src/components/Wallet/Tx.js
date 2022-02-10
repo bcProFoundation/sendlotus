@@ -14,7 +14,8 @@ import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
 import { formatBalance, fromLegacyDecimals } from '@utils/cashMethods';
 import { ThemedLockFilledGrey, ThemedUnlockFilledGrey } from 'components/Common/CustomIcons';
-import { Button } from 'antd';
+import { Button, Form } from 'antd';
+import { FormattedTxAddress } from 'components/Common/FormattedWalletAddress';
 
 const SentTx = styled(ArrowUpOutlined)`
     color: ${props => props.theme.greyDark} !important;
@@ -199,8 +200,18 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                 <TxWrapper outgoing={data.outgoingTx}>
                     <div className='label'>
                         {data.outgoingTx 
-                            ? <SentLabel>Sent to: {data.destinationAddress && data.destinationAddress.slice(-8)}</SentLabel>
-                            : <ReceivedLabel>From: {data.fromAddress && data.fromAddress.slice(-8)}</ReceivedLabel>
+                            ? <SentLabel>
+                                    Sent to: {
+                                        data.destinationAddress && 
+                                        <FormattedTxAddress address={data.destinationAddress.slice(-8)} />
+                                    }
+                                </SentLabel>
+                            : <ReceivedLabel>
+                                    From: {
+                                        data.fromAddress && 
+                                        <FormattedTxAddress address={data.fromAddress.slice(-8)} />
+                                    }
+                                </ReceivedLabel>
                         }
                         <DateType>
                             {txDate}
