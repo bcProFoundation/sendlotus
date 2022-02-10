@@ -10,6 +10,7 @@ import styled, { css } from 'styled-components';
 import ScanQRCode from './ScanQRCode';
 import useBCH from '@hooks/useBCH';
 import { currency } from '@components/Common/Ticker.js';
+import UploadImageToScan from './UploadImageToScan';
 
 export const AntdFormCss = css`
     .ant-input-group-addon {
@@ -79,7 +80,11 @@ export const AntdFormCss = css`
 `;
 
 export const AntdFormWrapper = styled.div`
-    ${AntdFormCss}
+    ${AntdFormCss};
+    
+    .ant-input-group-addon {
+        width: 34%;
+    }
 `;
 
 export const InputAddonText = styled.span`
@@ -111,6 +116,19 @@ export const InputNumberAddonText = styled.span`
       cursor: not-allowed;
       `
             : `cursor: pointer;`}
+`;
+
+export const StyledScanQRCode = styled(ScanQRCode)`
+    width: 50%;
+    font-size: 20px;
+    display: inline-flex;
+    border-right: 1px solid rgb(207, 199, 192);
+    height: 100%;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    align-items: center;
+    justify-content: center;
 `;
 
 export const SendBchInput = ({
@@ -253,11 +271,17 @@ export const FormItemWithQRCodeAddon = ({
                     prefix={codeType == 'address' ? <ThemedWalletOutlined /> : <LockOutlined />}
                     autoComplete="off"
                     addonAfter={
-                        <ScanQRCode
-                            loadWithCameraOpen={loadWithCameraOpen}
-                            onScan={onScan}
-                            codeType={codeType}
-                        />
+                        <>
+                            <StyledScanQRCode
+                                loadWithCameraOpen={loadWithCameraOpen}
+                                onScan={onScan}
+                                codeType={codeType}   
+                            />
+                            <UploadImageToScan
+                                onScan={onScan}
+                                codeType={codeType}
+                            />
+                        </>
                     }
                     {...inputProps}
                 />
