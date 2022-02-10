@@ -208,7 +208,7 @@ const useWallet = () => {
             if (!walletToUpdate || isUpdateRunning) {
                 return;
             }
-            setIsUpdateRunning(true);
+            // setIsUpdateRunning(true);
             const xAddresses = [
                 walletToUpdate.Path10605.xAddress,
                 walletToUpdate.Path1899.xAddress,
@@ -335,7 +335,7 @@ const useWallet = () => {
             console.log(`Trying next API...`);
             tryNextAPI();
         } finally {
-            setIsUpdateRunning(false);
+            // setIsUpdateRunning(false);
         }
         //console.timeEnd("update");
     };
