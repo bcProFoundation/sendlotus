@@ -52,6 +52,11 @@ const useWallet = () => {
     const previousTokens = usePrevious(tokens);
     const previousWallet = usePrevious(wallet);
     const previousUtxos = usePrevious(utxos);
+    
+    // this flag is set by the update() function
+    // it makes sure that the next update will only run
+    // after the previous update is done
+    const [isUpdateRunning, setIsUpdateRunning] = useState(false);
 
     // If you catch API errors, call this function
     const tryNextAPI = () => {
@@ -200,9 +205,10 @@ const useWallet = () => {
         //console.log(`tick()`);
         //console.time("update");
         try {
-            if (!walletToUpdate) {
+            if (!walletToUpdate || isUpdateRunning) {
                 return;
             }
+            setIsUpdateRunning(true);
             const xAddresses = [
                 walletToUpdate.Path10605.xAddress,
                 walletToUpdate.Path1899.xAddress,
@@ -328,6 +334,8 @@ const useWallet = () => {
             // Try another endpoint
             console.log(`Trying next API...`);
             tryNextAPI();
+        } finally {
+            setIsUpdateRunning(false);
         }
         //console.timeEnd("update");
     };
