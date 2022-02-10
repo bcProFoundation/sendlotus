@@ -501,7 +501,7 @@ const useWallet = () => {
             path: "m/44'/10605'/0'/0/0",
         });
 
-        let name = Path10605.xAddress.slice(12, 17);
+        let name = Path10605.xAddress.slice(-8);
         // Only set the name if it does not currently exist
         if (wallet && wallet.name) {
             name = wallet.name;
