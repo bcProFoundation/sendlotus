@@ -283,12 +283,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // } else {
         //     optionalOpReturnMsg = opReturnMsg;
         // }
-        
-        let optionalOpReturnMsg = opReturnMsg + (
-            appendWalletNameToOpReturnMsg
-                ? " @" + wallet.name
-                : ''
-        );
 
         try {
             const link = await sendBch(
@@ -298,7 +292,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 cleanAddress,
                 bchValue,
                 currency.defaultFee,
-                optionalOpReturnMsg,
+                opReturnMsg,
                 isEncryptedOptionalOpReturnMsg,
             );
 
