@@ -17,6 +17,7 @@ import {
 import cashaddr from 'ecashaddrjs';
 import ecies from 'ecies-lite';
 import wif from 'wif';
+import { createSharedKey, decrypt, encrypt } from 'utils/encryption';
 
 export default function useBCH() {
     const SEND_BCH_ERRORS = {
@@ -120,14 +121,8 @@ export default function useBCH() {
             parsedTx.blocktime = tx.blocktime;
             let amountSent = 0;
             let amountReceived = 0;
-            let opReturnMessage = '';
-            let isLotusChatMessage = false;
-            let isEncryptedMessage = false;
-            let decryptionSuccess = false;
             // Assume an incoming transaction
             let outgoingTx = false;
-            let tokenTx = false;
-            let substring = '';
 
 
             // If vin's scriptSig contains one of the publicKeys of this wallet
@@ -140,12 +135,12 @@ export default function useBCH() {
                 // any other scriptSig type indicates that the tx is incoming.
                 try {
                     const thisInputScriptSig = tx.vin[j].scriptSig;
-                    let inputPubKey = undefined;
                     const inputType = BCH.Script.classifyInput(
                         BCH.Script.decode(
                             Buffer.from(thisInputScriptSig.hex, 'hex'),
                         ),
                     );
+                    let inputPubKey = undefined;
                     if (inputType === 'pubkeyhash') {
                         inputPubKey = thisInputScriptSig.hex.substring(
                             thisInputScriptSig.hex.length - 66,
@@ -164,120 +159,19 @@ export default function useBCH() {
                     );
                 }
             }
+
+            let opreturnHex;
             // Iterate over vout to find how much was sent or received
             for (let j = 0; j < tx.vout.length; j += 1) {
                 const thisOutput = tx.vout[j];
 
-                // If there is no addresses object in the output, it is OP_RETURN msg or token tx
+                // If there is no addresses object in the output, it is OP_RETURN msg
                 if (
                     !Object.keys(thisOutput.scriptPubKey).includes('addresses')
                 ) {
-                    let hex = thisOutput.scriptPubKey.hex;
-                    let parsedOpReturnArray = parseOpReturn(hex);
-
-                    if (!parsedOpReturnArray) {
-                        console.log(
-                            'useBCH.parsedTxData() error: parsed array is empty',
-                        );
-                        break;
-                    }
-
-                    let message = '';
-                    let txType = parsedOpReturnArray[0];
-                    if (txType === currency.opReturn.appPrefixesHex.eToken) {
-                        // this is an eToken transaction
-                        tokenTx = true;
-                    } else if (
-                        txType === currency.opReturn.appPrefixesHex.lotusChat
-                    ) {
-                        // this is a LotusChat message
-                        try {
-                            opReturnMessage = Buffer.from(
-                                parsedOpReturnArray[1],
-                                'hex',
-                            );
-                            isLotusChatMessage = true;
-                        } catch (err) {
-                            // soft error if an unexpected or invalid cashtab hex is encountered
-                            opReturnMessage = '';
-                            console.log(
-                                'useBCH.parsedTxData() error: invalid cashtab msg hex: ' +
-                                    parsedOpReturnArray[1],
-                            );
-                        }
-                    } else if (
-                        txType ===
-                        currency.opReturn.appPrefixesHex.lotusChatEncrypted
-                    ) {
-                        // this is an encrypted LotusChat message
-                        let msgString = parsedOpReturnArray[1];
-                        let fundingWif, privateKeyObj, privateKeyBuff;
-                        if (
-                            wallet &&
-                            wallet.state &&
-                            wallet.state.slpBalancesAndUtxos &&
-                            wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
-                        ) {
-                            fundingWif =
-                                wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
-                                    .wif;
-                            privateKeyObj = wif.decode(fundingWif);
-                            privateKeyBuff = privateKeyObj.privateKey;
-                            if (!privateKeyBuff) {
-                                throw new Error('Private key extraction error');
-                            }
-                        } else {
-                            break;
-                        }
-
-                        let structData;
-                        let decryptedMessage;
-
-                        try {
-                            // Convert the hex encoded message to a buffer
-                            const msgBuf = Buffer.from(msgString, 'hex');
-
-                            // Convert the bufer into a structured object.
-                            structData = convertToEncryptStruct(msgBuf);
-
-                            decryptedMessage = await ecies.decrypt(
-                                privateKeyBuff,
-                                structData,
-                            );
-                            decryptionSuccess = true;
-                        } catch (err) {
-                            console.log(
-                                'useBCH.parsedTxData() decryption error: ' +
-                                    err,
-                            );
-                            decryptedMessage =
-                                'Only legible to the recipient';
-                        }
-                        isLotusChatMessage = true;
-                        isEncryptedMessage = true;
-                        opReturnMessage = decryptedMessage;
-                    } else {
-                        // this is an externally generated message
-                        message = txType; // index 0 is the message content in this instance
-
-                        // if there are more than one part to the external message
-                        const arrayLength = parsedOpReturnArray.length;
-                        for (let i = 1; i < arrayLength; i++) {
-                            message = message + parsedOpReturnArray[i];
-                        }
-
-                        try {
-                            opReturnMessage = Buffer.from(message, 'hex');
-                        } catch (err) {
-                            // soft error if an unexpected or invalid cashtab hex is encountered
-                            opReturnMessage = '';
-                            console.log(
-                                'useBCH.parsedTxData() error: invalid external msg hex: ' +
-                                    substring,
-                            );
-                        }
-                    }
-                    continue; // skipping the remainder of tx data parsing logic in both token and OP_RETURN tx cases
+                    // capture the opreturnHex for processing later
+                    opreturnHex = thisOutput.scriptPubKey.hex;
+                    continue;
                 }
                 if (
                     thisOutput.scriptPubKey.addresses &&
@@ -318,16 +212,91 @@ export default function useBCH() {
                 }
             }
 
+            // process the op_return data
+            let opReturnMessage = '';
+            let isLotusChatMessage = false;
+            let isEncryptedMessage = false;
+            let isExternalMessage = false;
+            let decryptionSuccess = false;
+            let tokenTx = false;
+            if (opreturnHex) {
+                let parsedOpReturnArray = parseOpReturn(opreturnHex);
+
+                if (parsedOpReturnArray) {
+                    let txType = parsedOpReturnArray[0];
+
+                    if (txType === currency.opReturn.appPrefixesHex.eToken) {
+                        // this is an eToken transaction
+                        tokenTx = true;
+                    } else if (
+                        txType === currency.opReturn.appPrefixesHex.lotusChat
+                    ) {
+                        // this is a LotusChat message
+                        isLotusChatMessage = true;
+                        try {
+                            opReturnMessage = Buffer.from(
+                                parsedOpReturnArray[1],
+                                'hex',
+                            );
+                        } catch (err) {
+                            // soft error if an unexpected or invalid cashtab hex is encountered
+                            opReturnMessage = 'Parsing Error';
+                            console.log(
+                                'useBCH.parsedTxData() error: invalid cashtab msg hex: ' +
+                                    parsedOpReturnArray[1],
+                            );
+                        }
+                    } else if (
+                        txType === currency.opReturn.appPrefixesHex.lotusChatEncrypted
+                    ) {
+                        // this is an encrypted LotusChat message
+                        isLotusChatMessage = true;
+                        isEncryptedMessage = true;
+                        let msgString = parsedOpReturnArray[1];
+
+                        // To decrypt the message, we need
+                        //  Our private key
+                        //  The message
+                        //  The other end's public key
+                        //      - incoming tx: get public key from the tx's first input
+                        //      - outgoing tx:  make api call to get the public key from the recipient's address
+                        //          this api call has been made earlier when we tried to send an encrypted message
+                        //          the result should be in the cache.
+                        let ourPrivateKey = wallet.Path10605.fundingWif;
+                        let otherPublicKey;
+                        try {
+                            if ( outgoingTx ) {
+                                otherPublicKey = await getRecipientPublicKey(BCH, destinationAddress);
+                            } else {
+                                otherPublicKey = await getRecipientPublicKey(BCH, senderAddress)
+                            }
+                        } catch (error) {
+                            opReturnMessage = 'Cannot retrieve Public Key'
+                        }
+                        if (otherPublicKey) {
+                            const sharedKey = createSharedKey(ourPrivateKey,otherPublicKey);
+                            opReturnMessage = decrypt(sharedKey, Uint8Array.from(Buffer.from(msgString, 'hex')));
+                            decryptionSuccess = true;
+                        }
+                    } else {
+                        // this is an externally generated message
+                       isExternalMessage = true;
+                       opReturnMessage = 'Not Support Message Type'
+                    }
+                }
+            }
+
             // Construct parsedTx
             parsedTx.amountSent = amountSent;
             parsedTx.amountReceived = amountReceived;
             parsedTx.tokenTx = tokenTx;
             parsedTx.outgoingTx = outgoingTx;
             parsedTx.destinationAddress = destinationAddress;
+            parsedTx.fromAddress = senderAddress;
             parsedTx.opReturnMessage = Buffer.from(opReturnMessage).toString();
             parsedTx.isLotusChatMessage = isLotusChatMessage;
-            parsedTx.fromAddress = senderAddress;
             parsedTx.isEncryptedMessage = isEncryptedMessage;
+            parsedTx.isExternalMessage = isExternalMessage;
             parsedTx.decryptionSuccess = decryptionSuccess;
             parsedTxHistory.push(parsedTx);
         }
@@ -1119,10 +1088,11 @@ export default function useBCH() {
 
     const handleEncryptedOpReturn = async (
         BCH,
+        privateKeyWIF,
         destinationAddress,
         optionalOpReturnMsg,
     ) => {
-        let recipientPubKey, encryptedEj;
+        let recipientPubKey;
         try {
             recipientPubKey = await getRecipientPublicKey(
                 BCH,
@@ -1140,24 +1110,17 @@ export default function useBCH() {
             );
         }
 
+        let encryptedMsg;
         try {
-            const pubKeyBuf = Buffer.from(recipientPubKey, 'hex');
-            const bufferedFile = Buffer.from(optionalOpReturnMsg);
-            const structuredEj = await ecies.encrypt(pubKeyBuf, bufferedFile, {compressEpk: true});
-
-            // Serialize the encrypted data object
-            encryptedEj = Buffer.concat([
-                structuredEj.epk,
-                structuredEj.iv,
-                structuredEj.ct,
-                structuredEj.mac,
-            ]);
+            const sharedKey = createSharedKey(privateKeyWIF, recipientPubKey);
+            encryptedMsg = encrypt(sharedKey,Uint8Array.from(Buffer.from(optionalOpReturnMsg)));
+            
         } catch (err) {
             console.log(`useBCH.handleEncryptedOpReturn() error: ` + err);
             throw err;
         }
 
-        return encryptedEj;
+        return encryptedMsg;
     };
 
     const sendBch = async (
@@ -1218,10 +1181,11 @@ export default function useBCH() {
             ) {
                 if (encryptionFlag) {
                     // if the user has opted to encrypt this message
-                    let encryptedEj;
+                    let encryptedMsg;
                     try {
-                        encryptedEj = await handleEncryptedOpReturn(
+                        encryptedMsg = await handleEncryptedOpReturn(
                             BCH,
+                            wallet.Path10605.fundingWif,
                             destinationAddress,
                             optionalOpReturnMsg,
                         );
@@ -1237,7 +1201,7 @@ export default function useBCH() {
                             currency.opReturn.appPrefixesHex.lotusChatEncrypted,
                             'hex',
                         ), // 03030303
-                        Buffer.from(encryptedEj),
+                        Buffer.from(encryptedMsg),
                     ];
                 } else {
                     // this is un-encrypted message 

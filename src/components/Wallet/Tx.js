@@ -245,25 +245,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                     <div className='msg'>
                         {data.opReturnMessage && (
                             <OpReturnType>
-                                {/*unencrypted OP_RETURN Message*/}
-                                {data.opReturnMessage &&
-                                !data.isEncryptedMessage ? data.opReturnMessage : ''}
-                                {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
-                                {data.opReturnMessage &&
-                                data.isEncryptedMessage &&
-                                data.decryptionSuccess
-                                    ? data.opReturnMessage
-                                    : ''}
-                                {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
-                                {data.opReturnMessage &&
-                                data.isEncryptedMessage &&
-                                !data.decryptionSuccess ? (
-                                    <UnauthorizedDecryptionMessage>
-                                        { data.opReturnMessage }
-                                    </UnauthorizedDecryptionMessage>
-                                ) : (
-                                    ''
-                                )}
+                                {data.opReturnMessage}
                                 <div
                                     css={`
                                         display: flex;
