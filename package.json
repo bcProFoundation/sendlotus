@@ -4,6 +4,7 @@
     "private": true,
     "homepage": "https://sendlotus.com/",
     "dependencies": {
+        "@abcpros/bitcore-lib-xpi": "^8.25.36",
         "@abcpros/minimal-xpi-slp-wallet": "^3.0.5",
         "@ant-design/icons": "^4.3.0",
         "@fortawesome/fontawesome-free": "^5.15.1",
@@ -19,6 +20,7 @@
         "localforage": "^1.9.0",
         "lodash.isempty": "^4.4.0",
         "lodash.isequal": "^4.5.0",
+        "node-forge": "^0.10.0",
         "qrcode.react": "^1.0.0",
         "react": "^17.0.1",
         "react-app-polyfill": "^2.0.0",
