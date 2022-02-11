@@ -11,8 +11,6 @@ const constructMergedKey = (privateKey, publicKey) => {
 // privateKey: WIF string,
 // publicKey: hex string,
 const createSharedKey = (privateKeyWIF, publicKeyHex) => {
-    console.log("Private Key WIF : ", privateKeyWIF);
-    console.log("Public Key Hex : ", publicKeyHex);
     // convert the public key from Hex string to PublicKey Object
     const publicKeyObj = PublicKey.fromString(publicKeyHex, 'hex');
     // Step 2 - convert the private key from WIF string to Private Key Object

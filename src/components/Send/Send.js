@@ -521,7 +521,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             <ul>
                                 <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
                                 <li>Un-encrypted message max length is 215 bytes.</li>
-                                <li>Encrypted message max length is 94 bytes.</li>
+                                <li>Encrypted message max length is 206 bytes.</li>
                                 <li>Appending &quot;Wallet Name&quot; to the end of the message will take up extra bytes</li>
                             </ul>
                         </OpReturnMessageHelp>
