@@ -1,14 +1,14 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Modal, Image } from 'antd';
-import RedEnvelopeBackground from '@assets/red_envelope_background.svg';
+import ThemeCardGif from '@assets/theme_card.gif';
 
 
 const LixiEnvelopeWatingModal = ({ className, onOpenLixi }) => {
     return (
         <Modal visible={true} closable={false} footer={null} className={className}>
             <div className='lixi-container' onClick={onOpenLixi}>
-                <Image preview={false} src={RedEnvelopeBackground} className='envelope-background' />
+                <Image preview={false} src={ThemeCardGif} className='envelope-background' />
             </div>
         </Modal>
     )
