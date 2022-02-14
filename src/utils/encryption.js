@@ -4,20 +4,40 @@ import { PublicKey, PrivateKey, crypto } from '@abcpros/bitcore-lib-xpi'
 // privateKey: PrivateKey
 // publicKey: PublicKey
 const constructMergedKey = (privateKey, publicKey) => {
-    return PublicKey.fromPoint(publicKey.point.mul(privateKey.toBigNumber()))
+    return PublicKey.fromPoint(publicKey.point.mul(privateKey.toBigNumber()));
+}
+
+const publicKeyToBuffer = (pubKey) => {
+  const {x, y, compressed} = pubKey.toObject();
+  let xBuf = Buffer.from(x,'hex');
+  let yBuf = Buffer.from(y,'hex');
+  let prefix;
+  let buf;
+  if (!compressed) {
+    prefix = Buffer.from([0x04]);
+    buf = Buffer.concat([prefix, xBuf, yBuf ]);
+  } else {
+    let odd = yBuf[yBuf.length - 1] % 2;
+    if (odd) {
+      prefix = Buffer.from([0x03]);
+    } else {
+      prefix = Buffer.from([0x02]);
+    }
+    buf = Buffer.concat([prefix, xBuf]);
   }
 
+  return buf;
+}
 
 // privateKey: WIF string,
 // publicKey: hex string,
 const createSharedKey = (privateKeyWIF, publicKeyHex) => {
-    // convert the public key from Hex string to PublicKey Object
     const publicKeyObj = PublicKey.fromString(publicKeyHex, 'hex');
-    // Step 2 - convert the private key from WIF string to Private Key Object
     const privateKeyObj = PrivateKey.fromWIF(privateKeyWIF);
 
     const mergedKey = constructMergedKey(privateKeyObj, publicKeyObj);
-    const rawMergedKey = mergedKey.toBuffer()
+    // const rawMergedKey = mergedKey.toBuffer(); // this function throws assertion error sometimes
+    const rawMergedKey = publicKeyToBuffer(mergedKey);
     const sharedKey = crypto.Hash.sha256(rawMergedKey)
     return sharedKey
   }

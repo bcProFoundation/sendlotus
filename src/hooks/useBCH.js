@@ -231,7 +231,7 @@ export default function useBCH() {
                     } else if (
                         txType === currency.opReturn.appPrefixesHex.lotusChat
                     ) {
-                        // this is a LotusChat message
+                        // this is a Un-encrypted LotusChat message
                         isLotusChatMessage = true;
                         try {
                             opReturnMessage = Buffer.from(
@@ -260,9 +260,8 @@ export default function useBCH() {
                         //  The other end's public key
                         //      - incoming tx: get public key from the tx's first input
                         //      - outgoing tx:  make api call to get the public key from the recipient's address
-                        //          this api call has been made earlier when we tried to send an encrypted message
+                        //          If this api call has been made earlier when we tried to send an encrypted message
                         //          the result should be in the cache.
-                        let ourPrivateKey = wallet.Path10605.fundingWif;
                         let otherPublicKey;
                         try {
                             if ( outgoingTx ) {
@@ -274,14 +273,20 @@ export default function useBCH() {
                             opReturnMessage = 'Cannot retrieve Public Key'
                         }
                         if (otherPublicKey) {
-                            const sharedKey = createSharedKey(ourPrivateKey,otherPublicKey);
-                            opReturnMessage = decrypt(sharedKey, Uint8Array.from(Buffer.from(msgString, 'hex')));
-                            decryptionSuccess = true;
+                            try {
+                                const ourPrivateKey = wallet.Path10605.fundingWif;
+                                const sharedKey = createSharedKey(ourPrivateKey,otherPublicKey);
+                                opReturnMessage = decrypt(sharedKey, Uint8Array.from(Buffer.from(msgString, 'hex')));
+                                decryptionSuccess = true;
+                            } catch (error) {
+                                console.log(error);
+                                opReturnMessage = 'Error in decrypting message!'
+                            }
                         }
                     } else {
                         // this is an externally generated message
                        isExternalMessage = true;
-                       opReturnMessage = 'Not Support Message Type'
+                       opReturnMessage = 'Not Supported Message Type'
                     }
                 }
             }
