@@ -24,6 +24,12 @@ setCacheNameDetails({
 // injection point for static assets caching
 precacheAndRoute(self.__WB_MANIFEST);
 
+// Caching TX using CacheFirst Strategy
+const txDetailsCache = {
+    path: '/rawtransactions/getRawTransaction/',
+    name: `${prefix}-tx-data-${suffix}`,
+}
+
 // Tx Data customCacheablePlugin
 const txDataCustomCachablePlugin = {
     cacheWillUpdate: async ({response}) => {
@@ -41,30 +47,19 @@ const txDataCustomCachablePlugin = {
     },
 }
 
-// Caching TX using CacheFirst Strategy
-const txDetailsCaches = [
-    {
-        // lotus tx
-        path: '/rawtransactions/getRawTransaction/',
-        name: `${prefix}-tx-data-${suffix}`,
-    },
-];
-
-txDetailsCaches.forEach(cache => {
-    registerRoute(
-        ({ url }) => url.pathname.includes(cache.path),
-        new CacheFirst({
-            cacheName: cache.name,
-            plugins: [
-                txDataCustomCachablePlugin,
-                new ExpirationPlugin({
-                    maxEntries: 1000,
-                    maxAgeSeconds: 365 * 24 * 60 * 60,
-                }),
-            ],
-        }),
-    );
-});
+registerRoute(
+    ({ url }) => url.pathname.includes(txDetailsCache.path),
+    new CacheFirst({
+        cacheName: txDetailsCache.name,
+        plugins: [
+            txDataCustomCachablePlugin,
+            new ExpirationPlugin({
+                maxEntries: 1000,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+            }),
+        ],
+    }),
+);
 
 // Caching api call that retrieves the corresponding public key of an address
 const publicKeysCache = {
