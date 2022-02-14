@@ -4,6 +4,7 @@ import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheableResponsePlugin} from 'workbox-cacheable-response';
 
 clientsClaim();
 self.skipWaiting();
@@ -40,10 +41,10 @@ const txDataCustomCachablePlugin = {
     },
 }
 
-// Caching TX and Token Details using CacheFirst Strategy
+// Caching TX using CacheFirst Strategy
 const txDetailsCaches = [
     {
-        // ecash tx
+        // lotus tx
         path: '/rawtransactions/getRawTransaction/',
         name: `${prefix}-tx-data-${suffix}`,
     },
@@ -64,3 +65,24 @@ txDetailsCaches.forEach(cache => {
         }),
     );
 });
+
+// Caching api call that retrieves the corresponding public key of an address
+const publicKeysCache = {
+    path: '/encryption/publickey',
+    name: `${prefix}-public-keys-${suffix}`
+};
+registerRoute(
+    ({url}) => url.pathname.includes(publicKeysCache.path),
+    new CacheFirst({
+        cacheName: publicKeysCache.name,
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [200]
+            }),
+            new ExpirationPlugin({
+                maxEntries: 100,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+            }),
+        ]
+    })
+);
