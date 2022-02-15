@@ -103,7 +103,7 @@ const TxFiatPrice = styled.span`
 const TxWrapper = styled.div`
   
         display: grid;
-        grid-template-columns: 70% 30%;
+        grid-template-columns: 50% 50%;
         grid-template-rows: auto;
         grid-gap: 10px;
         padding: 20px;

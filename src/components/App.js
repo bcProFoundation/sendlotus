@@ -78,6 +78,7 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const CustomApp = styled.div`
+    min-width: 375px;
     text-align: center;
     font-family: 'Gilroy', sans-serif;
     background-color: ${props => props.theme.app.background};
