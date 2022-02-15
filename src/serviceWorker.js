@@ -4,7 +4,6 @@ import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
-import { CacheableResponsePlugin} from 'workbox-cacheable-response';
 
 clientsClaim();
 self.skipWaiting();
@@ -66,14 +65,27 @@ const publicKeysCache = {
     path: '/encryption/publickey',
     name: `${prefix}-public-keys-${suffix}`
 };
+// public key customCacheablePlugin
+const publicKeyCustomCachablePlugin = {
+    cacheWillUpdate: async ({response}) => {
+        // only cache if Status is OK (200) and success === true
+        if (response && response.status === 200) {
+            const clonedR =  response.clone();
+            const data = await clonedR.json();
+            if ( data.success ) {
+                return response;
+            }
+        }
+
+        return null;
+    },
+}
 registerRoute(
     ({url}) => url.pathname.includes(publicKeysCache.path),
     new CacheFirst({
         cacheName: publicKeysCache.name,
         plugins: [
-            new CacheableResponsePlugin({
-                statuses: [200]
-            }),
+            publicKeyCustomCachablePlugin,
             new ExpirationPlugin({
                 maxEntries: 100,
                 maxAgeSeconds: 365 * 24 * 60 * 60,
