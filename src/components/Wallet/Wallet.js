@@ -5,12 +5,10 @@ import OnBoarding from '@components/OnBoarding/OnBoarding';
 import { QRCode } from '@components/Common/QRCode';
 import { currency } from '@components/Common/Ticker.js';
 import { Link } from 'react-router-dom';
-import TokenList from './TokenList';
 import TxHistory from './TxHistory';
 import ApiError from '@components/Common/ApiError';
 import BalanceHeader from '@components/Common/BalanceHeader';
 import { LoadingCtn, ZeroBalanceHeader } from '@components/Common/Atoms';
-import useQuery from '@hooks/useQuery';
 import { getWalletState } from '@utils/cashMethods';
 
 export const Tabs = styled.div`
@@ -169,15 +167,10 @@ const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
     const walletState = getWalletState(wallet);
-    const { balances, parsedTxHistory, tokens } = walletState;
-
-    const [address, setAddress] = React.useState('xAddress');
-    const [activeTab, setActiveTab] = React.useState('txHistory');
+    const { balances, parsedTxHistory } = walletState;
 
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
-    const handleChangeAddress = () => {
-        setAddress(address === 'xAddress' ? 'slpAddress' : 'xAddress');
-    }
+   
 
     return (
         <>
@@ -211,9 +204,7 @@ const WalletInfo = () => {
                 <>
                     <QRCode
                         id="borderedQRCode"
-                        address={
-                            address === 'slpAddress' ? wallet.Path10605.slpAddress : wallet.Path10605.xAddress
-                        }
+                        address={wallet.Path10605.xAddress}
                     />
                 </>
             )}
@@ -237,7 +228,6 @@ const WalletInfo = () => {
 
 const Wallet = () => {
     const ContextValue = React.useContext(WalletContext);
-    const query = useQuery();
 
     const { wallet, previousWallet, loading } = ContextValue;
 

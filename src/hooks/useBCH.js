@@ -10,13 +10,9 @@ import {
     isValidStoredWallet,
     checkNullUtxosForTokenStatus,
     confirmNonEtokenUtxos,
-    convertToEncryptStruct,
     getPublicKey,
     parseOpReturn,
 } from '@utils/cashMethods';
-import cashaddr from 'ecashaddrjs';
-import ecies from 'ecies-lite';
-import wif from 'wif';
 import { createSharedKey, decrypt, encrypt } from 'utils/encryption';
 
 export default function useBCH() {

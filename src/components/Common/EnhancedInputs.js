@@ -135,7 +135,6 @@ export const SendBchInput = ({
     onMax,
     inputProps,
     selectProps,
-    activeFiatCode,
     ...otherProps
 }) => {
     const { Option } = Select;

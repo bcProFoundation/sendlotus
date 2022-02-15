@@ -146,7 +146,6 @@ const ScanQRCode = ({
         } else {
             scanForQrCode();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [visible]);
 
     return (

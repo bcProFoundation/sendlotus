@@ -31,7 +31,6 @@ export const currency = {
         opPushDataOne: '4c',
         appPrefixesHex: {
             eToken: '534c5000',
-            // cashtab: '00746162',
             lotusChat: '02020202',
             lotusChatEncrypted: '03030303'
         },
@@ -110,7 +109,6 @@ export function isValidTokenPrefix(addressString) {
 }
 
 export function toLegacy(address) {
-    let testedAddress;
     let legacyAddress;
 
     try {
