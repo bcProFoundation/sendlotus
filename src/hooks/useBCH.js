@@ -766,7 +766,33 @@ export default function useBCH() {
             { P2PKH: utxos.length },
             { P2PKH: p2pkhOutputNumber },
         );
-        const txFee = Math.ceil(satoshisPerByte * (byteCount + opReturnLength));
+        // 8 bytes : the output's value
+        // 1 bytes : Locking-Script Size
+        // opReturnLength: the size of the OP_RETURN script
+        // Referece
+        // https://github.com/bitcoinbook/bitcoinbook/blob/develop/ch06.asciidoc#transaction-serializationoutputs
+        //
+        // Technically, Locking-Script Size can be 1, 3, 5 or 9 bytes, But
+        //  - Lotus Node's default allowed OP_RETURN length is set the 223 bytes
+        //  - SendLotus max OP_RETURN length is also limited to 223 bytes
+        // We can safely assume it is 1 byte (0 - 252. fd, fe, ff are special)
+        //
+        // The Output Count field is of VarInt (1, 3, 5 or 9 bytes), which indicates the number of outputs present in the transaction
+        // Adding OP_RETURNs to the outputs increases the count
+        // Since SendLotus only allows single recipient transaction, the maxium number of outputs in a tx is 5
+        //  - one for recipient
+        //  - one for change
+        //  - maximum 3 for OP_RETURNs
+        // So we can safely assume the Output will only take 1 byte.
+        //
+        // In wallet where multiple recipients are allowed in a transaction
+        // adding extra OP_RETURN outputs may change the output count from 1 byte to 3 bytes
+        // this would affect the fee
+        let opReturnOutputByteLength = opReturnLength;
+        if (opReturnLength) {
+            opReturnOutputByteLength += (8 + 1);
+        }
+        const txFee = Math.ceil(satoshisPerByte * (byteCount + opReturnOutputByteLength));
         return txFee;
     };
 
