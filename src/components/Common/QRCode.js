@@ -120,9 +120,6 @@ export const QRCode = ({
     address = address ? convertToEcashPrefix(address) : '';
 
     const [visible, setVisible] = useState(false);
-    const trimAmount = 8;
-
-    const address_trim = address ? address.length - trimAmount : '';
 
     const txtRef = React.useRef(null);
 

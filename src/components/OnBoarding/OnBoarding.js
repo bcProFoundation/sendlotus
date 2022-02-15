@@ -13,7 +13,6 @@ import PrimaryButton, {
     SecondaryButton,
     SmartButton,
 } from '@components/Common/PrimaryButton';
-import { currency } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 
 export const WelcomeText = styled.p`

@@ -6,23 +6,15 @@ import {
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
-import { Form, notification, message, Modal, Alert, Input, Collapse, Checkbox } from 'antd';
-const { Panel } = Collapse;
-const { TextArea } = Input;
-import { Row, Col, Switch } from 'antd';
+import { Form, notification, message, Modal, Alert, Checkbox } from 'antd';
+import { Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import PrimaryButton, {
-    SecondaryButton,
-} from '@components/Common/PrimaryButton';
+import PrimaryButton from '@components/Common/PrimaryButton';
 import {
     SendBchInput,
     FormItemWithQRCodeAddon,
-    AntdFormWrapper,
     OpReturnMessageInput
 } from '@components/Common/EnhancedInputs';
-import {
-    AdvancedCollapse,
-} from '@components/Common/StyledCollapse';
 import useBCH from '@hooks/useBCH';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
@@ -30,16 +22,12 @@ import {
     currency,
     isValidTokenPrefix,
     parseAddress,
-    toLegacy,
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
-import { fiatToCrypto, shouldRejectAmountInput } from '@utils/validation';
+import { shouldRejectAmountInput } from '@utils/validation';
 import BalanceHeader from '@components/Common/BalanceHeader';
-import BalanceHeaderFiat from '@components/Common/BalanceHeaderFiat';
 import {
     ZeroBalanceHeader,
-    ConvertAmount,
-    AlertMsg,
 } from '@components/Common/Atoms';
 import { 
     getWalletState,
@@ -50,12 +38,6 @@ import {
     ThemedQuerstionCircleOutlinedFaded
 } from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
-
-const TextAreaLabel = styled.div`
-    text-align: left;
-    color: #0074c2;
-    padding-left: 1px;
-`;
 
 const OpReturnMessageHelp = styled.div`
     margin-top: 20px;
@@ -118,7 +100,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] = useState(true);
-    const [appendWalletNameToOpReturnMsg, setAppendWalletNameToOpReturnMsg] = useState(false);
     const [bchObj, setBchObj] = useState(false);
 
     // Get device window width
@@ -471,31 +452,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             );
         }
     };
-    // Display price in USD below input field for send amount, if it can be calculated
-    let fiatPriceString = '';
-    if (fiatPrice !== null && !isNaN(formData.value)) {
-        if (selectedCurrency === currency.ticker) {
-            fiatPriceString = `${
-                cashtabSettings
-                    ? `${
-                          currency.fiatCurrencies[cashtabSettings.fiatCurrency]
-                              .symbol
-                      } `
-                    : '$ '
-            } ${(fiatPrice * Number(formData.value)).toFixed(2)} ${
-                cashtabSettings && cashtabSettings.fiatCurrency
-                    ? cashtabSettings.fiatCurrency.toUpperCase()
-                    : 'USD'
-            }`;
-        } else {
-            fiatPriceString = `${
-                formData.value ? fiatToCrypto(formData.value, fiatPrice) : '0'
-            } ${currency.ticker}`;
-        }
-    }
-
-    const priceApiError = fiatPrice === null && selectedCurrency !== 'XEC';
-
+    
     // Help (?) Icon that shows the OP_RETURN info
     const helpInfoIcon = (
         <ThemedQuerstionCircleOutlinedFaded 
@@ -522,7 +479,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
                                 <li>Un-encrypted message max length is 215 bytes.</li>
                                 <li>Encrypted message max length is 206 bytes.</li>
-                                <li>Appending &quot;Wallet Name&quot; to the end of the message will take up extra bytes</li>
                             </ul>
                         </OpReturnMessageHelp>
                     ),
@@ -563,18 +519,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         </div>
     );
 
-    const appendOpReturnLabel = (
-        <div>
-            append <em><b>{wallet.name}</b></em>&nbsp;
-            <StyledCheckbox
-                checked={appendWalletNameToOpReturnMsg}
-                onChange={() => setAppendWalletNameToOpReturnMsg(
-                    prev => !prev
-                )}
-            />
-        </div>
-    );
-
     // Only Send Mesage Checkbox
     const sendOnlyMessageCheckbox = (
         <div
@@ -596,22 +540,13 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     );
 
     const computeOpReturnMsgMaxByteLength = () => {
-        // plus 2
-        //  1 for space
-        //  1 for @
-        const appendLength = (
-            appendWalletNameToOpReturnMsg
-                ? Buffer.from(wallet.name).length + 2
-                : 0
-        );
-
         const maxOpReturnLimit = (
             isEncryptedOptionalOpReturnMsg
                 ? currency.opReturn.encryptedMsgByteLimit
                 : currency.opReturn.unencryptedMsgByteLimit
         );
 
-        return maxOpReturnLimit - appendLength;
+        return maxOpReturnLimit
     }
 
     return (
@@ -721,8 +656,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             onChange={msg => setOpReturnMsg(msg)}
                             maxByteLength={computeOpReturnMsgMaxByteLength()}
                             labelTop={opReturnLabel}
-                            // the "Append Wallet Name" checkbox was removed
-                            // can be added back in later
                             labelBottom={null}
                         />     
                         {/* END OF OP_RETURN message */}

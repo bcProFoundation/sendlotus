@@ -3,29 +3,14 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import {
-    ArrowUpOutlined,
-    ArrowDownOutlined,
-    ExperimentOutlined,
-    ExclamationOutlined,
     LinkOutlined,
 } from '@ant-design/icons';
 import { currency } from '@components/Common/Ticker';
-import makeBlockie from 'ethereum-blockies-base64';
-import { Img } from 'react-image';
-import { formatBalance, fromLegacyDecimals } from '@utils/cashMethods';
-import { ThemedLockFilledGrey, ThemedUnlockFilledGrey } from 'components/Common/CustomIcons';
-import { Button, Form } from 'antd';
+import { formatBalance } from '@utils/cashMethods';
+import { ThemedLockFilledGrey } from 'components/Common/CustomIcons';
+import { Button } from 'antd';
 import { FormattedTxAddress } from 'components/Common/FormattedWalletAddress';
 
-const SentTx = styled(ArrowUpOutlined)`
-    color: ${props => props.theme.greyDark} !important;
-`;
-const ReceivedTx = styled(ArrowDownOutlined)`
-    color: ${props => props.theme.primary} !important;
-`;
-const UnparsedTx = styled(ExclamationOutlined)`
-    color: ${props => props.theme.primary} !important;
-`;
 const DateType = styled.div`
     color: ${props => props.theme.greyDark} !important;
     @media screen and (max-width: 500px) {
@@ -53,37 +38,11 @@ const EncryptionMessageLabel = styled.span`
     color: ${props => props.theme.greyLight} !important;
     white-space: nowrap;
 `;
-const UnauthorizedDecryptionMessage = styled.span`
-    text-align: left;
-    color: ${props => props.theme.greyLight} !important;
-    white-space: nowrap;
-    font-style: italic;
-`;
 const MessageLabel = styled.span`
     text-align: left;
     color: ${props => props.theme.secondary} !important;
     white-space: nowrap;
 `;
-const ReplyMessageLabel = styled.span`
-    color: ${props => props.theme.greyLight} !important;
-`;
-const TxIcon = styled.div`
-    svg {
-        width: 32px;
-        height: 32px;
-    }
-    height: 32px;
-    width: 32px;
-    @media screen and (max-width: 500px) {
-        svg {
-            width: 24px;
-            height: 24px;
-        }
-        height: 24px;
-        width: 24px;
-    }
-`;
-
 const TxInfo = styled.div`
     padding: 12px;
     font-size: 1rem;
@@ -96,38 +55,33 @@ const TxInfo = styled.div`
         font-size: 0.8rem;
     }
 `;
-const TxFiatPrice = styled.span`
-    font-size: 0.8rem;
-`;
 
 const TxWrapper = styled.div`
-  
-        display: grid;
-        grid-template-columns: 50% 50%;
-        grid-template-rows: auto;
-        grid-gap: 10px;
-        padding: 20px;
-    
-        grid-template-areas: 
-            "header-main header-side"
-            "main main";
-    
-        border-radius: 3px;
-        background: ${props => props.theme.tokenListItem.background};
-        margin-bottom: 3px;
-        box-shadow: ${props => props.theme.tokenListItem.boxShadow};
-        border: 1px solid ${props => props.theme.tokenListItem.border};
-        color: ${props => props.outgoing ? props.theme.grey : props.theme.primary} !important;
-        text-align: left;
-    
-        :hover {
-            border-color: ${props => props.theme.primary};
-        }
-        @media screen and (max-width: 500px) {
-            // grid-template-columns: 24px 30% 50%;
-            // padding: 12px 12px;
-        }
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: auto;
+    grid-gap: 10px;
+    padding: 20px;
 
+    grid-template-areas: 
+        "header-main header-side"
+        "main main";
+
+    border-radius: 3px;
+    background: ${props => props.theme.tokenListItem.background};
+    margin-bottom: 3px;
+    box-shadow: ${props => props.theme.tokenListItem.boxShadow};
+    border: 1px solid ${props => props.theme.tokenListItem.border};
+    color: ${props => props.outgoing ? props.theme.grey : props.theme.primary} !important;
+    text-align: left;
+
+    :hover {
+        border-color: ${props => props.theme.primary};
+    }
+    @media screen and (max-width: 500px) {
+        // grid-template-columns: 24px 30% 50%;
+        // padding: 12px 12px;
+    }
 
     .label {
         grid-area: header-main;
@@ -141,16 +95,13 @@ const TxWrapper = styled.div`
     .msg {
         grid-area: main;
     }
-
-
-
 `;
 
 const ReplyButton = styled(Button)`
     color: ${props => props.theme.grey } !important;
 `
 
-const Tx = ({ data, fiatPrice, fiatCurrency }) => {
+const Tx = ({ data }) => {
     const txDate =
         typeof data.blocktime === 'undefined'
             ? new Date().toLocaleDateString()

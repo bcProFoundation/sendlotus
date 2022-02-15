@@ -36,18 +36,6 @@ import ResponsiveIframe from '@components/Common/ResponsiveIframe';
 
 const { Panel } = Collapse;
 
-const SettingsLink = styled.a`
-    text-decoration: underline;
-    color: ${props => props.theme.primary};
-    :visited {
-        text-decoration: underline;
-        color: ${props => props.theme.primary};
-    }
-    :hover {
-        color: ${props => props.theme.brandSecondary};
-    }
-`;
-
 const SWRow = styled.div`
     border-radius: 3px;
     padding: 10px 0;

@@ -34,8 +34,7 @@
         "react-router-dom": "^5.2.0",
         "react-share": "^4.4.0",
         "react-web-share": "^1.1.1",
-        "styled-components": "^4.4.0",
-        "wif": "^2.0.6"
+        "styled-components": "^4.4.0"
     },
     "lint-staged": {
         "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [

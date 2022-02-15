@@ -12,7 +12,6 @@ import {
     QuestionCircleOutlined,
     UnlockOutlined,
     UnlockFilled,
-    RollbackOutlined
 } from '@ant-design/icons';
 import { Image } from 'antd';
 import { currency } from '@components/Common/Ticker';
