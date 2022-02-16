@@ -35,33 +35,8 @@ import {
 } from '@utils/cashMethods';
 import { 
     CashReceivedNotificationIcon,
-    ThemedQuerstionCircleOutlinedFaded
 } from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
-
-const OpReturnMessageHelp = styled.div`
-    margin-top: 20px;
-    font-size: 12px;
-
-    .heading {
-        margin-left: -20px;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-
-    ul {
-        padding-left: 0;
-    }
-
-    em {
-        // color: ${props => props.theme.primary} !important;
-        // TODO: should be able to access the theme as above
-        // but it return undefined - need to figure out what causes the error
-
-        color: #6f2dbd !important
-    }
-    
-`;
 
 const StyledCheckbox = styled(Checkbox)`
     .ant-checkbox-inner {
@@ -452,38 +427,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             );
         }
     };
-    
-    // Help (?) Icon that shows the OP_RETURN info
-    const helpInfoIcon = (
-        <ThemedQuerstionCircleOutlinedFaded 
-            onClick={() => {
-                Modal.info({
-                    centered: true,
-                    okText: 'Got It',
-                    title: 'Optional Message',
-                    maskClosable: 'true',
-                    content: (
-                        <OpReturnMessageHelp>
-                            <div className='heading'>Higher Fee</div>
-                            <ul>
-                                <li>Transaction with attached message will incur <em>higher fee.</em></li>
-                            </ul>
-                            <div className='heading'>Encryption</div>
-                            <ul>
-                                <li>Message is encrypted and only readable to the intended recipient.</li>
-                                <li>Encrypted message can only be sent to <em>wallets with at least 1 outgoing transaction.</em></li>
-                            </ul>
-                            <div className='heading'>Message Length</div>
-                            <ul>
-                                <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
-                                <li>Encrypted message max length is 206 bytes.</li>
-                            </ul>
-                        </OpReturnMessageHelp>
-                    ),
-                })
-            }}
-        />
-    )
 
     // Encrypted Checkbox UI
     const encryptedCheckbox = (
@@ -507,12 +450,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         <div
             css={`
                 display: flex;
-                justify-content: space-between;
+                justify-content: flex-start;
                 align-items: center;
-                margin-left: 5px;
             `}
         >
-            {helpInfoIcon}
             {encryptedCheckbox}
         </div>
     );
@@ -613,11 +554,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             style={{
                                 margin: '0 0 10px 0'
                             }}
-                            activeFiatCode={
-                                cashtabSettings && cashtabSettings.fiatCurrency
-                                    ? cashtabSettings.fiatCurrency.toUpperCase()
-                                    : 'USD'
-                            }
+                           
                             validateStatus={sendBchAmountError ? 'error' : ''}
                             help={sendBchAmountError ? sendBchAmountError : ''}
                             onMax={onMax}
@@ -638,12 +575,12 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         {/* OP_RETURN message */}
                         <OpReturnMessageInput
                              style={{
-                                margin: '0 0 20px 0'
+                                margin: '0 0 25px 0',
                             }}
                             name="opReturnMsg"
                             allowClear={true}
                             autoSize={{minRows: 2, maxRows: 4}}
-                            placeholder="Optional Message"
+                            placeholder="Optional Private Message"
                             value={
                                 opReturnMsg
                                     ? isEncryptedOptionalOpReturnMsg
@@ -653,7 +590,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             }
                             onChange={msg => setOpReturnMsg(msg)}
                             maxByteLength={computeOpReturnMsgMaxByteLength()}
-                            labelTop={opReturnLabel}
+                            labelTop={null}
                             labelBottom={null}
                         />     
                         {/* END OF OP_RETURN message */}
