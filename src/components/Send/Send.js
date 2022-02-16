@@ -470,14 +470,12 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             </ul>
                             <div className='heading'>Encryption</div>
                             <ul>
-                                <li><em>Un-encrypted message is readable to everybody.</em></li>
-                                <li>Encrypted message is only readable to the intended recipient.</li>
-                                <li>Encrypted message can only be sent to wallets with at least 1 outgoing transaction.</li>
+                                <li>Message is encrypted and only readable to the intended recipient.</li>
+                                <li>Encrypted message can only be sent to <em>wallets with at least 1 outgoing transaction.</em></li>
                             </ul>
                             <div className='heading'>Message Length</div>
                             <ul>
                                 <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
-                                <li>Un-encrypted message max length is 215 bytes.</li>
                                 <li>Encrypted message max length is 206 bytes.</li>
                             </ul>
                         </OpReturnMessageHelp>
