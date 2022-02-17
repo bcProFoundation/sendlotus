@@ -31,37 +31,13 @@ import {
 } from '@components/Common/Atoms';
 import { 
     getWalletState,
-    getDustXPI
+    getDustXPI,
 } from '@utils/cashMethods';
 import { 
     CashReceivedNotificationIcon,
-    ThemedQuerstionCircleOutlinedFaded
 } from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
-
-const OpReturnMessageHelp = styled.div`
-    margin-top: 20px;
-    font-size: 12px;
-
-    .heading {
-        margin-left: -20px;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-
-    ul {
-        padding-left: 0;
-    }
-
-    em {
-        // color: ${props => props.theme.primary} !important;
-        // TODO: should be able to access the theme as above
-        // but it return undefined - need to figure out what causes the error
-
-        color: #6f2dbd !important
-    }
-    
-`;
+import { createSharedKey, encrypt } from 'utils/encryption';
 
 const StyledCheckbox = styled(Checkbox)`
     .ant-checkbox-inner {
@@ -98,6 +74,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const walletState = getWalletState(wallet);
     const { balances, slpBalancesAndUtxos } = walletState;
 
+    const [isOpReturnMsgDisabled,setIsOpReturnMsgDisabled] = useState(true);
+    const [recipientPubKeyHex, setRecipientPubKeyHex] = useState(false);
+    const [recipientPubKeyWarning, setRecipientPubKeyWarning] = useState(false);
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] = useState(true);
     const [bchObj, setBchObj] = useState(false);
@@ -146,7 +125,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         passLoadingStatus(false);
     }, [balances.totalBalance]);
 
-    useEffect(() => {
+    useEffect(async () => {
          // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
          const BCH = jestBCH ? jestBCH : getBCH();
 
@@ -162,6 +141,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 // send dust amount
                 value: getDustXPI(),
             });
+            await fetchRecipientPublicKey(BCH,location.state.replyAddress);
         }
 
         // Do not set txInfo in state if query strings are not present
@@ -196,6 +176,24 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             });
         }
     }
+
+    const encryptOpReturnMsg = (
+        privateKeyWIF,
+        recipientPubKeyHex,
+        plainTextMsg,
+    ) => {
+        let encryptedMsg;
+        try {
+            const sharedKey = createSharedKey(privateKeyWIF, recipientPubKeyHex);
+            encryptedMsg = encrypt(sharedKey,Uint8Array.from(Buffer.from(plainTextMsg)));
+            
+        } catch (err) {
+            console.log(`SendBCH.encryptOpReturnMsg() error: ` + err);
+            throw err;
+        }
+
+        return encryptedMsg;
+    };
 
     async function submit() {
         setFormData({
@@ -265,6 +263,24 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         //     optionalOpReturnMsg = opReturnMsg;
         // }
 
+        let encryptedOpReturnMsg = undefined;
+        if (opReturnMsg &&
+            typeof opReturnMsg !== 'undefined' &&
+            opReturnMsg.trim() !== '' &&
+            recipientPubKeyHex ) {           
+            try {
+                encryptedOpReturnMsg = encryptOpReturnMsg(wallet.Path10605.fundingWif, recipientPubKeyHex, opReturnMsg);
+            } catch (error) {
+                notification.error({
+                    message: 'Error',
+                    description: 'Cannot encrypt message',
+                    duration: 5,
+                });
+                console.log(error);
+                return;
+            }
+        }
+
         try {
             const link = await sendBch(
                 bchObj,
@@ -273,7 +289,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 cleanAddress,
                 bchValue,
                 currency.defaultFee,
-                opReturnMsg,
+                encryptedOpReturnMsg,
                 isEncryptedOptionalOpReturnMsg,
             );
 
@@ -330,7 +346,45 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }
     }
 
-    const handleAddressChange = e => {
+    const fetchRecipientPublicKey = async (BCH, recipientAddress) => {
+        let recipientPubKey;
+        try {
+            // see https://api.fullstack.cash/docs/#api-Encryption-Get_encryption_key_for_bch_address
+            // if successful, returns
+            // { 
+            //   success: true,
+            //   publicKey: hex string
+            // }
+            // if Address only has incoming transaction but NO outgoing transaction, returns
+            // { 
+            //   success: false,
+            //   publicKey: "not found"
+            // }
+            recipientPubKey = await BCH.encryption.getPubKey(recipientAddress);
+        } catch (err) {
+            console.log(`SendBCH.handleAddressChange() error: ` + err);
+            recipientPubKey = {
+                success: false,
+                error: 'fetch error - exception thrown'
+            }
+        }
+        const {success, publicKey} = recipientPubKey;
+        if ( success ) {
+            setRecipientPubKeyHex(publicKey);
+            setIsOpReturnMsgDisabled(false);
+            setRecipientPubKeyWarning(false);
+        } else {
+            setRecipientPubKeyHex(false);
+            setIsOpReturnMsgDisabled(true);
+            if ( publicKey && publicKey === 'not found' ) {
+                setRecipientPubKeyWarning('This address has no outgoing transaction, you cannot send message.');
+            } else {
+                setRecipientPubKeyWarning('It looks like this address is NEW, please verify it before sending a large amount.')
+            }
+        }
+    }
+
+    const handleAddressChange = async e => {
         const { value, name } = e.target;
         let error = false;
         let addressString = value;
@@ -362,14 +416,19 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             if (isValidTokenPrefix(address)) {
                 error = `Token addresses are not supported for ${currency.ticker} sends`;
             }
-        }
-        setSendBchAddressError(error);
-
+        
+        
         // Is this address same with my address?
         if (currentAddress && address && address === currentAddress) {
-            setSendBchAddressError(
-                'Cannot send to yourself!'
-            );
+            error = 'Cannot send to yourself!';
+        }}
+
+        setSendBchAddressError(error);
+
+        // if the address is correct
+        // attempt the fetch the public key assocciated with this address
+        if (!error) {
+            fetchRecipientPublicKey(bchObj ,address);
         }
 
         // Set amount if it's in the query string
@@ -452,40 +511,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             );
         }
     };
-    
-    // Help (?) Icon that shows the OP_RETURN info
-    const helpInfoIcon = (
-        <ThemedQuerstionCircleOutlinedFaded 
-            onClick={() => {
-                Modal.info({
-                    centered: true,
-                    okText: 'Got It',
-                    title: 'Optional Message',
-                    maskClosable: 'true',
-                    content: (
-                        <OpReturnMessageHelp>
-                            <div className='heading'>Higher Fee</div>
-                            <ul>
-                                <li>Transaction with attached message will incur <em>higher fee.</em></li>
-                            </ul>
-                            <div className='heading'>Encryption</div>
-                            <ul>
-                                <li><em>Un-encrypted message is readable to everybody.</em></li>
-                                <li>Encrypted message is only readable to the intended recipient.</li>
-                                <li>Encrypted message can only be sent to wallets with at least 1 outgoing transaction.</li>
-                            </ul>
-                            <div className='heading'>Message Length</div>
-                            <ul>
-                                <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
-                                <li>Un-encrypted message max length is 215 bytes.</li>
-                                <li>Encrypted message max length is 206 bytes.</li>
-                            </ul>
-                        </OpReturnMessageHelp>
-                    ),
-                })
-            }}
-        />
-    )
 
     // Encrypted Checkbox UI
     const encryptedCheckbox = (
@@ -509,12 +534,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         <div
             css={`
                 display: flex;
-                justify-content: space-between;
+                justify-content: flex-start;
                 align-items: center;
-                margin-left: 5px;
             `}
         >
-            {helpInfoIcon}
             {encryptedCheckbox}
         </div>
     );
@@ -584,6 +607,16 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             width: 'auto',
                         }}
                     >
+                         { recipientPubKeyWarning &&
+                            <Alert
+                                style={{
+                                    margin: '0 0 10px 0'
+                                }}
+                                message={recipientPubKeyWarning}
+                                type="warning"
+                                showIcon
+                            />
+                        }
                         <FormItemWithQRCodeAddon
                                 style={{
                                     margin: '0 0 10px 0'
@@ -615,11 +648,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             style={{
                                 margin: '0 0 10px 0'
                             }}
-                            activeFiatCode={
-                                cashtabSettings && cashtabSettings.fiatCurrency
-                                    ? cashtabSettings.fiatCurrency.toUpperCase()
-                                    : 'USD'
-                            }
+                           
                             validateStatus={sendBchAmountError ? 'error' : ''}
                             help={sendBchAmountError ? sendBchAmountError : ''}
                             onMax={onMax}
@@ -640,12 +669,13 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         {/* OP_RETURN message */}
                         <OpReturnMessageInput
                              style={{
-                                margin: '0 0 20px 0'
+                                margin: '0 0 25px 0',
                             }}
                             name="opReturnMsg"
                             allowClear={true}
                             autoSize={{minRows: 2, maxRows: 4}}
-                            placeholder="Optional Message"
+                            placeholder="Optional Private Message"
+                            disabled={isOpReturnMsgDisabled}
                             value={
                                 opReturnMsg
                                     ? isEncryptedOptionalOpReturnMsg
@@ -655,7 +685,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             }
                             onChange={msg => setOpReturnMsg(msg)}
                             maxByteLength={computeOpReturnMsgMaxByteLength()}
-                            labelTop={opReturnLabel}
+                            labelTop={null}
                             labelBottom={null}
                         />     
                         {/* END OF OP_RETURN message */}

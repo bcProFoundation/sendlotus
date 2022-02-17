@@ -10,10 +10,9 @@ import {
     isValidStoredWallet,
     checkNullUtxosForTokenStatus,
     confirmNonEtokenUtxos,
-    getPublicKey,
     parseOpReturn,
 } from '@utils/cashMethods';
-import { createSharedKey, decrypt, encrypt } from 'utils/encryption';
+import { createSharedKey, decrypt } from 'utils/encryption';
 
 export default function useBCH() {
     const SEND_BCH_ERRORS = {
@@ -260,21 +259,19 @@ export default function useBCH() {
                         //          the result should be in the cache.
                         let otherPublicKey;
                         try {
-                            if ( outgoingTx ) {
-                                otherPublicKey = await getRecipientPublicKey(BCH, destinationAddress);
-                            } else {
-                                otherPublicKey = await getRecipientPublicKey(BCH, senderAddress)
-                            }
+                            const theOtherAddress = outgoingTx ? destinationAddress : senderAddress;
+                            otherPublicKey = await BCH.encryption.getPubKey(theOtherAddress);
                         } catch (error) {
                             opReturnMessage = 'Cannot retrieve Public Key'
                         }
                         if (otherPublicKey) {
                             try {
                                 const ourPrivateKey = wallet.Path10605.fundingWif;
-                                const sharedKey = createSharedKey(ourPrivateKey,otherPublicKey);
+                                const sharedKey = createSharedKey(ourPrivateKey,otherPublicKey.publicKey);
                                 opReturnMessage = decrypt(sharedKey, Uint8Array.from(Buffer.from(msgString, 'hex')));
                                 decryptionSuccess = true;
                             } catch (error) {
+                                console.log("public Key", otherPublicKey);
                                 console.log(error);
                                 opReturnMessage = 'Error in decrypting message!'
                             }
@@ -1102,53 +1099,6 @@ export default function useBCH() {
         return link;
     };
 
-    const getRecipientPublicKey = async (BCH, recipientAddress) => {
-        let recipientPubKey;
-        try {
-            recipientPubKey = await getPublicKey(BCH, recipientAddress);
-        } catch (err) {
-            console.log(`useBCH.getRecipientPublicKey() error: ` + err);
-            throw err;
-        }
-        return recipientPubKey;
-    };
-
-    const handleEncryptedOpReturn = async (
-        BCH,
-        privateKeyWIF,
-        destinationAddress,
-        optionalOpReturnMsg,
-    ) => {
-        let recipientPubKey;
-        try {
-            recipientPubKey = await getRecipientPublicKey(
-                BCH,
-                destinationAddress,
-            );
-        } catch (err) {
-            console.log(`useBCH.handleEncryptedOpReturn() error: ` + err);
-            throw err;
-        }
-
-        if (recipientPubKey === 'not found') {
-            // if the API can't find a pub key, it is due to the wallet having no outbound tx
-            throw new Error(
-                'Cannot send an encrypted message to a wallet with no outgoing transactions',
-            );
-        }
-
-        let encryptedMsg;
-        try {
-            const sharedKey = createSharedKey(privateKeyWIF, recipientPubKey);
-            encryptedMsg = encrypt(sharedKey,Uint8Array.from(Buffer.from(optionalOpReturnMsg)));
-            
-        } catch (err) {
-            console.log(`useBCH.handleEncryptedOpReturn() error: ` + err);
-            throw err;
-        }
-
-        return encryptedMsg;
-    };
 
     const sendBch = async (
         BCH,
@@ -1203,24 +1153,9 @@ export default function useBCH() {
             // only build the OP_RETURN output if the user supplied it
             if (
                 optionalOpReturnMsg &&
-                typeof optionalOpReturnMsg !== 'undefined' &&
-                optionalOpReturnMsg.trim() !== ''
+                typeof optionalOpReturnMsg !== 'undefined'
             ) {
                 if (encryptionFlag) {
-                    // if the user has opted to encrypt this message
-                    let encryptedMsg;
-                    try {
-                        encryptedMsg = await handleEncryptedOpReturn(
-                            BCH,
-                            wallet.Path10605.fundingWif,
-                            destinationAddress,
-                            optionalOpReturnMsg,
-                        );
-                    } catch (err) {
-                        console.log(`useBCH.sendBch() encryption error.`);
-                        throw err;
-                    }
-
                     // build the OP_RETURN script with the encryption prefix
                     script = [
                         BCH.Script.opcodes.OP_RETURN, // 6a
@@ -1228,7 +1163,7 @@ export default function useBCH() {
                             currency.opReturn.appPrefixesHex.lotusChatEncrypted,
                             'hex',
                         ), // 03030303
-                        Buffer.from(encryptedMsg),
+                        Buffer.from(optionalOpReturnMsg),
                     ];
                 } else {
                     // this is un-encrypted message 
@@ -1381,7 +1316,5 @@ export default function useBCH() {
         sendToken,
         createToken,
         getTokenStats,
-        handleEncryptedOpReturn,
-        getRecipientPublicKey,
     };
 }
