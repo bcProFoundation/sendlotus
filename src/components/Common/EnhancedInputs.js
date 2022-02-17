@@ -46,6 +46,11 @@ export const AntdFormCss = css`
         border: 1px solid ${props => props.theme.forms.border};
         color: ${props => props.theme.forms.addonForeground} !important;
     }
+
+    .ant-input[disabled]:hover {
+        border-color: ${props => props.theme.forms.disabled} !important;
+    }
+
     .ant-form-item-has-error
         > div
         > div.ant-form-item-control-input

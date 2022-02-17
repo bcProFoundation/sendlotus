@@ -377,9 +377,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             setRecipientPubKeyHex(false);
             setIsOpReturnMsgDisabled(true);
             if ( publicKey && publicKey === 'not found' ) {
-                setRecipientPubKeyWarning('This address has no outgoing transaction');
+                setRecipientPubKeyWarning('This address has no outgoing transaction, you cannot send message.');
             } else {
-                setRecipientPubKeyWarning('This address appear to be newly created')
+                setRecipientPubKeyWarning('It looks like this address is NEW, please verify it before sending a large amount.')
             }
         }
     }

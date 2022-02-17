@@ -54,6 +54,7 @@ export const theme = {
         addonBackground: '#f4f4f4',
         addonForeground: '#6f2dbd',
         selectionBackground: '#fff',
+        disabled: '#e2e2e2'
     },
     icons: { 
         outlined: '#6f2dbd',
