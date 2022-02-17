@@ -194,52 +194,55 @@ const Tx = ({ data }) => {
                         </TxInfo>
                     </div>
                     <div className='msg'>
-                        {data.opReturnMessage && (
-                            <OpReturnType>
+                        <OpReturnType>
+                            <div>
                                 {data.opReturnMessage}
-                                <div
-                                    css={`
-                                        display: flex;
-                                        justify-content: space-between;
-                                    `}
-                                >
-                                    {data.isLotusChatMessage ? (
-                                        data.isEncryptedMessage ? (
-                                            <EncryptionMessageLabel>
-                                                <ThemedLockFilledGrey />
-                                            </EncryptionMessageLabel>
-                                        ) : (
-                                            <LotusChatMessageLabel>
-                                            </LotusChatMessageLabel>
-                                        )
-                                        
+                            </div>
+                            <div
+                                css={`
+                                    display: flex;
+                                    justify-content: space-between;
+                                `}
+                            >
+                                {data.isLotusChatMessage ? (
+                                    data.isEncryptedMessage ? (
+                                        <EncryptionMessageLabel>
+                                            <ThemedLockFilledGrey />
+                                        </EncryptionMessageLabel>
                                     ) : (
+                                        <LotusChatMessageLabel>
+                                        </LotusChatMessageLabel>
+                                    )
+                                ) : (
+                                    data.opReturnMessage ? (
                                         <MessageLabel>
                                             External Message
                                         </MessageLabel>
-                                    )}
-                                    {!data.outgoingTx && data.fromAddress ? (
-                                        <Link
-                                            to={{
-                                                pathname: `/send`,
-                                                state: {
-                                                    replyAddress: data.fromAddress,
-                                                },
-                                            }}
-                                        >
-                                            <ReplyButton
-                                                size='small'
-                                                type="text"
-                                            >
-                                                Reply
-                                            </ReplyButton>
-                                        </Link>
                                     ) : (
-                                        ''
-                                    )}
-                                </div>
-                            </OpReturnType>
-                        )}
+                                        <div></div>
+                                    )
+                                )}
+                                {!data.outgoingTx && data.fromAddress ? (
+                                    <Link
+                                        to={{
+                                            pathname: `/send`,
+                                            state: {
+                                                replyAddress: data.fromAddress,
+                                            },
+                                        }}
+                                    >
+                                        <ReplyButton
+                                            size='small'
+                                            type="text"
+                                        >
+                                            Reply
+                                        </ReplyButton>
+                                    </Link>
+                                ) : (
+                                    ''
+                                )}
+                            </div>
+                        </OpReturnType>
                     </div>
                 </TxWrapper>
             )}
