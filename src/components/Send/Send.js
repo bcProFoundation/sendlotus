@@ -31,12 +31,13 @@ import {
 } from '@components/Common/Atoms';
 import { 
     getWalletState,
-    getDustXPI
+    getDustXPI,
 } from '@utils/cashMethods';
 import { 
     CashReceivedNotificationIcon,
 } from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
+import { createSharedKey, encrypt } from 'utils/encryption';
 
 const StyledCheckbox = styled(Checkbox)`
     .ant-checkbox-inner {
@@ -73,6 +74,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const walletState = getWalletState(wallet);
     const { balances, slpBalancesAndUtxos } = walletState;
 
+    const [isOpReturnMsgDisabled,setIsOpReturnMsgDisabled] = useState(true);
+    const [recipientPubKeyHex, setRecipientPubKeyHex] = useState(false);
+    const [recipientPubKeyWarning, setRecipientPubKeyWarning] = useState(false);
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] = useState(true);
     const [bchObj, setBchObj] = useState(false);
@@ -172,6 +176,24 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }
     }
 
+    const encryptOpReturnMsg = (
+        privateKeyWIF,
+        recipientPubKeyHex,
+        plainTextMsg,
+    ) => {
+        let encryptedMsg;
+        try {
+            const sharedKey = createSharedKey(privateKeyWIF, recipientPubKeyHex);
+            encryptedMsg = encrypt(sharedKey,Uint8Array.from(Buffer.from(plainTextMsg)));
+            
+        } catch (err) {
+            console.log(`SendBCH.encryptOpReturnMsg() error: ` + err);
+            throw err;
+        }
+
+        return encryptedMsg;
+    };
+
     async function submit() {
         setFormData({
             ...formData,
@@ -240,6 +262,24 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         //     optionalOpReturnMsg = opReturnMsg;
         // }
 
+        let encryptedOpReturnMsg = undefined;
+        if (opReturnMsg &&
+            typeof opReturnMsg !== 'undefined' &&
+            opReturnMsg.trim() !== '' &&
+            recipientPubKeyHex ) {           
+            try {
+                encryptedOpReturnMsg = encryptOpReturnMsg(wallet.Path10605.fundingWif, recipientPubKeyHex, opReturnMsg);
+            } catch (error) {
+                notification.error({
+                    message: 'Error',
+                    description: 'Cannot encrypt message',
+                    duration: 5,
+                });
+                console.log(error);
+                return;
+            }
+        }
+
         try {
             const link = await sendBch(
                 bchObj,
@@ -248,7 +288,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 cleanAddress,
                 bchValue,
                 currency.defaultFee,
-                opReturnMsg,
+                encryptedOpReturnMsg,
                 isEncryptedOptionalOpReturnMsg,
             );
 
@@ -305,7 +345,45 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }
     }
 
-    const handleAddressChange = e => {
+    const fetchRecipientPublicKey = async (recipientAddress) => {
+        let recipientPubKey;
+        try {
+            // see https://api.fullstack.cash/docs/#api-Encryption-Get_encryption_key_for_bch_address
+            // if successful, returns
+            // { 
+            //   success: true,
+            //   publicKey: hex string
+            // }
+            // if Address only has incoming transaction but NO outgoing transaction, returns
+            // { 
+            //   success: false,
+            //   publicKey: "not found"
+            // }
+            recipientPubKey = await bchObj.encryption.getPubKey(recipientAddress);
+        } catch (err) {
+            console.log(`SendBCH.handleAddressChange() error: ` + err);
+            recipientPubKey = {
+                success: false,
+                error: 'fetch error - exception thrown'
+            }
+        }
+        const {success, publicKey} = recipientPubKey;
+        if ( success ) {
+            setRecipientPubKeyHex(publicKey);
+            setIsOpReturnMsgDisabled(false);
+            setRecipientPubKeyWarning(false);
+        } else {
+            setRecipientPubKeyHex(false);
+            setIsOpReturnMsgDisabled(true);
+            if ( publicKey && publicKey === 'not found' ) {
+                setRecipientPubKeyWarning('This address has no outgoing transaction');
+            } else {
+                setRecipientPubKeyWarning('This address appear to be newly created')
+            }
+        }
+    }
+
+    const handleAddressChange = async e => {
         const { value, name } = e.target;
         let error = false;
         let addressString = value;
@@ -337,14 +415,19 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             if (isValidTokenPrefix(address)) {
                 error = `Token addresses are not supported for ${currency.ticker} sends`;
             }
-        }
-        setSendBchAddressError(error);
-
+        
+        
         // Is this address same with my address?
         if (currentAddress && address && address === currentAddress) {
-            setSendBchAddressError(
-                'Cannot send to yourself!'
-            );
+            error = 'Cannot send to yourself!';
+        }}
+
+        setSendBchAddressError(error);
+
+        // if the address is correct
+        // attempt the fetch the public key assocciated with this address
+        if (!error) {
+            fetchRecipientPublicKey(address);
         }
 
         // Set amount if it's in the query string
@@ -523,6 +606,16 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             width: 'auto',
                         }}
                     >
+                         { recipientPubKeyWarning &&
+                            <Alert
+                                style={{
+                                    margin: '0 0 10px 0'
+                                }}
+                                message={recipientPubKeyWarning}
+                                type="warning"
+                                showIcon
+                            />
+                        }
                         <FormItemWithQRCodeAddon
                                 style={{
                                     margin: '0 0 10px 0'
@@ -581,6 +674,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             allowClear={true}
                             autoSize={{minRows: 2, maxRows: 4}}
                             placeholder="Optional Private Message"
+                            disabled={isOpReturnMsgDisabled}
                             value={
                                 opReturnMsg
                                     ? isEncryptedOptionalOpReturnMsg

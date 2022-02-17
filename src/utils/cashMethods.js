@@ -343,21 +343,6 @@ export const checkNullUtxosForTokenStatus = txDataResults => {
     return nonEtokenUtxos;
 };
 
-export const getPublicKey = async (BCH, address) => {
-    try {
-        const publicKey = await BCH.encryption.getPubKey(address);
-        return publicKey.publicKey;
-    } catch (err) {
-        if (err['error'] === 'No transaction history.') {
-            throw new Error(
-                'Cannot send an encrypted message to a wallet with no outgoing transactions',
-            );
-        } else {
-            throw err;
-        }
-    }
-};
-
 export const isLegacyMigrationRequired = wallet => {
     // If the wallet does not have Path10605, Path1899, Path899
     // Or each of Path10605, Path1899, Path899 does not have a public key
