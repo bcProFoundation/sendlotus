@@ -125,7 +125,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         passLoadingStatus(false);
     }, [balances.totalBalance]);
 
-    useEffect(() => {
+    useEffect(async () => {
          // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
          const BCH = jestBCH ? jestBCH : getBCH();
 
@@ -141,6 +141,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 // send dust amount
                 value: getDustXPI(),
             });
+            await fetchRecipientPublicKey(BCH,location.state.replyAddress);
         }
 
         // Do not set txInfo in state if query strings are not present
@@ -345,7 +346,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }
     }
 
-    const fetchRecipientPublicKey = async (recipientAddress) => {
+    const fetchRecipientPublicKey = async (BCH, recipientAddress) => {
         let recipientPubKey;
         try {
             // see https://api.fullstack.cash/docs/#api-Encryption-Get_encryption_key_for_bch_address
@@ -359,7 +360,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             //   success: false,
             //   publicKey: "not found"
             // }
-            recipientPubKey = await bchObj.encryption.getPubKey(recipientAddress);
+            recipientPubKey = await BCH.encryption.getPubKey(recipientAddress);
         } catch (err) {
             console.log(`SendBCH.handleAddressChange() error: ` + err);
             recipientPubKey = {
@@ -427,7 +428,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // if the address is correct
         // attempt the fetch the public key assocciated with this address
         if (!error) {
-            fetchRecipientPublicKey(address);
+            fetchRecipientPublicKey(bchObj ,address);
         }
 
         // Set amount if it's in the query string
