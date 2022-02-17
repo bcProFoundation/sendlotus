@@ -621,7 +621,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 style={{
                                     margin: '0 0 10px 0'
                                 }}
-                            loadWithCameraOpen={scannerSupported}
+                            loadWithCameraOpen={false}
                             validateStatus={sendBchAddressError ? 'error' : ''}
                             help={
                                 sendBchAddressError ? sendBchAddressError : ''
