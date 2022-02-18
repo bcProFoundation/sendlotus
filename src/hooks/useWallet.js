@@ -1164,7 +1164,7 @@ const useWallet = () => {
         }).finally(() => {
             setLoading(false);
         });
-    }, 10000);
+    }, 5000);
 
     // @Todo: investigate and uncomment here
     return {
