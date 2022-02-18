@@ -207,10 +207,10 @@ const useWallet = () => {
     const update = async ({ walletToUpdate }) => {
         //console.log(`tick()`);
         //console.time("update");
+        if (!walletToUpdate || isUpdateRunning) {
+            return;
+        }
         try {
-            if (!walletToUpdate || isUpdateRunning) {
-                return;
-            }
             setIsUpdateRunning(true);
             const xAddresses = [
                 walletToUpdate.Path10605.xAddress,
