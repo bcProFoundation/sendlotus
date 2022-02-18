@@ -40,7 +40,10 @@ const useWallet = () => {
     } = useBCH();
     const [loading, setLoading] = useState(true);
     const [apiIndex, setApiIndex] = useState(0);
-    const [BCH, setBCH] = useState(getBCH(apiIndex));
+    // const [BCH, setBCH] = useState(getBCH(apiIndex));
+    const [BCH, setBCH] = useState(() => {
+        return getBCH(apiIndex)
+    });
     const { balances, tokens, utxos } = isValidStoredWallet(wallet)
         ? wallet.state
         : {
@@ -208,7 +211,7 @@ const useWallet = () => {
             if (!walletToUpdate || isUpdateRunning) {
                 return;
             }
-            // setIsUpdateRunning(true);
+            setIsUpdateRunning(true);
             const xAddresses = [
                 walletToUpdate.Path10605.xAddress,
                 walletToUpdate.Path1899.xAddress,
@@ -335,7 +338,7 @@ const useWallet = () => {
             console.log(`Trying next API...`);
             tryNextAPI();
         } finally {
-            // setIsUpdateRunning(false);
+            setIsUpdateRunning(false);
         }
         //console.timeEnd("update");
     };
@@ -1110,15 +1113,6 @@ const useWallet = () => {
         }
     }
 
-    // Update wallet every 10s
-    useAsyncTimeout(async () => {
-        const walletToUpdate = await getWallet();
-        update({
-            walletToUpdate
-        }).finally(() => {
-            setLoading(false);
-        });
-    }, 10000);
 
     const fetchBchPrice = async (
         fiatCode = cashtabSettings ? cashtabSettings.fiatCurrency : 'usd',
@@ -1160,6 +1154,17 @@ const useWallet = () => {
         const initialSettings = await loadCashtabSettings();
         initializeFiatPriceApi(initialSettings.fiatCurrency);
     }, []);
+
+
+    // Update wallet every 10s
+    useAsyncTimeout(async () => {
+        const walletToUpdate = await getWallet();
+        update({
+            walletToUpdate
+        }).finally(() => {
+            setLoading(false);
+        });
+    }, 10000);
 
     // @Todo: investigate and uncomment here
     return {
