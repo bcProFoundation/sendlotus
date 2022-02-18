@@ -310,8 +310,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
             // redirect to wallet home page
             passLoadingStatus(false);
-            // update the wallet the get the new utxos
-            // refresh();
+            // update the wallet the get the new utxos 1s after sending
+            setTimeout(refresh,1000);
             history.push('/');
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop
