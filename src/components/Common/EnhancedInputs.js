@@ -369,9 +369,7 @@ export const AddressValidators = () => {
     }();
 };
 
-// OP_RETURN message related components
-
-
+// OP_RETURN message related component
 const OpReturnMessageHelp = styled.div`
     margin-top: 20px;
     font-size: 12px;
@@ -387,48 +385,48 @@ const OpReturnMessageHelp = styled.div`
     }
 
     em {
-        // color: ${props => props.theme.primary} !important;
-        // TODO: should be able to access the theme as above
-        // but it return undefined - need to figure out what causes the error
-
-        color: #6f2dbd !important
+        color: ${props => props.theme.primary} !important;
     }
-    
 `;
 
-// Help (?) Icon that shows the OP_RETURN info
-const helpInfoIcon = (
-    <ThemedQuerstionCircleOutlinedFaded 
-        onClick={() => {
-            Modal.info({
-                centered: true,
-                okText: 'Got It',
-                title: 'Optional Message',
-                maskClosable: 'true',
-                content: (
-                    <OpReturnMessageHelp>
-                        <div className='heading'>Higher Fee</div>
-                        <ul>
-                            <li>Transaction with attached message will incur <em>higher fee.</em></li>
-                        </ul>
-                        <div className='heading'>Encryption</div>
-                        <ul>
-                            <li>Message is encrypted and only readable to the intended recipient.</li>
-                            <li>Encrypted message can only be sent to <em>wallets with at least 1 outgoing transaction.</em></li>
-                        </ul>
-                        <div className='heading'>Message Length</div>
-                        <ul>
-                            <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
-                            <li>Encrypted message max length is 206 bytes.</li>
-                        </ul>
-                    </OpReturnMessageHelp>
-                ),
-            })
-        }}
-    />
-)
-
 export const OpReturnMessageInput = ({value, onChange, maxByteLength, labelTop, labelBottom,  ...otherProps}) => {
+    // in order to access the theme object provided by styled-component ThemeProvider
+    // we need to use Modal.useModal() hook
+    // see https://ant.design/components/modal/#FAQ
+    const [modal, contextHolder] = Modal.useModal();
+
+    // Help (?) Icon that shows the OP_RETURN info
+    const helpInfoIcon = (
+        <ThemedQuerstionCircleOutlinedFaded 
+            onClick={() => {
+                // console.log(contextHolder);
+                modal.info({
+                    centered: true,
+                    okText: 'Got It',
+                    title: 'Optional Message',
+                    maskClosable: 'true',
+                    content: (
+                        <OpReturnMessageHelp>
+                            <div className='heading'>Higher Fee</div>
+                            <ul>
+                                <li>Transaction with attached message will incur <em>higher fee.</em></li>
+                            </ul>
+                            <div className='heading'>Encryption</div>
+                            <ul>
+                                <li>Message is encrypted and only readable to the intended recipient.</li>
+                                <li>Encrypted message can only be sent to <em>wallets with at least 1 outgoing transaction.</em></li>
+                            </ul>
+                            <div className='heading'>Message Length</div>
+                            <ul>
+                                <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
+                                <li>Encrypted message max length is 206 bytes.</li>
+                            </ul>
+                        </OpReturnMessageHelp>
+                    ),
+                })
+            }}
+        />
+)
 
     const trimMessage = (msg) => {
         // keep trimming the message one character at time
@@ -466,6 +464,7 @@ export const OpReturnMessageInput = ({value, onChange, maxByteLength, labelTop, 
                         {labelTop}
                     </div>
                     <div>
+                        {contextHolder}
                         {Buffer.from(value).length}  / {maxByteLength} bytes {helpInfoIcon}
                     </div>
                 

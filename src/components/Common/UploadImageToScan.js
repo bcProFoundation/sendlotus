@@ -7,7 +7,7 @@ import { currency, isValidCashPrefix, isValidTokenPrefix } from '@components/Com
 import { Event } from '@utils/GoogleAnalytics';
 
 const StyledUploadOutlined = styled(UploadOutlined)`
-  color: #6f2dbd !important;
+  color: ${props => props.theme.primary} !important;
   font-size: 20px;
 `
 
@@ -20,7 +20,7 @@ const StyledSpan = styled.span`
     top: 0px;
     align-items: center;
     justify-content: center;
-    color: rgb(111, 45, 189);
+    color: ${props => props.theme.primary} !important;
 `;
 
 const UploadImageToScan = ({
