@@ -1,6 +1,8 @@
 import { currency } from '@components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
+import * as localforage from 'localforage';
+const hash160 = require('bcrypto/lib/hash160');
 
 export function parseOpReturn(hexStr) {
     if (
@@ -363,4 +365,47 @@ export const isLegacyMigrationRequired = wallet => {
 
 export const getDustXPI = () => {
     return currency.dustSats / (10 ** currency.cashDecimals);
+}
+
+export const getAllPublicKeysOfWallet = (wallet) => {
+    let publicKeys = [];
+    if (wallet) {
+        if (wallet.Path10605 && wallet.Path10605.publicKey) {
+            publicKeys.push(wallet.Path10605.publicKey);
+        }
+        if (wallet.Path1899 && wallet.Path1899.publicKey) {
+            publicKeys.push(wallet.Path1899.publicKey);
+        }
+        if (wallet.Path899 && wallet.Path899.publicKey) {
+            publicKeys.push(wallet.Path899.publicKey);
+        }
+    }
+    return publicKeys;
+}
+
+export const getAddressesOfWallet = (wallet) => {
+    const addresses = [];
+    if (wallet) {
+        if (wallet.Path10605 && wallet.Path10605.xAddress) {
+            addresses.push(wallet.Path10605.xAddress);
+        }
+        if (wallet.Path1899 && wallet.Path1899.xAddress) {
+            addresses.push(wallet.Path1899.xAddress);
+        }
+        if (wallet.Path899 && wallet.Path899.xAddress) {
+            addresses.push(wallet.Path899.xAddress);
+        }
+    }
+
+    return addresses;
+}
+
+export const getAddressesOfSavedWallets = async () => {
+    let addresses = [];
+    const savedWallets = await localforage.getItem('savedWallets');
+    savedWallets.forEach(wallet => {
+        addresses = addresses.concat(getAddressesOfWallet(wallet));
+    })
+
+    return addresses;
 }

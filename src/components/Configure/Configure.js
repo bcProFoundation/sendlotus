@@ -33,6 +33,8 @@ import { ReactComponent as Edit } from '@assets/edit.svg';
 import { Event } from '@utils/GoogleAnalytics';
 import ApiError from '@components/Common/ApiError';
 import ResponsiveIframe from '@components/Common/ResponsiveIframe';
+import { PushNotificationContext } from 'utils/context';
+import { getPlatformPermissionState, subscribeAllWalletsToPushNotification, unsubscribeWalletFromPushNotification } from 'utils/pushNotification';
 
 const { Panel } = Collapse;
 
@@ -188,6 +190,7 @@ const StyledEmbeddedQRIframeCtn = styled.div`
 const Configure = () => {
     const ContextValue = React.useContext(WalletContext);
     const authentication = React.useContext(AuthenticationContext);
+    const pushNotificationConfig = React.useContext(PushNotificationContext);
     const { wallet, apiError } = ContextValue;
 
     const {
@@ -272,6 +275,12 @@ const Configure = () => {
             Modal.success({
                 content: 'Wallet added to your saved wallets',
             });
+            
+            // subscribe the new wallet to push notification if neccessary
+            // in non-interactive mode
+            if ( pushNotificationConfig && pushNotificationConfig.allowPushNotification && getPlatformPermissionState() === 'granted') {
+                subscribeAllWalletsToPushNotification(pushNotificationConfig,false);
+            }
         }
         await updateSavedWallets(wallet);
     };
@@ -360,7 +369,7 @@ const Configure = () => {
 
         // Hide modal
         setShowDeleteWalletModal(false);
-        // Change wallet name
+        // Delete wallet
         console.log(`Deleting wallet "${walletToBeDeleted.name}"`);
         const walletDeletedSuccess = await deleteWallet(walletToBeDeleted);
 
@@ -368,6 +377,8 @@ const Configure = () => {
             Modal.success({
                 content: `Wallet "${walletToBeDeleted.name}" successfully deleted`,
             });
+            // unsubscribe the deleted wallet from Push Notification
+            unsubscribeWalletFromPushNotification(pushNotificationConfig, walletToBeDeleted);
         } else {
             Modal.error({
                 content: `Error deleting ${walletToBeDeleted.name}.`,
