@@ -201,7 +201,7 @@ const LixiEnvelopeViewModal =
                 {lixiRedeemed && <BalanceHeader
                     balance={fromSmallestDenomination(lixiRedeemed.amount)}
                     ticker={currency.ticker} />}
-                <Image src={envelopeUrl} />
+                {envelopeUrl && <Image src={envelopeUrl} />}
                 <div style={{
                     display: 'flex',
                     justifyContent: 'space-around',

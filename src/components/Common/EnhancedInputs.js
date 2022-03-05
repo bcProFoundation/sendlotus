@@ -135,7 +135,7 @@ export const StyledScanQRCode = styled(ScanQRCode)`
     width: 50%;
     font-size: 20px;
     display: inline-flex;
-    border-right: 1px solid rgb(207, 199, 192);
+    border-right: 1px solid ${props => props.theme.qr.borderRight};
     height: 100%;
     position: absolute;
     left: 0px;
