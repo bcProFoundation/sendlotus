@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Modal, Image } from 'antd';
-import ThemeCardGif from '@assets/theme_card.gif';
+import ThemeCardGif from '@assets/woman_day_theme_card.gif';
 
 
 const LixiEnvelopeWatingModal = ({ className, onOpenLixi }) => {
