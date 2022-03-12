@@ -124,7 +124,7 @@ const RedeemComponent = ({ address, redeemCode }) => {
                 let url = `${process.env.REACT_APP_BCHA_LIXI_APIS_BASE}${lixi?.envelope?.image}`;
                 const shareUrl = `${process.env.REACT_APP_BCHA_LIXI}lixi/${lixiRedeemed.id}`;
 
-                if (lixiRedeemed.vaultId == 27) {
+                if (lixiRedeemed.vaultId == 72) {
                     url = `${process.env.REACT_APP_BCHA_LIXI_APIS_BASE}images/8f/8fa0be278c688c2de955aa66baef62e04d23d36f58adeccfeba3ae3276ea3ae3.jpg`;
                 }
                 setEnvelopeUrl(url);
