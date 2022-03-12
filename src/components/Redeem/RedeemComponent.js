@@ -43,7 +43,7 @@ const RedeemComponent = ({ address, redeemCode }) => {
         value: '',
         redeemCode: '',
     });
-    
+
     const [envelopeUrl, setEnvelopeUrl] = useState('');
     const [shareUrl, setShareUrl] = useState('');
     const [showLixiModal, setShowLixiModal] = useState(false);
@@ -51,6 +51,7 @@ const RedeemComponent = ({ address, redeemCode }) => {
     const [isWaitingToOpenLixi, setIsWaitingToOpenLixi] = useState(false);
     const [enableRedeem, setEnableRedeem] = useState(true);
     const [enableOpenLixi, setEnableOpenLixi] = useState(true);
+    const [code, setCode] = useState('');
 
     useEffect(() => {
         if (redeemCode) {
@@ -61,7 +62,7 @@ const RedeemComponent = ({ address, redeemCode }) => {
         }
     }, [redeemCode]);
 
-    const handleOnClick = async e => {
+    const handleOnClick = async (e) => {
         setEnableRedeem(false);
         e.preventDefault();
         setLixiRedeemed(null);
@@ -72,6 +73,8 @@ const RedeemComponent = ({ address, redeemCode }) => {
         setShowLixiModal(true);
         setIsWaitingToOpenLixi(true);
         setEnableRedeem(true);
+        setCode(formData.redeemCode);
+
     }
 
     async function submit(token, currentAddress, redeemCode) {
@@ -158,6 +161,7 @@ const RedeemComponent = ({ address, redeemCode }) => {
     if (showLixiModal && isWaitingToOpenLixi) {
         lixiModal = <LixiEnvelopeWatingModal
             onOpenLixi={handleOpenLixi}
+            redeemCode={code}
         />
     } else if (showLixiModal && !isWaitingToOpenLixi) {
         lixiModal = <LixiEnvelopeViewModal
