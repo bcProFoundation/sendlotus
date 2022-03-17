@@ -26,6 +26,24 @@ export function base58ToNumber(text) {
     return result;
 }
 
+export function numberToBase58(input) {
+    let n = input;
+
+    if (n === 0) {
+        return '0';
+    }
+
+    const base = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+    let result = '';
+    while (n > 0) {
+        result = base[n % base.length] + result;
+        n = Math.floor(n / base.length);
+    }
+
+    return result;
+}
+
 const ClaimComponent = ({ address, claimCode }) => {
     const history = useHistory();
     const ContextValue = React.useContext(WalletContext);
@@ -122,7 +140,7 @@ const ClaimComponent = ({ address, claimCode }) => {
                 setShowLixiModal(true);
                 setIsWaitingToOpenLixi(false);
                 let url = `${process.env.REACT_APP_BCHA_LIXI_APIS_BASE}api/${lixiClaimed?.image}`;
-                const shareUrl = `${process.env.REACT_APP_BCHA_LIXI}lixi/${lixiClaimed.id}`;
+                const shareUrl = `${process.env.REACT_APP_BCHA_LIXI}claimed/${numberToBase58(lixiClaimed.id)}`;
 
                 if (lixiClaimed.lixiId == 72) {
                     url = `${process.env.REACT_APP_BCHA_LIXI_APIS_BASE}images/8f/8fa0be278c688c2de955aa66baef62e04d23d36f58adeccfeba3ae3276ea3ae3.jpg`;
