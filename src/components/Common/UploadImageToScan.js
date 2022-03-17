@@ -83,9 +83,9 @@ const UploadImageToScan = ({
     return { type, values };
   };
 
-  // Have to apply logic parse redeem code
-  const parseRedeemContent = content => {
-    let type = 'redeemCode';
+  // Have to apply logic parse claim code
+  const parseClaimContent = content => {
+    let type = 'claimCode';
     let values = {
       result: content
     };
@@ -103,7 +103,7 @@ const UploadImageToScan = ({
       switch (codeType) {
         case 'address': result = parseAddressContent(content.text);
           break;
-        case 'redeemCode': result = parseRedeemContent(content.text);
+        case 'claimCode': result = parseClaimContent(content.text);
           break;
 
         default:

@@ -267,20 +267,14 @@ const App = () => {
                                         }
                                     />
                                 </Route>
-                                <Route path="/redeem/:redeemCode"
-                                    render={props => (<RedeemComponent
-                                        redeemCode={props.match.params.redeemCode}
-                                        address={wallet?.Path10605?.xAddress}
-                                    />)}
-                                />
-                                <Route path="/lixi/:redeemCode"
-                                    render={props => (<RedeemComponent
-                                        redeemCode={props.match.params.redeemCode}
+                                <Route path="/lixi/:claimCode"
+                                    render={props => (<ClaimComponent
+                                        claimCode={props.match.params.claimCode}
                                         address={wallet?.Path10605?.xAddress}
                                     />)}
                                 />
                                 <Route path="/lixi"
-                                    render={props => (<RedeemComponent
+                                    render={props => (<ClaimComponent
                                         address={wallet?.Path10605?.xAddress}
                                     />)}
                                 />

@@ -29,11 +29,11 @@ import * as CopyToClipboard from 'react-copy-to-clipboard';
 
 
 const imageBrowserDownload = (imageUri) => {
-    const filename = 'redeem' + Date.now() + '.png';
+    const filename = 'claim' + Date.now() + '.png';
     saveAs(imageUri, filename);
 };
 
-const RedeemButton = styled.button`
+const ClaimButton = styled.button`
     border: none;
     color: ${props => props.theme.buttons.primary.color};
     background-image: ${props => props.theme.buttons.primary.backgroundImage};
@@ -136,16 +136,16 @@ const popOverContent = (shareUrl) => {
 
 const ShareSocialDropdown = (
     <Popover content={() => popOverContent(shareUrl)}>
-        <RedeemButton>
+        <ClaimButton>
             <ShareAltOutlined /> Share
-        </RedeemButton>
+        </ClaimButton>
     </Popover>
 );
 
 
 const LixiEnvelopeViewModal =
     ({ className,
-        lixiRedeemed,
+        lixiClaimed,
         handleCancelLixiModal,
         envelopeUrl,
         shareUrl
@@ -160,18 +160,18 @@ const LixiEnvelopeViewModal =
         //         }}
         //         onClick={() => console.log("shared successfully!")}
         //     >
-        //         <RedeemButton>
+        //         <ClaimButton>
         //             <ShareAltOutlined /> Share
-        //         </RedeemButton>
+        //         </ClaimButton>
         //     </RWebShare>
         // );
 
         const handleOnCopyLink = () => {
-            message.info('Link to the redeem has been copied.');
+            message.info('Link to the claim has been copied.');
         };
 
         const handleOnClickCopyLink = () => {
-            console.log('handleOnClickRedeemCode');
+            console.log('handleOnClickclaimCode');
         }
 
         const CopyLinkButton = (
@@ -182,9 +182,9 @@ const LixiEnvelopeViewModal =
                 text={shareUrl}
                 onCopy={handleOnCopyLink}
             >
-                <RedeemButton>
+                <ClaimButton>
                     <LinkOutlined /> Copy Link
-                </RedeemButton>
+                </ClaimButton>
             </CopyToClipboard>
         );
 
@@ -198,19 +198,20 @@ const LixiEnvelopeViewModal =
                 footer={null}
                 maskClosable={false}
             >
-                {lixiRedeemed && <BalanceHeader
-                    balance={fromSmallestDenomination(lixiRedeemed.amount)}
+                {lixiClaimed && <BalanceHeader
+                    balance={fromSmallestDenomination(lixiClaimed.amount)}
                     ticker={currency.ticker} />}
                 {envelopeUrl && <Image src={envelopeUrl} />}
+                {lixiClaimed && lixiClaimed.message && <div>{lixiClaimed.message}</div>}
                 <div style={{
                     display: 'flex',
                     justifyContent: 'space-around',
                     paddingTop: '20px'
 
                 }}>
-                    <RedeemButton onClick={() => imageBrowserDownload(envelopeUrl)}>
+                    <ClaimButton onClick={() => imageBrowserDownload(envelopeUrl)}>
                         <SaveOutlined /> Save
-                    </RedeemButton>
+                    </ClaimButton>
                     {CopyLinkButton}
                 </div>
 

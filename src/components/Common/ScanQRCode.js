@@ -75,9 +75,9 @@ const ScanQRCode = ({
         return { type, values };
     };
 
-    // Have to apply logic parse redeem code 
-    const parseRedeemContent = content => {
-        let type = 'redeemCode';
+    // Have to apply logic parse claim code 
+    const parseClaimContent = content => {
+        let type = 'claimCode';
         let values = { result: content };
         return { type, values };
     };
@@ -109,8 +109,8 @@ const ScanQRCode = ({
                 case 'address':
                     result = parseAddressContent(content.text);
                     break;
-                case 'redeemCode':
-                    result = parseRedeemContent(content.text);
+                case 'claimCode':
+                    result = parseClaimContent(content.text);
                     break;
 
                 default:

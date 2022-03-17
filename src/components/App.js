@@ -14,7 +14,7 @@ import Icon from '@ant-design/icons';
 import { ReactComponent as IconLixi } from '@assets/icon_lixi.svg';
 import Wallet from '@components/Wallet/Wallet';
 import Send from '@components/Send/Send';
-import RedeemComponent from '@components/Redeem/RedeemComponent';
+import ClaimComponent from '@components/Claim/ClaimComponent';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
@@ -288,20 +288,14 @@ const App = () => {
                                             }
                                         />
                                     </Route>
-                                    <Route path="/redeem/:redeemCode"
-                                        render={props => (<RedeemComponent
-                                            redeemCode={props.match.params.redeemCode}
-                                            address={wallet?.Path10605?.xAddress}
-                                        />)}
-                                    />
-                                    <Route path="/lixi/:redeemCode"
-                                        render={props => (<RedeemComponent
-                                            redeemCode={props.match.params.redeemCode}
+                                    <Route path="/lixi/:claimCode"
+                                        render={props => (<ClaimComponent
+                                            claimCode={props.match.params.claimCode}
                                             address={wallet?.Path10605?.xAddress}
                                         />)}
                                     />
                                     <Route path="/lixi"
-                                        render={props => (<RedeemComponent
+                                        render={props => (<ClaimComponent
                                             address={wallet?.Path10605?.xAddress}
                                         />)}
                                     />

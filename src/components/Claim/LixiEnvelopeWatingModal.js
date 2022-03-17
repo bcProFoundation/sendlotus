@@ -5,14 +5,14 @@ import ThemeCardGif from '@assets/woman_day_theme_card.gif';
 import WeddingThemeCardGif from '@assets/wedding_theme_card.gif';
 
 
-const LixiEnvelopeWatingModal = ({ className, onOpenLixi, redeemCode }) => {
+const LixiEnvelopeWatingModal = ({ className, onOpenLixi, claimCode }) => {
 
-    const specialRedeemCode = '2LFmAfUm1A';
+    const specialclaimCode = '2LFmAfUm1A';
 
     return (
         <Modal visible={true} closable={false} footer={null} className={className}>
             <div className='lixi-container' onClick={onOpenLixi}>
-                <Image preview={false} src={redeemCode == specialRedeemCode ? WeddingThemeCardGif : ThemeCardGif} className='envelope-background' />
+                <Image preview={false} src={claimCode == specialclaimCode ? WeddingThemeCardGif : ThemeCardGif} className='envelope-background' />
             </div>
         </Modal>
     )
