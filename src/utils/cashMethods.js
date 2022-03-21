@@ -2,7 +2,6 @@ import { currency } from '@components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 import * as localforage from 'localforage';
-const hash160 = require('bcrypto/lib/hash160');
 
 export function parseOpReturn(hexStr) {
     if (
