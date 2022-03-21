@@ -5,7 +5,7 @@ import { registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import badge from '@assets/lotus-pink-logo.png';
-import appIcon from '@assets/logo-primary.png';
+import appIcon from '@assets/logo_primary.png';
 import * as localforage from 'localforage';
 import { unsubscribePushNotification } from 'utils/pushNotification';
 import { getWalletNameFromAddress } from 'utils/cashMethods';
