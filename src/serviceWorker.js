@@ -7,6 +7,7 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import LogoLotusPink from '@assets/lotus-pink-logo.png';
 import * as localforage from 'localforage';
 import { unsubscribePushNotification } from 'utils/pushNotification';
+import { getWalletNameFromAddress } from 'utils/cashMethods';
 
 clientsClaim();
 self.skipWaiting();
@@ -52,8 +53,16 @@ self.addEventListener('push', event => {
         } else if (type === 'TX') {
             const { amount, toAddress, fromAddress } = payload;
             const amountXPI = amount / 1000000;
+            const from = '...' + fromAddress.substring(fromAddress.length - 6);
+            let toName = null;
+            try {
+                toName = await getWalletNameFromAddress(toAddress);
+            } catch (error) {
+                console.log('error in getWalletNameFromAddress()', error);
+            }
+            const to = toName || '...' + toAddress.substring(toAddress.length -6);
             title = `Receiving ${amountXPI} XPI`;
-            options.body =  `From: ${fromAddress}`
+            options.body =  `From: ${from} - To: ${to}`
         }
         if (!focusedWindow) {
             // sendlotus.com is NOT open and focused

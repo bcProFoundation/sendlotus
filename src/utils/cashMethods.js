@@ -408,3 +408,16 @@ export const getAddressesOfSavedWallets = async () => {
 
     return addresses;
 }
+
+export const getWalletNameFromAddress = async (address) => {
+    const savedWallets = await localforage.getItem('savedWallets');
+    const found = savedWallets.find(wallet => {
+        return (
+            wallet.Path10605.xAddress === address ||
+            wallet.Path1899.xAddress === address ||
+            wallet.Path899.xAddress === address
+        )
+    });
+
+    return found ? found.name : null;
+}
