@@ -4,7 +4,8 @@ import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
-import LogoLotusPink from '@assets/lotus-pink-logo.png';
+import badge from '@assets/lotus-pink-logo.png';
+import appIcon from '@assets/logo-primary.png';
 import * as localforage from 'localforage';
 import { unsubscribePushNotification } from 'utils/pushNotification';
 import { getWalletNameFromAddress } from 'utils/cashMethods';
@@ -41,8 +42,8 @@ self.addEventListener('push', event => {
             return;
         }
         let options = {
-            icon: LogoLotusPink,
-            badge: LogoLotusPink,
+            icon: appIcon,
+            badge: badge,
             requireInteraction: false,
             silent: false,
         };
@@ -53,15 +54,15 @@ self.addEventListener('push', event => {
         } else if (type === 'TX') {
             const { amount, toAddress, fromAddress } = payload;
             const amountXPI = amount / 1000000;
-            const from = '...' + fromAddress.substring(fromAddress.length - 6);
+            const from = '...' + fromAddress.substring(fromAddress.length - 4);
             let toName = null;
             try {
                 toName = await getWalletNameFromAddress(toAddress);
             } catch (error) {
                 console.log('error in getWalletNameFromAddress()', error);
             }
-            const to = toName || '...' + toAddress.substring(toAddress.length -6);
-            title = `Receiving ${amountXPI} XPI`;
+            const to = toName || '...' + toAddress.substring(toAddress.length - 4);
+            title = `Received ${amountXPI} XPI`;
             options.body =  `From: ${from} - To: ${to}`
         }
         if (!focusedWindow) {
