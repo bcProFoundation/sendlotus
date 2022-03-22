@@ -2,6 +2,7 @@ import { currency } from '@components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 import * as localforage from 'localforage';
+import { createSharedKey, decrypt } from './encryption';
 
 export function parseOpReturn(hexStr) {
     if (
@@ -420,4 +421,24 @@ export const getWalletNameFromAddress = async (address) => {
     });
 
     return found ? found.name : null;
+}
+
+// return a Promise
+// opReturnMsg, publicKeyHex are all hex strings
+// privateKeyWIF are normal string
+export const decryptOpReturnMsg = async (opReturnMsg, privateKeyWIF, publicKeyHex) => {
+    try {
+        const sharedKey = createSharedKey(privateKeyWIF, publicKeyHex);
+        const decryptedMsg = decrypt(sharedKey, Uint8Array.from(Buffer.from(opReturnMsg, 'hex')));
+        return {
+            success: true,
+            decryptedMsg
+        }
+    } catch (error) {
+        console.log("DECRYPTION ERROR", error);
+        return {
+            success: false,
+            error
+        }
+    }
 }
