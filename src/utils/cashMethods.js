@@ -423,6 +423,18 @@ export const getWalletNameFromAddress = async (address) => {
     return found ? found.name : null;
 }
 
+export const getPrivateKeyFromAddress = async (address) => {
+    const savedWallets = await localforage.getItem('savedWallets');
+    let privateKey = null;
+    savedWallets.forEach(wallet => {
+        if (wallet.Path10605.xAddress === address) privateKey = wallet.Path10605.fundingWif;
+        else if (wallet.Path1899.xAddress === address) privateKey = wallet.Path1899.fundingWif;
+        else if (wallet.Path899.xAddress === address) privateKey= wallet.Path899.fundingWif;
+    });
+
+    return privateKey;
+}
+
 // return a Promise
 // opReturnMsg, publicKeyHex are all hex strings
 // privateKeyWIF are normal string
