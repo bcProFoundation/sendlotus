@@ -4,8 +4,10 @@ import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
-import badge from '@assets/lotus-pink-logo.png';
-import appIcon from '@assets/logo_primary.png';
+import badge from '@assets/notification_badge_72x72_96dpi.png';
+import iconXPI from '@assets/notification_icon_xpi_192x192_96dpi.png';
+import iconChat from '@assets/notification_icon_chat_192x192_96dpi.png';
+import iconGeneral from '@assets/notification_icon_general_192x192_96dpi.png';
 import * as localforage from 'localforage';
 import { unsubscribePushNotification } from 'utils/pushNotification';
 import { decryptOpReturnMsg, getPrivateKeyFromAddress, getWalletNameFromAddress, parseOpReturn } from 'utils/cashMethods';
@@ -142,7 +144,6 @@ self.addEventListener('push', event => {
             return;
         }
         let options = {
-            icon: appIcon,
             badge: badge,
             requireInteraction: false,
             silent: false,
@@ -151,6 +152,7 @@ self.addEventListener('push', event => {
         if ( type === 'TEXT' ) {
             title = 'Important Annoucement';
             options.body = payload;
+            options.icon = iconGeneral;
         } else if (type === 'TX') {
             const { amount, toAddress, fromAddress, opReturnOutput } = payload;
             const amountXPI = amount / 1000000;
@@ -203,9 +205,13 @@ self.addEventListener('push', event => {
                 
             }
             title = `Received ${amountXPI} XPI`;
+            options.icon = iconXPI;
             options.body =  `From: ${from} - To: ${to}`;
             if (attachedMsg) {
                 options.body += `\n${attachedMsg}`;
+                if ( amount === currency.dustSats ) {
+                    options.icon = iconChat;
+                }
             }
         }
         if (!focusedWindow) {
