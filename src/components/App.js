@@ -250,10 +250,6 @@ const App = () => {
         )
         : false;
 
-    useEffect(() => {
-        checkInWithPushNotificationServer(pushNotificationConfig);
-    },[pushNotificationConfig]);
-
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />
