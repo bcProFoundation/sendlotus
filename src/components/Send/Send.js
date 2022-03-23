@@ -224,7 +224,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             afterClose() {
                 history.push("/");
             },
-          });
+        });
     }
 
     async function submit() {

@@ -426,7 +426,7 @@ export const OpReturnMessageInput = ({value, onChange, maxByteLength, labelTop, 
                 })
             }}
         />
-)
+    )
 
     const trimMessage = (msg) => {
         // keep trimming the message one character at time

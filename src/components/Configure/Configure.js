@@ -35,6 +35,8 @@ import ApiError from '@components/Common/ApiError';
 import ResponsiveIframe from '@components/Common/ResponsiveIframe';
 import { PushNotificationContext } from 'utils/context';
 import { getPlatformPermissionState, subscribeAllWalletsToPushNotification, unsubscribeWalletFromPushNotification } from 'utils/pushNotification';
+import PushNotificationSetting from './PushNotificationSetting';
+import LockAppSetting from './LockAppSetting';
 
 const { Panel } = Collapse;
 
@@ -160,10 +162,10 @@ const StyledSpacer = styled.div`
     margin: 60px 0 50px;
 `;
 
-const GeneralSettingsItem = styled.div`
+const GeneralSettings = styled.div`
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     .title {
         color: ${props => props.theme.generalSettings.item.title};
     }
@@ -655,30 +657,10 @@ const Configure = () => {
             <h2>
                 <ThemedSettingOutlined /> General Settings
             </h2>
-            <GeneralSettingsItem>
-                <div className="title">
-                    <LockFilled /> Lock App
-                </div>
-                {authentication ? (
-                    <Switch
-                        size="small"
-                        checkedChildren={<CheckOutlined />}
-                        unCheckedChildren={<CloseOutlined />}
-                        checked={
-                            authentication.isAuthenticationRequired &&
-                            authentication.credentialId
-                                ? true
-                                : false
-                        }
-                        // checked={false}
-                        onChange={handleAppLockToggle}
-                    />
-                ) : (
-                    <Tag color="warning" icon={<ExclamationCircleFilled />}>
-                        Not Supported
-                    </Tag>
-                )}
-            </GeneralSettingsItem>
+            <GeneralSettings>
+                <LockAppSetting authentication={authentication} />
+                <PushNotificationSetting pushNotificationConfig={pushNotificationConfig} />
+            </GeneralSettings>
         </StyledConfigure>
     );
 };

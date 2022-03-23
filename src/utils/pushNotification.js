@@ -21,7 +21,11 @@ export const askPermission = () => {
 }
 
 export const getPlatformPermissionState = () => {
-    return Notification.permission;
+    if ( 'Notification' in window) {
+        return Notification.permission;
+    }
+
+    return null;
 }
 
 // subscribe all wallets
