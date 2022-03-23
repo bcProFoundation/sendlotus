@@ -1,7 +1,7 @@
 import * as localforage from "localforage";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from 'uuid';
-import { checkInWithPushNotificationServer } from 'utils/pushNotification';
+import { checkInWithPushNotificationServer, getPlatformPermissionState, unsubscribeAllWalletsFromPushNotification } from 'utils/pushNotification';
 
 const KEY = 'pushNotificationConfig';
 
@@ -46,6 +46,12 @@ const usePushNotification = () => {
                     allowPushNotification: undefined,
                     appId: uuidv4(),
                     lastPushMessageTimestamp: undefined
+                }
+            } else {
+                const permission = getPlatformPermissionState();
+                if (permission !== 'granted' && pushConfiguration.allowPushNotification) {
+                    unsubscribeAllWalletsFromPushNotification(pushConfiguration);
+                    pushConfiguration.allowPushNotification = false;
                 }
             }
             setPushNotification(pushConfiguration);

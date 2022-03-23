@@ -75,6 +75,17 @@ export const subscribeAllWalletsToPushNotification = async (pushNotificationConf
     }
   }
 
+export const unsubscribeAllWalletsFromPushNotification = async (pushNotificationConfig) => {
+    if (!pushNotificationConfig || !pushNotificationConfig.allowPushNotification) return;
+
+    try {
+        const addresses = await getAddressesOfSavedWallets();
+        unsubscribePushNotification(addresses, pushNotificationConfig.appId);
+    } catch (error) {
+        console.log('Error is unsubscribeAllWalletsFromPushNotification()', error);
+    }
+}
+
 // unsubscribe a single wallet
 export const unsubscribeWalletFromPushNotification = async (pushNotificationConfig, wallet) => {
     if (!pushNotificationConfig || !wallet) return;
