@@ -4,7 +4,7 @@ import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
-import badge from '@assets/notification_badge_72x72_96dpi.png';
+import badge from '@assets/notification_badge_72x72_240dpi.png';
 import iconXPI from '@assets/notification_icon_xpi_192x192_96dpi.png';
 import iconChat from '@assets/notification_icon_chat_192x192_96dpi.png';
 import iconGeneral from '@assets/notification_icon_general_192x192_96dpi.png';
