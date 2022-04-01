@@ -191,6 +191,7 @@ const ClaimComponent = ({ address, claimCode }) => {
             lixiClaimed={lixiClaimed}
             shareUrl={shareUrl}
             handleCancelLixiModal={handleCancelLixiModal}
+            isMobile={isMobile}
         />
     }
 
