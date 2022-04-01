@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { saveAs } from 'file-saver';
 import { RWebShare } from "react-web-share";
-import { Image, Modal, Popover, notification, message } from 'antd';
+import { Image, Modal, Popover, notification,Button } from 'antd';
 import { fromSmallestDenomination } from '@utils/cashMethods';
 import BalanceHeader from '@components/Common/BalanceHeader';
 import { currency } from '@components/Common/Ticker.js';
@@ -115,6 +115,17 @@ const SocialSharePanel = ({ className, shareUrl }) => {
                     <WhatsappIcon size={32} round />
                 </WhatsappShareButton>
             </div>
+            <div className="socialshare-network">
+                <Button
+                    type="primary"
+                    shape="circle"
+                    icon={<LinkOutlined style={{ color: 'white', fontSize: '20px' }} />}
+                    onClick={() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        notification.success('Link copied to clipboard');
+                    }}
+                />
+            </div>
         </div>
     );
 }
@@ -148,23 +159,24 @@ const LixiEnvelopeViewModal =
         lixiClaimed,
         handleCancelLixiModal,
         envelopeUrl,
-        shareUrl
+        shareUrl,
+        isMobile
     }) => {
 
-        // const ShareSocialButton = (
-        //     <RWebShare
-        //         data={{
-        //             text: "Lixi Program sent you a small gift!",
-        //             url: shareUrl,
-        //             title: "Flamingos",
-        //         }}
-        //         onClick={() => console.log("shared successfully!")}
-        //     >
-        //         <ClaimButton>
-        //             <ShareAltOutlined /> Share
-        //         </ClaimButton>
-        //     </RWebShare>
-        // );
+        const ShareSocialButton = (
+            <RWebShare
+                data={{
+                    text: "Lixi Program sent you a small gift!",
+                    url: shareUrl,
+                    title: "Flamingos",
+                }}
+                onClick={() => console.log("shared successfully!")}
+            >
+                <ClaimButton>
+                    <ShareAltOutlined /> Share
+                </ClaimButton>
+            </RWebShare>
+        );
 
         const handleOnCopyLink = () => {
             message.info('Link to the claim has been copied.');
@@ -212,7 +224,7 @@ const LixiEnvelopeViewModal =
                     <ClaimButton onClick={() => imageBrowserDownload(envelopeUrl)}>
                         <SaveOutlined /> Save
                     </ClaimButton>
-                    {CopyLinkButton}
+                    {isMobile ? ShareSocialButton : ShareSocialDropdown}
                 </div>
 
             </Modal>
