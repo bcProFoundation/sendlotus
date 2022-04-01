@@ -154,7 +154,7 @@ self.addEventListener('push', event => {
             options.body = payload;
             options.icon = iconGeneral;
         } else if (type === 'TX') {
-            const { amount, toAddress, fromAddress, opReturnOutput } = payload;
+            const { txHash, amount, toAddress, fromAddress, opReturnOutput } = payload;
             const amountXPI = amount / 1000000;
             const from = '...' + fromAddress.substring(fromAddress.length - 4);
             let toName = null;
@@ -205,6 +205,8 @@ self.addEventListener('push', event => {
                 
             }
             title = `Received ${amountXPI} XPI`;
+            options.tag = txHash;
+            options.renotify = false;
             options.icon = iconXPI;
             options.body =  `From: ${from} - To: ${to}`;
             if (attachedMsg) {
