@@ -145,13 +145,7 @@ const popOverContent = (shareUrl) => {
     )
 };
 
-const ShareSocialDropdown = (
-    <Popover content={() => popOverContent(shareUrl)}>
-        <ClaimButton>
-            <ShareAltOutlined /> Share
-        </ClaimButton>
-    </Popover>
-);
+
 
 
 const LixiEnvelopeViewModal =
@@ -176,6 +170,14 @@ const LixiEnvelopeViewModal =
                     <ShareAltOutlined /> Share
                 </ClaimButton>
             </RWebShare>
+        );
+
+        const ShareSocialDropdown = (
+        <Popover content={() => popOverContent(shareUrl)}>
+            <ClaimButton>
+                <ShareAltOutlined /> Share
+            </ClaimButton>
+        </Popover>
         );
 
         const handleOnCopyLink = () => {
