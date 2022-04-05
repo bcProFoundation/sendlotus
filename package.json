@@ -6,6 +6,7 @@
     "dependencies": {
         "@abcpros/bitcore-lib-xpi": "^8.25.36",
         "@abcpros/minimal-xpi-slp-wallet": "^3.0.5",
+        "@abcpros/xaddress": "^0.0.9",
         "@ant-design/icons": "^4.3.0",
         "@fortawesome/fontawesome-free": "^5.15.1",
         "@zxing/library": "0.8.0",
@@ -34,7 +35,8 @@
         "react-router-dom": "^5.2.0",
         "react-share": "^4.4.0",
         "react-web-share": "^1.1.1",
-        "styled-components": "^4.4.0"
+        "styled-components": "^4.4.0",
+        "uuid": "^8.3.2"
     },
     "lint-staged": {
         "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [

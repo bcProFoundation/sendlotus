@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'antd/dist/antd.less';
 import { Spin } from 'antd';
 import { CashLoadingIcon } from '@components/Common/CustomIcons';
@@ -35,6 +35,8 @@ import {
 // Easter egg imports not used in extension/src/components/App.js
 import { checkForTokenById } from '@utils/tokenMethods.js';
 import ProtectableComponentWrapper from './Authentication/ProtectableComponentWrapper';
+import { PushNotificationContext } from 'utils/context';
+import { checkInWithPushNotificationServer } from 'utils/pushNotification';
 
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
@@ -228,6 +230,7 @@ export const EasterEgg = styled.img`
 
 
 const App = () => {
+    const pushNotificationConfig = React.useContext(PushNotificationContext);
     const ContextValue = React.useContext(WalletContext);
     const { wallet, loading } = ContextValue;
     const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
@@ -246,6 +249,7 @@ const App = () => {
             '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
         )
         : false;
+
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />

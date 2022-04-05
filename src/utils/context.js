@@ -24,3 +24,16 @@ export const AuthenticationProvider = ({ children }) => {
         </AuthenticationContext.Provider>
     );
 };
+
+// PushNotification Context
+import usePushNotification from 'hooks/usePushNotification';
+export const PushNotificationContext = React.createContext();
+export const PushNotificationProvider = ({children}) => {
+    // usePushNotification returns null if Push Notification is not supported
+    const pushNotification = usePushNotification();
+    return (
+        <PushNotificationContext.Provider value={pushNotification}>
+            {children}
+        </PushNotificationContext.Provider>
+    )
+}

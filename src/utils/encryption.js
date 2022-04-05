@@ -42,6 +42,7 @@ const createSharedKey = (privateKeyWIF, publicKeyHex) => {
     return sharedKey
   }
 
+// return a Promise
 // sharedKey: Buffer, plainText: Uint8Array
 const encrypt = (sharedKey, plainText) => {
     // Split shared key
@@ -61,6 +62,7 @@ const encrypt = (sharedKey, plainText) => {
     return cipherText
   }
 
+  // return a Promise
   // sharedKey: Buffer, plainText: Uint8Array
   const decrypt = (sharedKey, cipherText) => {
     // Split shared key

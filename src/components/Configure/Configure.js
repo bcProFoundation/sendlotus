@@ -33,6 +33,10 @@ import { ReactComponent as Edit } from '@assets/edit.svg';
 import { Event } from '@utils/GoogleAnalytics';
 import ApiError from '@components/Common/ApiError';
 import ResponsiveIframe from '@components/Common/ResponsiveIframe';
+import { PushNotificationContext } from 'utils/context';
+import { getPlatformPermissionState, subscribeAllWalletsToPushNotification, unsubscribeWalletFromPushNotification } from 'utils/pushNotification';
+import PushNotificationSetting from './PushNotificationSetting';
+import LockAppSetting from './LockAppSetting';
 
 const { Panel } = Collapse;
 
@@ -158,10 +162,10 @@ const StyledSpacer = styled.div`
     margin: 60px 0 50px;
 `;
 
-const GeneralSettingsItem = styled.div`
+const GeneralSettings = styled.div`
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     .title {
         color: ${props => props.theme.generalSettings.item.title};
     }
@@ -188,6 +192,7 @@ const StyledEmbeddedQRIframeCtn = styled.div`
 const Configure = () => {
     const ContextValue = React.useContext(WalletContext);
     const authentication = React.useContext(AuthenticationContext);
+    const pushNotificationConfig = React.useContext(PushNotificationContext);
     const { wallet, apiError } = ContextValue;
 
     const {
@@ -272,6 +277,12 @@ const Configure = () => {
             Modal.success({
                 content: 'Wallet added to your saved wallets',
             });
+            
+            // subscribe the new wallet to push notification if neccessary
+            // in non-interactive mode
+            if ( pushNotificationConfig && pushNotificationConfig.allowPushNotification && getPlatformPermissionState() === 'granted') {
+                subscribeAllWalletsToPushNotification(pushNotificationConfig,false);
+            }
         }
         await updateSavedWallets(wallet);
     };
@@ -360,7 +371,7 @@ const Configure = () => {
 
         // Hide modal
         setShowDeleteWalletModal(false);
-        // Change wallet name
+        // Delete wallet
         console.log(`Deleting wallet "${walletToBeDeleted.name}"`);
         const walletDeletedSuccess = await deleteWallet(walletToBeDeleted);
 
@@ -368,6 +379,8 @@ const Configure = () => {
             Modal.success({
                 content: `Wallet "${walletToBeDeleted.name}" successfully deleted`,
             });
+            // unsubscribe the deleted wallet from Push Notification
+            unsubscribeWalletFromPushNotification(pushNotificationConfig, walletToBeDeleted);
         } else {
             Modal.error({
                 content: `Error deleting ${walletToBeDeleted.name}.`,
@@ -644,30 +657,10 @@ const Configure = () => {
             <h2>
                 <ThemedSettingOutlined /> General Settings
             </h2>
-            <GeneralSettingsItem>
-                <div className="title">
-                    <LockFilled /> Lock App
-                </div>
-                {authentication ? (
-                    <Switch
-                        size="small"
-                        checkedChildren={<CheckOutlined />}
-                        unCheckedChildren={<CloseOutlined />}
-                        checked={
-                            authentication.isAuthenticationRequired &&
-                            authentication.credentialId
-                                ? true
-                                : false
-                        }
-                        // checked={false}
-                        onChange={handleAppLockToggle}
-                    />
-                ) : (
-                    <Tag color="warning" icon={<ExclamationCircleFilled />}>
-                        Not Supported
-                    </Tag>
-                )}
-            </GeneralSettingsItem>
+            <GeneralSettings>
+                <LockAppSetting authentication={authentication} />
+                <PushNotificationSetting pushNotificationConfig={pushNotificationConfig} />
+            </GeneralSettings>
         </StyledConfigure>
     );
 };

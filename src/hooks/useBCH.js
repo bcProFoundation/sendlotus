@@ -13,6 +13,7 @@ import {
     parseOpReturn,
 } from '@utils/cashMethods';
 import { createSharedKey, decrypt } from 'utils/encryption';
+import { decryptOpReturnMsg } from 'utils/cashMethods';
 
 export default function useBCH() {
     const SEND_BCH_ERRORS = {
@@ -265,14 +266,12 @@ export default function useBCH() {
                             opReturnMessage = 'Cannot retrieve Public Key'
                         }
                         if (otherPublicKey) {
-                            try {
-                                const ourPrivateKey = wallet.Path10605.fundingWif;
-                                const sharedKey = createSharedKey(ourPrivateKey,otherPublicKey.publicKey);
-                                opReturnMessage = decrypt(sharedKey, Uint8Array.from(Buffer.from(msgString, 'hex')));
+                            const decryption = await decryptOpReturnMsg(msgString, wallet.Path10605.fundingWif, otherPublicKey.publicKey);
+                            if (decryption.success) {
+                                opReturnMessage = decryption.decryptedMsg;
                                 decryptionSuccess = true;
-                            } catch (error) {
-                                console.log("public Key", otherPublicKey);
-                                console.log(error);
+                            } else {
+                                console.log(decryption.error);
                                 opReturnMessage = 'Error in decrypting message!'
                             }
                         }

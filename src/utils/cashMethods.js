@@ -1,6 +1,8 @@
 import { currency } from '@components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
+import * as localforage from 'localforage';
+import { createSharedKey, decrypt } from './encryption';
 
 export function parseOpReturn(hexStr) {
     if (
@@ -363,4 +365,92 @@ export const isLegacyMigrationRequired = wallet => {
 
 export const getDustXPI = () => {
     return currency.dustSats / (10 ** currency.cashDecimals);
+}
+
+export const getAllPublicKeysOfWallet = (wallet) => {
+    let publicKeys = [];
+    if (wallet) {
+        if (wallet.Path10605 && wallet.Path10605.publicKey) {
+            publicKeys.push(wallet.Path10605.publicKey);
+        }
+        if (wallet.Path1899 && wallet.Path1899.publicKey) {
+            publicKeys.push(wallet.Path1899.publicKey);
+        }
+        if (wallet.Path899 && wallet.Path899.publicKey) {
+            publicKeys.push(wallet.Path899.publicKey);
+        }
+    }
+    return publicKeys;
+}
+
+export const getAddressesOfWallet = (wallet) => {
+    const addresses = [];
+    if (wallet) {
+        if (wallet.Path10605 && wallet.Path10605.xAddress) {
+            addresses.push(wallet.Path10605.xAddress);
+        }
+        if (wallet.Path1899 && wallet.Path1899.xAddress) {
+            addresses.push(wallet.Path1899.xAddress);
+        }
+        if (wallet.Path899 && wallet.Path899.xAddress) {
+            addresses.push(wallet.Path899.xAddress);
+        }
+    }
+
+    return addresses;
+}
+
+export const getAddressesOfSavedWallets = async () => {
+    let addresses = [];
+    const savedWallets = await localforage.getItem('savedWallets');
+    savedWallets.forEach(wallet => {
+        addresses = addresses.concat(getAddressesOfWallet(wallet));
+    })
+
+    return addresses;
+}
+
+export const getWalletNameFromAddress = async (address) => {
+    const savedWallets = await localforage.getItem('savedWallets');
+    const found = savedWallets.find(wallet => {
+        return (
+            wallet.Path10605.xAddress === address ||
+            wallet.Path1899.xAddress === address ||
+            wallet.Path899.xAddress === address
+        )
+    });
+
+    return found ? found.name : null;
+}
+
+export const getPrivateKeyFromAddress = async (address) => {
+    const savedWallets = await localforage.getItem('savedWallets');
+    let privateKey = null;
+    savedWallets.forEach(wallet => {
+        if (wallet.Path10605.xAddress === address) privateKey = wallet.Path10605.fundingWif;
+        else if (wallet.Path1899.xAddress === address) privateKey = wallet.Path1899.fundingWif;
+        else if (wallet.Path899.xAddress === address) privateKey= wallet.Path899.fundingWif;
+    });
+
+    return privateKey;
+}
+
+// return a Promise
+// opReturnMsg, publicKeyHex are all hex strings
+// privateKeyWIF are normal string
+export const decryptOpReturnMsg = async (opReturnMsg, privateKeyWIF, publicKeyHex) => {
+    try {
+        const sharedKey = createSharedKey(privateKeyWIF, publicKeyHex);
+        const decryptedMsg = decrypt(sharedKey, Uint8Array.from(Buffer.from(opReturnMsg, 'hex')));
+        return {
+            success: true,
+            decryptedMsg
+        }
+    } catch (error) {
+        console.log("DECRYPTION ERROR", error);
+        return {
+            success: false,
+            error
+        }
+    }
 }

@@ -61,3 +61,9 @@ export const ConvertAmount = styled.div`
         font-size: 12px;
     }
 `;
+
+export const GeneralSettingsItem = styled.div`
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+`

@@ -16,8 +16,6 @@ import {
     OpReturnMessageInput
 } from '@components/Common/EnhancedInputs';
 import useBCH from '@hooks/useBCH';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import {
     currency,
     isValidTokenPrefix,
@@ -38,6 +36,9 @@ import {
 } from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
 import { createSharedKey, encrypt } from 'utils/encryption';
+import { PushNotificationContext } from 'utils/context';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { askPermission, subscribeAllWalletsToPushNotification } from 'utils/pushNotification';
 
 const StyledCheckbox = styled(Checkbox)`
     .ant-checkbox-inner {
@@ -66,9 +67,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // If the wallet object from ContextValue has a `state key`, then check which keys are in the wallet object
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
+    const pushNotificationConfig = React.useContext(PushNotificationContext);
     const location = useLocation();
     const history = useHistory();
-    const { wallet, fiatPrice, apiError, cashtabSettings, refresh } = ContextValue;
+    const { wallet, fiatPrice, apiError, refresh } = ContextValue;
 
     const currentAddress = wallet && wallet.Path10605 ? wallet.Path10605.xAddress : undefined;
     const walletState = getWalletState(wallet);
@@ -80,12 +82,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] = useState(true);
     const [bchObj, setBchObj] = useState(false);
-
-    // Get device window width
-    // If this is less than 769, the page will open with QR scanner open
-    const { width } = useWindowDimensions();
-    // Load with QR code open if device is mobile and NOT iOS + anything but safari
-    const scannerSupported = width < 769 && isMobile && !(isIOS && !isSafari);
 
     const [formData, setFormData] = useState({
         dirty: true,
@@ -100,7 +96,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // Support cashtab button from web pages
     const [txInfoFromUrl, setTxInfoFromUrl] = useState(false);
 
-    // Show a confirmation modal on transactions created by populating form from web page button
+    // Show a Modal.ation modal on transactions created by populating form from web page button
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const showModal = () => {
@@ -194,6 +190,42 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
         return encryptedMsg;
     };
+
+    const showPushNotificationPromptModal = () => {
+        Modal.confirm({
+            centered: true,
+            title: 'Enable Push Notification',
+            icon: <ExclamationCircleOutlined />,
+            content: 'Would you like to receive notification of new transaction for your wallets?',
+            okText: 'Yes',
+            cancelText: 'No',
+            async onOk() {
+                // get user permissioin
+                try {
+                    await askPermission();
+                } catch (error) {
+                    if (error.message.includes('permission denied')) {
+                        // turn off so that it will not ask for permission next time
+                        pushNotificationConfig.turnOffPushNotification();
+                    }
+                    Modal.error({
+                        title: 'Error - Permision Error',
+                        content: error.message
+                    })
+                    return;
+                }
+
+                // subscribe all wallets to Push Notification in interactive mode
+                subscribeAllWalletsToPushNotification(pushNotificationConfig,true);
+            },
+            onCancel() {
+                pushNotificationConfig.turnOffPushNotification();
+            },
+            afterClose() {
+                history.push("/");
+            },
+        });
+    }
 
     async function submit() {
         setFormData({
@@ -308,11 +340,18 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 style: { width: '100%' },
             });
 
-            // redirect to wallet home page
             passLoadingStatus(false);
             // update the wallet the get the new utxos 1s after sending
             setTimeout(refresh,1000);
-            history.push('/');
+            // if Push Notification is not supported, pushNotificationConfig will be null
+            // The allowPushNotification property value can be undefined, null, true, false
+            // undefined & null mean config has not been set
+            if ( pushNotificationConfig && ( pushNotificationConfig.allowPushNotification === undefined || pushNotificationConfig.allowPushNotification === null) ) {
+                showPushNotificationPromptModal();
+            } else {
+                // redirect to wallet home page
+                history.push('/');
+            }
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop
             passLoadingStatus(false);
@@ -329,10 +368,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             } else if (
                 e.error &&
                 e.error.includes(
-                    'too-long-mempool-chain, too many unconfirmed ancestors [limit: 50] (code 64)',
+                    'too-long-mempool-chain, too many unModal.ed ancestors [limit: 50] (code 64)',
                 )
             ) {
-                message = `The ${currency.ticker} you are trying to send has too many unconfirmed ancestors to send (limit 50). Sending will be possible after a block confirmation. Try again in about 10 minutes.`;
+                message = `The ${currency.ticker} you are trying to send has too many unModal.ed ancestors to send (limit 50). Sending will be possible after a block Modal.ation. Try again in about 10 minutes.`;
             } else {
                 message = e.message || e.error || JSON.stringify(e);
             }
@@ -512,36 +551,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }
     };
 
-    // Encrypted Checkbox UI
-    const encryptedCheckbox = (
-        <div>
-            encrypted &nbsp;
-            <StyledCheckbox
-                checked={
-                    isEncryptedOptionalOpReturnMsg
-                }
-                onChange={() =>
-                    setIsEncryptedOptionalOpReturnMsg(
-                        prev => !prev,
-                    )
-                }
-            />
-        </div>
-    );
-
-    // Label for OP_RETURN message textarea
-    const opReturnLabel = (
-        <div
-            css={`
-                display: flex;
-                justify-content: flex-start;
-                align-items: center;
-            `}
-        >
-            {encryptedCheckbox}
-        </div>
-    );
-
     // Only Send Mesage Checkbox
     const sendOnlyMessageCheckbox = (
         <div
@@ -575,7 +584,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     return (
         <>
             <Modal
-                title="Confirm Send"
+                title="Modal. Send"
                 visible={isModalVisible}
                 onOk={handleOk}
                 onCancel={handleCancel}
