@@ -220,7 +220,7 @@ const ClaimComponent = ({ address, claimCode }) => {
                             }
                             codeType='claimCode'
                             inputProps={{
-                                placeholder: `Claim`,
+                                placeholder: `Claim code`,
                                 name: 'claimCode',
                                 onChange: e => handleclaimCodeChange(e),
                                 required: true,
