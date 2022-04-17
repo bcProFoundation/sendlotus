@@ -75,6 +75,42 @@ const useClaim = (address) => {
         }
     }
 
+    const validate = async (token,currentAddress, claimCode) => {
+         
+        try {
+            if (
+                !currentAddress ||
+                !claimCode
+            ) {
+                throw 'Please input address and claim code';
+            }
+
+            const address = currentAddress;
+
+            // Get the param-free address
+            let cleanAddress = address.split('?')[0];
+
+            const isValidAddress = BCH.Address.isXAddress(cleanAddress);
+
+            if (!isValidAddress) {
+                const error = `Destination is not a valid ${currency.ticker} address`;
+                throw error;
+            }
+
+            const response = await axios.post(`${process.env["REACT_APP_BCHA_LIXI_APIS"]}claims/validate`,
+                {
+                    claimCode: claimCode,
+                    claimAddress: address,
+                    captchaToken: token
+                });
+
+            return response;
+        } catch (error) {
+            throw error?.response?.data;
+        }
+    }
+
+
     const getLixi = async (lixiId) => {
         try {
             const url = `${process.env.REACT_APP_BCHA_LIXI_APIS}lixies/${lixiId}`;
@@ -118,7 +154,8 @@ const useClaim = (address) => {
     return {
         claim,
         reCaptchaReady,
-        getLixi
+        getLixi,
+        validate,
     };
 }
 
