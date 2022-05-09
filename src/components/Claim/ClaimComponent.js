@@ -110,6 +110,9 @@ const ClaimComponent = ({ address, claimCode }) => {
 
     async function submit(token, currentAddress, claimCode) {
         try {
+            if (claimCode.includes("lixi_")) {
+                claimCode = claimCode.match('(?<=lixi_).*')[0];
+            }
             const response = await claim(token ?? null, currentAddress, claimCode);
             return response.data;
         } catch (error) {
