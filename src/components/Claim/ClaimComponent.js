@@ -48,7 +48,7 @@ const ClaimComponent = ({ address, claimCode }) => {
     const history = useHistory();
     const ContextValue = React.useContext(WalletContext);
     const { createWallet } = ContextValue;
-    const { reCaptchaReady, claim, getLixi,validate } = useClaim(address);
+    const { reCaptchaReady, claim, getLixi, validate } = useClaim(address);
 
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
@@ -88,8 +88,8 @@ const ClaimComponent = ({ address, claimCode }) => {
         if (!address && formData.claimCode) {
             const wallet = await createWallet();
         }
-        
-        if(!formData.claimCode) {
+
+        if (!formData.claimCode) {
             notification.error({
                 message: 'Error',
                 description: 'Please enter a claim code',
@@ -121,22 +121,27 @@ const ClaimComponent = ({ address, claimCode }) => {
     }
 
     const validateCode = async () => {
-        const encodedLixiId = formData.claimCode.slice(8);
+
+        let claimCode = formData.claimCode;
+        if (formData.claimCode.includes("lixi_")) {
+            claimCode = formData.claimCode.match('(?<=lixi_).*')[0];
+        }
+        const encodedLixiId = claimCode.slice(8);
         const lixiId = base58ToNumber(encodedLixiId);
 
         let token = null;
         let result = null;
 
         try {
-          
+
             if (process.env.NODE_ENV == 'development' || !window.grecaptcha) {
-                result = await validate(token,address,formData.claimCode);
+                result = await validate(token, address, claimCode);
             } else {
                 token = await reCaptchaReady(claimCode, address);
                 if (token) {
-                    result = await validate(token,address,formData.claimCode);
+                    result = await validate(token, address, claimCode);
                 }
-            }  
+            }
 
             return result.data;
         } catch (error) {
@@ -148,7 +153,7 @@ const ClaimComponent = ({ address, claimCode }) => {
             });
             return false;
         }
-    
+
     }
 
     const handleOpenLixi = async () => {
@@ -156,28 +161,34 @@ const ClaimComponent = ({ address, claimCode }) => {
         if (!enableOpenLixi) return;
 
         setEnableOpenLixi(false);
-        const encodedLixiId = formData.claimCode.slice(8);
+
+        let claimCode = formData.claimCode;
+        if (formData.claimCode.includes("lixi_")) {
+            claimCode = formData.claimCode.match('(?<=lixi_).*')[0];
+        }
+
+        const encodedLixiId = claimCode.slice(8);
         const lixiId = base58ToNumber(encodedLixiId);
-  
-    
+
+
         try {
             const lixi = await getLixi(lixiId);
             let token = null;
             let lixiClaimed = null;
-     
+
             if (process.env.NODE_ENV == 'development' || !window.grecaptcha) {
-                lixiClaimed = await submit(token, address, formData.claimCode);
+                lixiClaimed = await submit(token, address, claimCode);
             } else {
                 token = await reCaptchaReady(claimCode, address);
                 if (token) {
-                    lixiClaimed = await submit(token, address, formData.claimCode);
+                    lixiClaimed = await submit(token, address, claimCode);
                 }
-            }  
+            }
 
             if (lixiClaimed) {
-                
-                
-               // Claim the lixi successfully
+
+
+                // Claim the lixi successfully
                 notification.success({
                     message: `Claim successfully ${lixiClaimed.amount ? fromSmallestDenomination(lixiClaimed.amount) : ''} XPI`,
                     duration: 10,
@@ -193,7 +204,7 @@ const ClaimComponent = ({ address, claimCode }) => {
                 setEnvelopeUrl(url);
                 setShareUrl(shareUrl);
                 setEnableClaim(true);
-               
+
                 setShowLixiModal(true);
                 setlixiClaimed(lixiClaimed);
                 setIsWaitingToOpenLixi(false);
@@ -212,7 +223,7 @@ const ClaimComponent = ({ address, claimCode }) => {
             setEnableOpenLixi(true);
             setEnableClaim(true);
         }
-    
+
     }
 
     const handleclaimCodeChange = e => {
