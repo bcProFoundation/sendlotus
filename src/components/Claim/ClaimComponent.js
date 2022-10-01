@@ -101,7 +101,7 @@ const ClaimComponent = ({ address, claimCode }) => {
 
         if (await validateCode()) {
             setShowLixiModal(true);
-            setIsWaitingToOpenLixi(true);
+            setIsWaitingToOpenLixi(false);
             setCode(formData.claimCode);
         } else {
             setEnableClaim(true);
@@ -207,7 +207,9 @@ const ClaimComponent = ({ address, claimCode }) => {
             onOpenLixi={handleOpenLixi}
             claimCode={code}
         />
-    } else if (showLixiModal && !isWaitingToOpenLixi) {
+    }
+     else
+      if (showLixiModal && !isWaitingToOpenLixi) {
         lixiModal = <LixiEnvelopeViewModal
             envelopeUrl={envelopeUrl}
             lixiClaimed={lixiClaimed}
