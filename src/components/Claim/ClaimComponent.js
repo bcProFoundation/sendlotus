@@ -257,7 +257,7 @@ const ClaimComponent = ({ address, claimCode }) => {
                             <SmartButton
                                 onClick={handleOnClick}
                                 disabled={!enableClaim}
-                            >Claim Lixi</SmartButton>
+                            >Redeem</SmartButton>
                         </div>
                     </Form>
                 </Col>
