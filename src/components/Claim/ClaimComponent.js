@@ -208,16 +208,16 @@ const ClaimComponent = ({ address, claimCode }) => {
             claimCode={code}
         />
     }
-     else
-      if (showLixiModal && !isWaitingToOpenLixi) {
-        lixiModal = <LixiEnvelopeViewModal
-            envelopeUrl={envelopeUrl}
-            lixiClaimed={lixiClaimed}
-            shareUrl={shareUrl}
-            handleCancelLixiModal={handleCancelLixiModal}
-            isMobile={isMobile}
-        />
-    }
+    else
+        if (showLixiModal && !isWaitingToOpenLixi) {
+            lixiModal = <LixiEnvelopeViewModal
+                envelopeUrl={envelopeUrl}
+                lixiClaimed={lixiClaimed}
+                shareUrl={shareUrl}
+                handleCancelLixiModal={handleCancelLixiModal}
+                isMobile={isMobile}
+            />
+        }
 
     return (
         <>
@@ -259,7 +259,7 @@ const ClaimComponent = ({ address, claimCode }) => {
                             <SmartButton
                                 onClick={handleOnClick}
                                 disabled={!enableClaim}
-                            >Claim Lixi</SmartButton>
+                            >Redeem</SmartButton>
                         </div>
                     </Form>
                 </Col>
