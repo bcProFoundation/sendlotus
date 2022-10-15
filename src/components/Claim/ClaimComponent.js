@@ -154,12 +154,9 @@ const ClaimComponent = ({ address, claimCode }) => {
                     style: { width: '100%' },
                 });
 
-                let url = `${process.env.REACT_APP_BCHA_LIXI_APIS_BASE}api/${lixiClaimed?.image}`;
+                let url = lixiClaimed?.image ? lixiClaimed?.image : `${process.env.REACT_APP_BCHA_LIXI_APIS_BASE}images/8f/8fa0be278c688c2de955aa66baef62e04d23d36f58adeccfeba3ae3276ea3ae3.jpg`;
                 const shareUrl = `${process.env.REACT_APP_BCHA_LIXI}claimed/${numberToBase58(lixiClaimed.id)}`;
 
-                if (lixiClaimed.lixiId == 72) {
-                    url = `${process.env.REACT_APP_BCHA_LIXI_APIS_BASE}images/8f/8fa0be278c688c2de955aa66baef62e04d23d36f58adeccfeba3ae3276ea3ae3.jpg`;
-                }
                 setEnvelopeUrl(url);
                 setShareUrl(shareUrl);
                 setShowLixiModal(true);
