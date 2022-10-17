@@ -24,7 +24,7 @@ const StyledSpinner = styled(SyncOutlined)`
     left: 50%;
 `;
 
-const ResponsiveIframe = ({ src, ratioHeightToWidth }) => {
+const ResponsiveIframe = ({ src, ratioHeightToWidth, className }) => {
     const [loading, setLoading] = useState(true);
 
     const handleIframeOnLoad = () => {
@@ -37,6 +37,7 @@ const ResponsiveIframe = ({ src, ratioHeightToWidth }) => {
                 style={{
                     paddingTop: `${ratioHeightToWidth * 100}%`,
                 }}
+                className={className}
             >
                 <StyledSpinner
                     spin
@@ -44,11 +45,9 @@ const ResponsiveIframe = ({ src, ratioHeightToWidth }) => {
                 />
                 <StyledIframe
                     style={{ display: loading ? 'none' : 'block' }}
-                    loading="lazy"
                     src={src}
-                    onLoad={handleIframeOnLoad}
+                    onLoad={() => handleIframeOnLoad()}
                 />
-                {/* <div>Embedded QR Code</div> */}
             </StyledIframeCtn>
         </>
     );
