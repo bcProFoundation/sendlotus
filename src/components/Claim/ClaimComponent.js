@@ -81,7 +81,6 @@ const ClaimComponent = ({ address, claimCode }) => {
     }, [claimCode]);
 
     const handleOnClick = async (e) => {
-        console.log('handleOnClick');
         setEnableClaim(false);
         e.preventDefault();
         setlixiClaimed(null);
@@ -101,7 +100,6 @@ const ClaimComponent = ({ address, claimCode }) => {
         }
         try {
             if (await validateCode()) {
-                console.log('after validateCode')
                 setShowLixiModal(true);
                 setIsWaitingToOpenLixi(false);
                 setCode(formData.claimCode);
@@ -109,7 +107,6 @@ const ClaimComponent = ({ address, claimCode }) => {
                 setEnableClaim(true);
             }
         } catch (err) {
-            console.log(err);
             notification.error({
                 message: 'Error',
                 description: 'Unable to claim code',
@@ -122,11 +119,12 @@ const ClaimComponent = ({ address, claimCode }) => {
 
     async function submit(token, currentAddress, claimCode) {
         try {
-            console.log('submit:', claimCode);
             if (claimCode.includes("lixi_")) {
-                claimCode = claimCode.match('(?<=lixi_).*')[0];
+                matches = claimCode.match('(?:lixi_)(.*)')
+                if (matches && matches.length == 2) {
+                    claimCode = matches[1];
+                }
             }
-            console.log('submit after match:', claimCode);
             const response = await claim(token ?? null, currentAddress, claimCode);
             return response.data;
         } catch (error) {
@@ -142,12 +140,15 @@ const ClaimComponent = ({ address, claimCode }) => {
 
     const validateCode = async () => {
 
-        console.log('validateCode:', formData.claimCode);
         let claimCode = _.trim(formData.claimCode);
         if (formData.claimCode.includes("lixi_")) {
-            claimCode = formData.claimCode.match('(?<=lixi_).*')[0];
+            if (claimCode.includes("lixi_")) {
+                matches = claimCode.match('(?:lixi_)(.*)')
+                if (matches && matches.length == 2) {
+                    claimCode = matches[1];
+                }
+            }
         }
-        console.log('validateCode, claim code after match:', formData.claimCode);
         const encodedLixiId = claimCode.slice(8);
         const lixiId = base58ToNumber(encodedLixiId);
 
