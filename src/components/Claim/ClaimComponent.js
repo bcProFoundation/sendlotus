@@ -81,6 +81,7 @@ const ClaimComponent = ({ address, claimCode }) => {
     }, [claimCode]);
 
     const handleOnClick = async (e) => {
+        console.log('handleOnClick');
         setEnableClaim(false);
         e.preventDefault();
         setlixiClaimed(null);
@@ -98,14 +99,25 @@ const ClaimComponent = ({ address, claimCode }) => {
             setEnableClaim(true);
             return;
         }
-
-        if (await validateCode()) {
-            setShowLixiModal(true);
-            setIsWaitingToOpenLixi(false);
-            setCode(formData.claimCode);
-        } else {
-            setEnableClaim(true);
+        try {
+            if (await validateCode()) {
+                console.log('after validateCode')
+                setShowLixiModal(true);
+                setIsWaitingToOpenLixi(false);
+                setCode(formData.claimCode);
+            } else {
+                setEnableClaim(true);
+            }
+        } catch (err) {
+            console.log(err);
+            notification.error({
+                message: 'Error',
+                description: 'Unable to claim code',
+                duration: 2
+            });
         }
+
+
     }
 
     async function submit(token, currentAddress, claimCode) {
