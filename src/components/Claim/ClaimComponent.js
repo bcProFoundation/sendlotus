@@ -120,7 +120,7 @@ const ClaimComponent = ({ address, claimCode }) => {
     async function submit(token, currentAddress, claimCode) {
         try {
             if (claimCode.includes("lixi_")) {
-                matches = claimCode.match('(?:lixi_)(.*)')
+                const matches = claimCode.match('(?:lixi_)(.*)')
                 if (matches && matches.length == 2) {
                     claimCode = matches[1];
                 }
@@ -143,7 +143,7 @@ const ClaimComponent = ({ address, claimCode }) => {
         let claimCode = _.trim(formData.claimCode);
         if (formData.claimCode.includes("lixi_")) {
             if (claimCode.includes("lixi_")) {
-                matches = claimCode.match('(?:lixi_)(.*)')
+                const matches = claimCode.match('(?:lixi_)(.*)')
                 if (matches && matches.length == 2) {
                     claimCode = matches[1];
                 }
