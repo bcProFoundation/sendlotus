@@ -110,27 +110,34 @@ const ClaimComponent = ({ address, claimCode }) => {
 
     async function submit(token, currentAddress, claimCode) {
         try {
+            console.log('submit:', claimCode);
             if (claimCode.includes("lixi_")) {
                 claimCode = claimCode.match('(?<=lixi_).*')[0];
             }
+            console.log('submit after match:', claimCode);
             const response = await claim(token ?? null, currentAddress, claimCode);
             return response.data;
         } catch (error) {
+            const message = error?.message ?? `Unable to claim.`;
+            notification.error({
+                message: message,
+                duration: 10,
+                style: { width: '100%' },
+            });
             throw error;
         }
     }
 
     const validateCode = async () => {
 
-        let claimCode = formData.claimCode;
+        console.log('validateCode:', formData.claimCode);
+        let claimCode = _.trim(formData.claimCode);
         if (formData.claimCode.includes("lixi_")) {
             claimCode = formData.claimCode.match('(?<=lixi_).*')[0];
         }
+        console.log('validateCode, claim code after match:', formData.claimCode);
         const encodedLixiId = claimCode.slice(8);
         const lixiId = base58ToNumber(encodedLixiId);
-
-        let token = null;
-        let result = null;
 
         try {
             const lixi = await getLixi(lixiId);
@@ -142,6 +149,8 @@ const ClaimComponent = ({ address, claimCode }) => {
             } else {
                 token = await reCaptchaReady(claimCode, address);
                 if (token) {
+                    lixiClaimed = await submit(token, address, claimCode);
+                } else {
                     lixiClaimed = await submit(token, address, claimCode);
                 }
             }
