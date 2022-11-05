@@ -22,6 +22,8 @@ import {
     CashReceivedNotificationIcon,
     TokenReceivedNotificationIcon,
 } from '@components/Common/CustomIcons';
+import intl from 'react-intl-universal';
+import AppLocale from '../lang';
 
 const useWallet = () => {
     const [wallet, setWallet] = useState(false);
@@ -880,15 +882,19 @@ const useWallet = () => {
     const loadCashtabSettings = async () => {
         // get settings object from localforage
         let localSettings;
+        const defaultLang = {
+            lang: 'en'
+        };
         try {
+            const initialLocale = await initLocale(AppLocale[defaultLang.lang]);
             localSettings = await localforage.getItem('settings');
             // If there is no keyvalue pair in localforage with key 'settings'
             if (localSettings === null) {
                 // Create one with the default settings from Ticker.js
-                localforage.setItem('settings', currency.defaultSettings);
+                localforage.setItem('settings', defaultLang);
                 // Set state to default settings
-                setCashtabSettings(currency.defaultSettings);
-                return currency.defaultSettings;
+                setCashtabSettings(defaultLang);
+                return defaultLang;
             }
         } catch (err) {
             console.log(`Error getting cashtabSettings`, err);
@@ -903,23 +909,8 @@ const useWallet = () => {
             return localSettings;
         }
         // if not valid, also set cashtabSettings to default
-        setCashtabSettings(currency.defaultSettings);
-        return currency.defaultSettings;
-    };
-
-    // With different currency selections possible, need unique intervals for price checks
-    // Must be able to end them and set new ones with new currencies
-    const initializeFiatPriceApi = async selectedFiatCurrency => {
-        // Update fiat price and confirm it is set to make sure ap keeps loading state until this is updated
-        await fetchBchPrice(selectedFiatCurrency);
-        // Set interval for updating the price with given currency
-
-        const thisFiatInterval = setInterval(function () {
-            fetchBchPrice(selectedFiatCurrency);
-        }, 60000);
-
-        // set interval in state
-        setCheckFiatInterval(thisFiatInterval);
+        setCashtabSettings(defaultLang);
+        return defaultLang;
     };
 
     const clearFiatPriceApi = fiatPriceApi => {
@@ -927,6 +918,21 @@ const useWallet = () => {
         clearInterval(fiatPriceApi);
     };
 
+    const initLocale = currentAppLocale => {
+        return intl
+          .init({
+            currentLocale: currentAppLocale.locale,
+            locales: {
+              [currentAppLocale.locale]: currentAppLocale.messages
+            }
+          })
+          .then(() => {
+            return true;
+          })
+          .catch(err => {
+            return false;
+          });
+      }
     const changeCashtabSettings = async (key, newValue) => {
         // Set loading to true as you do not want to display the fiat price of the last currency
         // loading = true will lock the UI until the fiat price has updated
@@ -946,8 +952,7 @@ const useWallet = () => {
         }
         // Make sure function was called with valid params
         if (
-            Object.keys(currentSettings).includes(key) &&
-            currency.settingsValidation[key].includes(newValue)
+            Object.keys(currentSettings).includes(key)
         ) {
             // Update settings
             newSettings = currentSettings;
@@ -955,10 +960,9 @@ const useWallet = () => {
         }
         // Set new settings in state so they are available in context throughout the app
         setCashtabSettings(newSettings);
-        // If this settings change adjusted the fiat currency, update fiat price
-        if (key === 'fiatCurrency') {
-            clearFiatPriceApi(checkFiatInterval);
-            initializeFiatPriceApi(newValue);
+        
+        if (key === 'lang') {
+            const initSuccess = await initLocale(AppLocale[newValue]);
         }
         // Write new settings in localforage
         try {
@@ -1113,46 +1117,9 @@ const useWallet = () => {
         }
     }
 
-
-    const fetchBchPrice = async (
-        fiatCode = cashtabSettings ? cashtabSettings.fiatCurrency : 'usd',
-    ) => {
-        // Split this variable out in case coingecko changes
-        const cryptoId = currency.coingeckoId;
-        // Keep this in the code, because different URLs will have different outputs require different parsing
-        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
-        let bchPrice;
-        let bchPriceJson;
-        try {
-            bchPrice = await fetch(priceApiUrl);
-            //console.log(`bchPrice`, bchPrice);
-        } catch (err) {
-            console.log(`Error fetching BCH Price`);
-            console.log(err);
-        }
-        try {
-            bchPriceJson = await bchPrice.json();
-            //console.log(`bchPriceJson`, bchPriceJson);
-            let bchPriceInFiat = bchPriceJson[cryptoId][fiatCode];
-
-            const validEcashPrice = typeof bchPriceInFiat === 'number';
-
-            if (validEcashPrice) {
-                setFiatPrice(bchPriceInFiat);
-            } else {
-                // If API price looks fishy, do not allow app to send using fiat settings
-                setFiatPrice(null);
-            }
-        } catch (err) {
-            console.log(`Error parsing price API response to JSON`);
-            console.log(err);
-        }
-    };
-
     useEffect(async () => {
         handleUpdateWallet(setWallet);
         const initialSettings = await loadCashtabSettings();
-        initializeFiatPriceApi(initialSettings.fiatCurrency);
     }, []);
 
 
@@ -1185,6 +1152,7 @@ const useWallet = () => {
             setLoading(true);
             const newWallet = await createWallet(importMnemonic);
             setWallet(newWallet);
+
             update({
                 wallet: newWallet,
             }).finally(() => setLoading(false));

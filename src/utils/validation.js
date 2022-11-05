@@ -110,10 +110,7 @@ export const isValidCashtabSettings = settings => {
     try {
         const isValid =
             typeof settings === 'object' &&
-            Object.prototype.hasOwnProperty.call(settings, 'fiatCurrency') &&
-            currency.settingsValidation.fiatCurrency.includes(
-                settings.fiatCurrency,
-            );
+            Object.prototype.hasOwnProperty.call(settings, 'lang')
         return isValid;
     } catch (err) {
         return false;

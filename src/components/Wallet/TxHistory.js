@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import Tx from './Tx';
+import intl from 'react-intl-universal';
 
 const TxHistoryHeading = styled.h4`
     font-size: 20px;
@@ -17,7 +18,7 @@ const TxHistory = ({ txs, fiatPrice, fiatCurrency }) => {
     return (
         <div>
             <TxHistoryHeading>
-                Recent Transactions
+                {intl.get(wallet.RecentTransaction)}
             </TxHistoryHeading>
             {txs.map(tx => (
                 <Tx

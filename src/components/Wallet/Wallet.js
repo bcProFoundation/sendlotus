@@ -165,7 +165,7 @@ export const AddrSwitchContainer = styled.div`
 
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
+    const { wallet, fiatPrice, apiError } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, parsedTxHistory } = walletState;
 
@@ -214,11 +214,6 @@ const WalletInfo = () => {
                     <TxHistory
                         txs={parsedTxHistory}
                         fiatPrice={fiatPrice}
-                        fiatCurrency={
-                            cashtabSettings && cashtabSettings.fiatCurrency
-                            ? cashtabSettings.fiatCurrency
-                            : 'usd'
-                        }
                     />
                 </>
             )}

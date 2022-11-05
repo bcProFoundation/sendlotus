@@ -12,6 +12,8 @@ import ScanQRCode from './ScanQRCode';
 import useBCH from '@hooks/useBCH';
 import { currency } from '@components/Common/Ticker.js';
 import UploadImageToScan from './UploadImageToScan';
+import AppLocale from '../../lang';
+import intl from 'react-intl-universal';
 
 export const AntdFormCss = css`
     .ant-input-group-addon {
@@ -306,6 +308,40 @@ FormItemWithQRCodeAddon.propTypes = {
     loadWithCameraOpen: PropTypes.bool,
     inputProps: PropTypes.object,
     codeType: PropTypes.string,
+};
+
+export const LanguageSelectDropdown = selectProps => {
+  const { Option } = Select;
+
+  // Build select dropdown from currency.languages
+  const languageMenuOptions = [];
+  for (var key in AppLocale) {
+    const languageMenuOption = {
+        value: key,
+        label: intl.get(key)
+      };
+    languageMenuOptions.push(languageMenuOption);
+  }
+
+  const languageOptions = languageMenuOptions.map(languageMenuOption => {
+    return (
+      <Option key={languageMenuOption.value} value={languageMenuOption.value} className="selectedLanguageOption">
+        {languageMenuOption.label}
+      </Option>
+    );
+  });
+  
+  return (
+    <Select
+      className="select-after"
+      style={{
+        width: '100%'
+      }}
+      {...selectProps}
+    >
+      {languageOptions}
+    </Select>
+  );
 };
 
 export const CurrencySelectDropdown = selectProps => {
