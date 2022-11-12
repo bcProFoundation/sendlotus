@@ -294,7 +294,7 @@ const App = () => {
                                     onClick={() => history.push('/wallet')}
                                 >
                                     <FolderOpenFilled />
-                                    {intl.get(wallet.Wallet)}
+                                    {intl.get('wallet.Wallet')}
                                 </NavButton>
 
                                 <NavButton
@@ -302,7 +302,7 @@ const App = () => {
                                     onClick={() => history.push('/tokens')}
                                 >
                                     <AppstoreAddOutlined />
-                                    {intl.get(wallet.Tokens)}
+                                    {intl.get('wallet.Tokens')}
                                 </NavButton>
 
                                 <NavButton
@@ -310,14 +310,14 @@ const App = () => {
                                     onClick={() => history.push('/send')}
                                 >
                                     <CaretRightOutlined />
-                                    {intl.get(wallet.Send)}
+                                    {intl.get('wallet.Send')}
                                 </NavButton>
                                 <NavButton
                                     active={selectedKey === 'configure'}
                                     onClick={() => history.push('/configure')}
                                 >
                                     <SettingFilled />
-                                    {intl.get(wallet.Settings)}
+                                    {intl.get('wallet.Settings')}
                                 </NavButton>
                             </Footer>
                         ) : null}

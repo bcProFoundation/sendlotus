@@ -2,6 +2,7 @@ import React from 'react';
 import { LockFilled, CheckOutlined, CloseOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import { Switch, Tag } from 'antd';
 import { GeneralSettingsItem } from 'components/Common/Atoms';
+import intl from 'react-intl-universal';
 
 const LockAppSetting = ({authentication}) => {
 
@@ -24,7 +25,7 @@ const LockAppSetting = ({authentication}) => {
     return (
         <GeneralSettingsItem>
             <div className="title">
-                <LockFilled /> Lock App
+                <LockFilled /> {intl.get('setting.LockApp')}
             </div>
             {authentication ? (
                 <Switch
@@ -42,7 +43,7 @@ const LockAppSetting = ({authentication}) => {
                 />
             ) : (
                 <Tag color="warning" icon={<ExclamationCircleFilled />}>
-                    Not Supported
+                    {intl.get('setting.NotSupported')}
                 </Tag>
             )}
         </GeneralSettingsItem>

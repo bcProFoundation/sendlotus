@@ -14,18 +14,16 @@ const TxHistoryHeading = styled.h4`
     }
 `;
 
-const TxHistory = ({ txs, fiatPrice, fiatCurrency }) => {
+const TxHistory = ({ txs }) => {
     return (
         <div>
             <TxHistoryHeading>
-                {intl.get(wallet.RecentTransaction)}
+                {intl.get('wallet.RecentTransaction')}
             </TxHistoryHeading>
             {txs.map(tx => (
                 <Tx
                     key={tx.txid}
                     data={tx}
-                    fiatPrice={fiatPrice}
-                    fiatCurrency={fiatCurrency}
                 />
             ))}
         </div>
@@ -33,9 +31,7 @@ const TxHistory = ({ txs, fiatPrice, fiatCurrency }) => {
 };
 
 TxHistory.propTypes = {
-    txs: PropTypes.array,
-    fiatPrice: PropTypes.number,
-    fiatCurrency: PropTypes.string,
+    txs: PropTypes.array
 };
 
 export default TxHistory;

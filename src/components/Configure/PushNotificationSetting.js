@@ -4,6 +4,7 @@ import { Switch, Tag, Modal } from 'antd';
 import { askPermission, getPlatformPermissionState, subscribeAllWalletsToPushNotification, unsubscribeAllWalletsFromPushNotification } from 'utils/pushNotification';
 import { GeneralSettingsItem } from 'components/Common/Atoms';
 import { ThemedQuerstionCircleOutlinedFaded } from 'components/Common/CustomIcons';
+import intl from 'react-intl-universal';
 
 // Help (?) Icon that shows info
 const helpInfoIcon = (
@@ -11,17 +12,17 @@ const helpInfoIcon = (
         onClick={() => {
             Modal.info({
                 centered: true,
-                okText: 'Got It',
-                title: 'How to enable notification',
+                okText: intl.get('setting.GotIt'),
+                title: intl.get('setting.HowEnableNotification'),
                 maskClosable: 'true',
                 content: (
                     <div>
-                        <p>This feature works best with Chrome or Brave on Android device</p>
-                        <p>This feature does not work on IOS and Safari on MacOS</p>
-                        <div className='heading'>2 steps to enable notification</div>
+                        <p>{intl.get('setting.DeviceSupport')}</p>
+                        <p>{intl.get('setting.NotSupportIos')}</p>
+                        <div className='heading'>{intl.get('setting.TwoStepEnableNotification')}</div>
                         <ul>
-                            <li>Allow notification for the <em>browser on your device</em>.</li>
-                            <li>Then allow notification for <em>sendlotus.com on your browser</em>.</li>
+                            <li>{intl.get('setting.AllowNotification')}<em>{intl.get('setting.ForBrowser')}</em>.</li>
+                            <li>{intl.get('setting.ThenAllowNotification')}<em>{intl.get('setting.SendlotusOnBrower')}</em>.</li>
                         </ul>
                     </div>
                 ),
@@ -36,17 +37,17 @@ const PushNotificationSetting = ({pushNotificationConfig}) => {
     const showModal = () => {
         Modal.confirm({
             centered: true,
-            title: 'Enable Notification',
+            title: intl.get('setting.EnableNotification'),
             icon: <ExclamationCircleOutlined />,
-            content: 'You will be prompted to grant permisson for notification, Please click "Allow"',
-            okText: 'OK',
+            content: intl.get('setting.GrantPermisson'),
+            okText: intl.get('setting.OK'),
             async onOk() {
                 // get user permissioin
                 try {
                     await askPermission();
                 } catch (error) {
                     Modal.error({
-                        title: 'Error - Permision Error',
+                        title: intl.get('setting.PermisionError'),
                         content: error.message
                     })
                     return;
@@ -80,7 +81,7 @@ const PushNotificationSetting = ({pushNotificationConfig}) => {
     return (
         <GeneralSettingsItem>
             <div className="title">
-                <BellFilled/> Notification
+                <BellFilled/> {intl.get('setting.Notification')}
             </div>
             { pushNotificationConfig ? (
                 (permission !== 'denied') ? (
@@ -94,14 +95,14 @@ const PushNotificationSetting = ({pushNotificationConfig}) => {
                 ) : (
                     <div>
                         <Tag color="warning" icon={<ExclamationCircleFilled />}>
-                            Blocked by device
+                        {intl.get('setting.BlockedDevice')}
                         </Tag>
                         {helpInfoIcon}
                     </div>
                 )
             ) : (
                 <Tag color="warning" icon={<ExclamationCircleFilled />}>
-                    Not Supported
+                    {intl.get('setting.NotSupported')}
                 </Tag>
             )}
         </GeneralSettingsItem>

@@ -10,6 +10,7 @@ import ApiError from '@components/Common/ApiError';
 import BalanceHeader from '@components/Common/BalanceHeader';
 import { LoadingCtn, ZeroBalanceHeader } from '@components/Common/Atoms';
 import { getWalletState } from '@utils/cashMethods';
+import intl from 'react-intl-universal';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -180,13 +181,13 @@ const WalletInfo = () => {
                         <span role="img" aria-label="party emoji">
                             🎉
                         </span>
-                        Congratulations on your new wallet!{' '}
+                        {intl.get('wallet.CongratulationMessage')}{' '}
                         <span role="img" aria-label="party emoji">
                             🎉
                         </span>
-                        <br /> Start using the wallet immediately to receive{' '}
-                        {currency.ticker} payments, or load it up with{' '}
-                        {currency.ticker} to send to others
+                        {intl.get('wallet.StartUsingMessageLine1')}{' '}
+                        {currency.ticker} {intl.get('wallet.StartUsingMessageLine2')}{' '}
+                        {currency.ticker} {intl.get('wallet.StartUsingMessageLine3')}
                     </ZeroBalanceHeader>
                     <BalanceHeader balance={0} ticker={currency.ticker} />
                 </>
@@ -213,7 +214,6 @@ const WalletInfo = () => {
                 <>
                     <TxHistory
                         txs={parsedTxHistory}
-                        fiatPrice={fiatPrice}
                     />
                 </>
             )}

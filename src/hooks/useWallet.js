@@ -886,7 +886,6 @@ const useWallet = () => {
             lang: 'en'
         };
         try {
-            const initialLocale = await initLocale(AppLocale[defaultLang.lang]);
             localSettings = await localforage.getItem('settings');
             // If there is no keyvalue pair in localforage with key 'settings'
             if (localSettings === null) {
@@ -894,7 +893,12 @@ const useWallet = () => {
                 localforage.setItem('settings', defaultLang);
                 // Set state to default settings
                 setCashtabSettings(defaultLang);
+                const initialLocale = await initLocale(AppLocale[defaultLang.lang]);
                 return defaultLang;
+            } else {
+                const currentLang = AppLocale[localSettings['lang']];
+                const initialLocale = await initLocale(currentLang);
+                setCashtabSettings(currentLang);
             }
         } catch (err) {
             console.log(`Error getting cashtabSettings`, err);

@@ -153,7 +153,7 @@ const Tx = ({ data }) => {
                     <div className='label'>
                         {data.outgoingTx 
                             ? <SentLabel>
-                                    {intl.get(wallet.SentTo)} {
+                                    {intl.get('wallet.SentTo')} {
                                         data.destinationAddress && 
                                         <FormattedTxAddress address={data.destinationAddress.slice(-8)} />
                                     }
@@ -217,7 +217,7 @@ const Tx = ({ data }) => {
                                 ) : (
                                     data.opReturnMessage ? (
                                         <MessageLabel>
-                                            {intl.get(wallet.ExternalMessage)}
+                                            {intl.get('wallet.ExternalMessage')}
                                         </MessageLabel>
                                     ) : (
                                         <div></div>
@@ -236,7 +236,7 @@ const Tx = ({ data }) => {
                                             size='small'
                                             type="text"
                                         >
-                                            {intl.get(wallet.Reply)}
+                                            {intl.get('wallet.Reply')}
                                         </ReplyButton>
                                     </Link>
                                 ) : (

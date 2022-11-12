@@ -319,7 +319,7 @@ const App = () => {
                                     onClick={() => history.push('/wallet')}
                                 >
                                     <FolderOpenFilled />
-                                    {intl.get(wallet.Wallet)}
+                                    {intl.get('wallet.Wallet')}
                                 </NavButton>
 
                                 <NavButton
@@ -327,7 +327,7 @@ const App = () => {
                                     onClick={() => history.push('/send')}
                                 >
                                     <CaretRightOutlined />
-                                    {intl.get(wallet.Send)}
+                                    {intl.get('wallet.Send')}
                                 </NavButton>
 
                                 <NavButton
@@ -335,14 +335,14 @@ const App = () => {
                                     onClick={() => history.push('/lixi')}
                                 >
                                     <Icon component={IconLixi} />
-                                    {intl.get(wallet.Lixi)}
+                                    {intl.get('wallet.Lixi')}
                                 </NavButton>
                                 <NavButton
                                     active={selectedKey === 'configure'}
                                     onClick={() => history.push('/configure')}
                                 >
                                     <SettingFilled />
-                                    {intl.get(wallet.Settings)}
+                                    {intl.get('wallet.Settings')}
                                 </NavButton>
                             </Footer>
                         ) : null}

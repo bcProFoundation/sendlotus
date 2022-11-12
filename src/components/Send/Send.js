@@ -39,6 +39,7 @@ import { createSharedKey, encrypt } from 'utils/encryption';
 import { PushNotificationContext } from 'utils/context';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { askPermission, subscribeAllWalletsToPushNotification } from 'utils/pushNotification';
+import intl from 'react-intl-universal';
 
 const StyledCheckbox = styled(Checkbox)`
     .ant-checkbox-inner {
@@ -194,11 +195,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const showPushNotificationPromptModal = () => {
         Modal.confirm({
             centered: true,
-            title: 'Enable Push Notification',
+            title: intl.get('send.PushNotificationTitle'),
             icon: <ExclamationCircleOutlined />,
-            content: 'Would you like to receive notification of new transaction for your wallets?',
-            okText: 'Yes',
-            cancelText: 'No',
+            content: intl.get('send.PushNotificationConfirmation'),
+            okText: intl.get('send.Yes'),
+            cancelText: intl.get('send.No'),
             async onOk() {
                 // get user permissioin
                 try {
@@ -209,7 +210,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         pushNotificationConfig.turnOffPushNotification();
                     }
                     Modal.error({
-                        title: 'Error - Permision Error',
+                        title: intl.get('send.PermisionError'),
                         content: error.message
                     })
                     return;
@@ -271,7 +272,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             // BCHA to an SLPA address
             passLoadingStatus(false);
             setSendBchAddressError(
-                `Destination is not a valid ${currency.ticker} address`,
+                intl.get('send.PushNotificationTitle', {ticker: currency.ticker}),
             );
             return;
         }
@@ -330,8 +331,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 description: (
                     <a href={link} target="_blank" rel="noopener noreferrer">
                         <Paragraph>
-                            Transaction successful. Click to view in block
-                            explorer.
+                            {intl.get('send.TransactionSuccessful')}
                         </Paragraph>
                     </a>
                 ),
@@ -358,20 +358,20 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             let message;
 
             if (!e.error && !e.message) {
-                message = `Transaction failed: no response from ${getRestUrl()}.`;
+                message = intl.get('send.TransactionFail', {restUrl: getRestUrl()});
             } else if (
                 /Could not communicate with full node or other external service/.test(
                     e.error,
                 )
             ) {
-                message = 'Could not communicate with API. Please try again.';
+                message = intl.get('send.CouldNotCommunicateWithAPI');
             } else if (
                 e.error &&
                 e.error.includes(
                     'too-long-mempool-chain, too many unModal.ed ancestors [limit: 50] (code 64)',
                 )
             ) {
-                message = `The ${currency.ticker} you are trying to send has too many unModal.ed ancestors to send (limit 50). Sending will be possible after a block Modal.ation. Try again in about 10 minutes.`;
+                message = intl.get('send.TooManyUnModalMessage', {ticker: currency.ticker});
             } else {
                 message = e.message || e.error || JSON.stringify(e);
             }
@@ -416,9 +416,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             setRecipientPubKeyHex(false);
             setIsOpReturnMsgDisabled(true);
             if ( publicKey && publicKey === 'not found' ) {
-                setRecipientPubKeyWarning('This address has no outgoing transaction, you cannot send message.');
+                setRecipientPubKeyWarning(intl.get('send.CanNotSendMessage'));
             } else {
-                setRecipientPubKeyWarning('It looks like this address is NEW, please verify it before sending a large amount.')
+                setRecipientPubKeyWarning(intl.get('send.NewAddressWarning'));
             }
         }
     }
@@ -450,16 +450,16 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     
         // Is this valid address?
         if (!isValid) {
-            error = `Invalid ${currency.ticker} address`;
+            error = intl.get('send.InvalidAddress', {ticker: currency.ticker});
             // If valid address but token format
             if (isValidTokenPrefix(address)) {
-                error = `Token addresses are not supported for ${currency.ticker} sends`;
+                error = intl.get('send.NotSupportAddress', {ticker: currency.ticker});
             }
         
         
         // Is this address same with my address?
         if (currentAddress && address && address === currentAddress) {
-            error = 'Cannot send to yourself!';
+            error = intl.get('send.CannotSendToYourself');
         }}
 
         setSendBchAddressError(error);
@@ -546,7 +546,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             console.log(`Error in onMax:`);
             console.log(err);
             message.error(
-                'Unable to calculate the max value due to network errors',
+                intl.get('send.UnableCalculateMaxValue'),
             );
         }
     };
@@ -558,7 +558,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 text-align: right;
             `}
         >
-            send only message &nbsp;
+            {intl.get('send.SendOnlyMessage')} &nbsp;
             <StyledCheckbox
                 defaultChecked={false}
                 onChange={() =>
@@ -590,15 +590,14 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 onCancel={handleCancel}
             >
                 <p>
-                    Are you sure you want to send {formData.value}{' '}
-                    {currency.ticker} to {formData.address}?
+                    {intl.get('send.HaveZeroTicker', {formDataValue: formData.value, ticker: currency.ticker, formDataAddress: formData.address})}
                 </p>
             </Modal>
             {!balances.totalBalance ? (
                 <ZeroBalanceHeader>
-                    You currently have 0 {currency.ticker}
+                    {intl.get('send.HaveZeroTicker', {ticker: currency.ticker})}
                     <br />
-                    Deposit some funds to use this feature
+                    {intl.get('send.DepositFund')}
                 </ZeroBalanceHeader>
             ) : (
                 <>
@@ -645,7 +644,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             }
                             codeType='address'
                             inputProps={{
-                                placeholder: `${currency.ticker} Address`,
+                                placeholder: intl.get('send.TickerAddress', {ticker: currency.ticker}),
                                 name: 'address',
                                 onChange: e => handleAddressChange(e),
                                 required: true,
@@ -664,7 +663,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             inputProps={{
                                 name: 'value',
                                 dollar: selectedCurrency === 'USD' ? 1 : 0,
-                                placeholder: 'Amount',
+                                placeholder: intl.get('send.Amount'),
                                 onChange: e => handleBchAmountChange(e),
                                 required: true,
                                 value: formData.value,
@@ -683,7 +682,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             name="opReturnMsg"
                             allowClear={true}
                             autoSize={{minRows: 2, maxRows: 4}}
-                            placeholder="Optional Private Message"
+                            placeholder={intl.get('send.OptionalPrivateMessage')}
                             disabled={isOpReturnMsgDisabled}
                             value={
                                 opReturnMsg
@@ -703,18 +702,18 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             apiError ||
                             sendBchAmountError ||
                             sendBchAddressError ? (
-                                    <PrimaryButton>Send</PrimaryButton>
+                                    <PrimaryButton>{intl.get('send.SendButton')}</PrimaryButton>
                             ) : (
                                 <>
                                     {txInfoFromUrl ? (
                                         <PrimaryButton
                                             onClick={() => showModal()}
                                         >
-                                            Send
+                                            {intl.get('send.SendButton')}
                                         </PrimaryButton>
                                     ) : (
                                         <PrimaryButton onClick={() => submit()}>
-                                            Send
+                                            {intl.get('send.SendButton')}
                                         </PrimaryButton>
                                     )}
                                 </>
@@ -722,7 +721,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         </div>
                         {queryStringText && (
                             <Alert
-                                message={`You are sending a transaction to an address including query parameters "${queryStringText}." Only the "amount" parameter, in units of ${currency.ticker} satoshis, is currently supported.`}
+                                message={intl.get('send.AlertQueryParam', {queryStringText: queryStringText, ticker: currency.ticker, })}
                                 type="warning"
                             />
                         )}

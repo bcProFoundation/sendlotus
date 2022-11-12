@@ -11,6 +11,7 @@ import useClaim from '@hooks/useClaim';
 import { fromSmallestDenomination } from '@utils/cashMethods';
 import LixiEnvelopeWatingModal from './LixiEnvelopeWatingModal';
 import LixiEnvelopeViewModal from './LixiEnvelopeViewModal';
+import intl from 'react-intl-universal';
 
 
 export function base58ToNumber(text) {
@@ -263,7 +264,7 @@ const ClaimComponent = ({ address, claimCode }) => {
                             }
                             codeType='claimCode'
                             inputProps={{
-                                placeholder: `Claim code`,
+                                placeholder: intl.get('lixi.ClaimCode'),
                                 name: 'claimCode',
                                 onChange: e => handleclaimCodeChange(e),
                                 required: true,
@@ -278,7 +279,7 @@ const ClaimComponent = ({ address, claimCode }) => {
                             <SmartButton
                                 onClick={handleOnClick}
                                 disabled={!enableClaim}
-                            >Redeem</SmartButton>
+                            >{intl.get('lixi.Redeem')}</SmartButton>
                         </div>
                     </Form>
                 </Col>
