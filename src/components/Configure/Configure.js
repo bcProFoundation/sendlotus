@@ -1,22 +1,18 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Collapse, Form, Input, Modal, Alert, Switch, Tag } from 'antd';
+import { Collapse, Form, Input, Modal, Alert } from 'antd';
 import {
     PlusSquareOutlined,
     WalletFilled,
     ImportOutlined,
     LockOutlined,
-    CheckOutlined,
-    CloseOutlined,
-    LockFilled,
-    ExclamationCircleFilled,
 } from '@ant-design/icons';
 import { WalletContext, AuthenticationContext } from '@utils/context';
 import { StyledCollapse } from '@components/Common/StyledCollapse';
 import {
     AntdFormWrapper,
-    CurrencySelectDropdown,
+    LanguageSelectDropdown
 } from '@components/Common/EnhancedInputs';
 import PrimaryButton, {
     SecondaryButton,
@@ -25,7 +21,6 @@ import PrimaryButton, {
 import {
     ThemedCopyOutlined,
     ThemedWalletOutlined,
-    ThemedDollarOutlined,
     ThemedSettingOutlined,
 } from '@components/Common/CustomIcons';
 import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
@@ -37,6 +32,7 @@ import { PushNotificationContext } from 'utils/context';
 import { getPlatformPermissionState, subscribeAllWalletsToPushNotification, unsubscribeWalletFromPushNotification } from 'utils/pushNotification';
 import PushNotificationSetting from './PushNotificationSetting';
 import LockAppSetting from './LockAppSetting';
+import intl from 'react-intl-universal';
 
 const { Panel } = Collapse;
 
@@ -345,11 +341,11 @@ const Configure = () => {
 
         if (renameSuccess) {
             Modal.success({
-                content: `Wallet "${walletToBeRenamed.name}" renamed to "${newWalletName}"`,
+                content: intl.get('setting.RenameWalletSuccess', { walletToBeRenamed: walletToBeRenamed.name, newWalletName: newWalletName})
             });
         } else {
             Modal.error({
-                content: `Rename failed. All wallets must have a unique name.`,
+                content: intl.get('setting.RenameWalletFailed'),
             });
         }
         await updateSavedWallets(wallet);
@@ -362,7 +358,7 @@ const Configure = () => {
             return;
         }
         if (
-            confirmationOfWalletToBeDeleted !==
+            confirmationOfWalletToBeDeleted !== 
             `delete ${walletToBeDeleted.name}`
         ) {
             setWalletDeleteValid(false);
@@ -377,13 +373,13 @@ const Configure = () => {
 
         if (walletDeletedSuccess) {
             Modal.success({
-                content: `Wallet "${walletToBeDeleted.name}" successfully deleted`,
+                content: intl.get('setting.DeleteWalletSuccess', { walletToBeDeleted: walletToBeDeleted.name })
             });
             // unsubscribe the deleted wallet from Push Notification
             unsubscribeWalletFromPushNotification(pushNotificationConfig, walletToBeDeleted);
         } else {
             Modal.error({
-                content: `Error deleting ${walletToBeDeleted.name}.`,
+                content: intl.get('setting.DeleteWalletFailed', { walletToBeDeleted: walletToBeDeleted.name })
             });
         }
         await updateSavedWallets(wallet);
@@ -434,7 +430,7 @@ const Configure = () => {
         <StyledConfigure>
             {walletToBeRenamed !== null && (
                 <Modal
-                    title={`Rename Wallet ${walletToBeRenamed.name}`}
+                    title={intl.get('setting.RenameWalletTitle', { walletName: walletToBeRenamed.name })}
                     visible={showRenameWalletModal}
                     onOk={changeWalletName}
                     onCancel={() => cancelRenameWallet()}
@@ -452,12 +448,12 @@ const Configure = () => {
                                     newWalletNameIsValid === null ||
                                     newWalletNameIsValid
                                         ? ''
-                                        : 'Wallet name must be a string between 1 and 24 characters long'
+                                        : intl.get('setting.InvalidWalletError')
                                 }
                             >
                                 <Input
                                     prefix={<WalletFilled />}
-                                    placeholder="Enter new wallet name"
+                                    placeholder={intl.get('setting.EnterWalletName')}
                                     name="newName"
                                     value={newWalletName}
                                     onChange={e => handleWalletNameInput(e)}
@@ -469,7 +465,7 @@ const Configure = () => {
             )}
             {walletToBeDeleted !== null && (
                 <Modal
-                    title={`Are you sure you want to delete wallet "${walletToBeDeleted.name}"?`}
+                    title={intl.get('setting.DeleteWalletConfirmation', { walletToBeDeleted: walletToBeDeleted.name })}
                     visible={showDeleteWalletModal}
                     onOk={deleteSelectedWallet}
                     onCancel={() => cancelDeleteWallet()}
@@ -487,12 +483,12 @@ const Configure = () => {
                                     walletDeleteValid === null ||
                                     walletDeleteValid
                                         ? ''
-                                        : 'Your confirmation phrase must match exactly'
+                                        : intl.get('setting.ConfirmNotMatchError')
                                 }
                             >
                                 <Input
                                     prefix={<WalletFilled />}
-                                    placeholder={`Type "delete ${walletToBeDeleted.name}" to confirm`}
+                                    placeholder={intl.get('setting.DeleteWalletConfirmation', { walletToBeDeleted: walletToBeDeleted.name })}
                                     name="walletToBeDeletedInput"
                                     value={confirmationOfWalletToBeDeleted}
                                     onChange={e => handleWalletToDeleteInput(e)}
@@ -503,18 +499,18 @@ const Configure = () => {
                 </Modal>
             )}
             <h2>
-                <ThemedCopyOutlined /> Backup your wallet
+                <ThemedCopyOutlined /> {intl.get('setting.BackupYourWallet')}
             </h2>
             <Alert
                 style={{ marginBottom: '12px' }}
-                description="Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe."
+                description={intl.get('setting.KeepSeedPhraseWarning')}
                 type="warning"
                 showIcon
             />
             {wallet && wallet.mnemonic && (
                 <>
                     <StyledCollapse>
-                        <Panel header="Click to reveal seed phrase" key="1">
+                        <Panel header={intl.get('setting.SeeSeedPhrase')} key="1">
                             <p className="notranslate">
                                 {wallet && wallet.mnemonic
                                     ? wallet.mnemonic
@@ -523,7 +519,7 @@ const Configure = () => {
                         </Panel>
                     </StyledCollapse>
                     <StyledCollapse>
-                        <Panel header="Download your QR code" key="2">
+                        <Panel header={intl.get('setting.DownloadQRCode')} key="2">
                             <StyledEmbeddedQRIframeCtn>
                                 <ResponsiveIframe
                                     src={`https://qr.sendlotus.com/embed/${wallet.Path10605.xAddress}/${wallet.name}`}
@@ -536,23 +532,22 @@ const Configure = () => {
             )}
             <StyledSpacer />
             <h2>
-                <ThemedWalletOutlined /> Manage Wallets
+                <ThemedWalletOutlined /> {intl.get('setting.ManageWallets')}
             </h2>
             {apiError ? (
                 <ApiError />
             ) : (
                 <>
                     <PrimaryButton onClick={() => updateSavedWalletsOnCreate()}>
-                        <PlusSquareOutlined /> New Wallet
+                        <PlusSquareOutlined /> {intl.get('setting.NewWallet')}
                     </PrimaryButton>
                     <SecondaryButton onClick={() => openSeedInput(!seedInput)}>
-                        <ImportOutlined /> Import Wallet
+                        <ImportOutlined /> {intl.get('setting.ImportWallet')}
                     </SecondaryButton>
                     {seedInput && (
                         <>
                             <p>
-                                Copy and paste your mnemonic seed phrase below
-                                to import an existing wallet
+                                {intl.get('setting.ImportMessage')}
                             </p>
                             <AntdFormWrapper>
                                 <Form style={{ width: 'auto' }}>
@@ -567,13 +562,13 @@ const Configure = () => {
                                             isValidMnemonic === null ||
                                             isValidMnemonic
                                                 ? ''
-                                                : 'Valid mnemonic seed phrase required'
+                                                : intl.get('setting.ValidSeedPhraseRequired')
                                         }
                                     >
                                         <Input
                                             prefix={<LockOutlined />}
                                             type="email"
-                                            placeholder="mnemonic (seed phrase)"
+                                            placeholder={intl.get('setting.ImportMessage')}
                                             name="mnemonic"
                                             autoComplete="off"
                                             onChange={e => handleChange(e)}
@@ -584,7 +579,7 @@ const Configure = () => {
                                         disabled={!isValidMnemonic}
                                         onClick={() => submit()}
                                     >
-                                        Import
+                                        {intl.get('setting.Import')}
                                     </SmartButton>
                                 </Form>
                             </AntdFormWrapper>
@@ -598,7 +593,7 @@ const Configure = () => {
                         <Panel header="Saved wallets" key="2">
                             <AWRow>
                                 <h3>{wallet.name}</h3>
-                                <h4>Currently active</h4>
+                                <h4>{intl.get('setting.CurrentlActive')}</h4>
                             </AWRow>
                             <div>
                                 {savedWallets.map(sw => (
@@ -627,7 +622,7 @@ const Configure = () => {
                                                     updateSavedWalletsOnLoad(sw)
                                                 }
                                             >
-                                                Activate
+                                                {intl.get('setting.Activate')}
                                             </button>
                                         </SWButtonCtn>
                                     </SWRow>
@@ -638,24 +633,20 @@ const Configure = () => {
                 </>
             )}
             <StyledSpacer />
-            <h2>
-                <ThemedDollarOutlined /> Fiat Currency
-            </h2>
-            <AntdFormWrapper>
-                <CurrencySelectDropdown
-                    defaultValue={
-                        cashtabSettings && cashtabSettings.fiatCurrency
-                            ? cashtabSettings.fiatCurrency
-                            : 'usd'
-                    }
-                    onChange={fiatCode =>
-                        changeCashtabSettings('fiatCurrency', fiatCode)
-                    }
+            
+            <h2>{intl.get('language')}</h2>
+              <AntdFormWrapper>
+                <LanguageSelectDropdown
+                  defaultValue={intl.get(cashtabSettings.lang)}
+                  value={intl.get(cashtabSettings.lang)}
+                  onChange={(locale) => {
+                    changeCashtabSettings('lang', locale);
+                  }}
                 />
-            </AntdFormWrapper>
+              </AntdFormWrapper>
             <StyledSpacer />
             <h2>
-                <ThemedSettingOutlined /> General Settings
+                <ThemedSettingOutlined /> {intl.get('setting.GeneralSettings')}
             </h2>
             <GeneralSettings>
                 <LockAppSetting authentication={authentication} />

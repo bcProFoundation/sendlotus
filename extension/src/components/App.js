@@ -33,6 +33,7 @@ import {
 } from 'react-router-dom';
 // Extension-only import used for open in new tab link
 import PopOut from '@assets/popout.svg';
+import intl from 'react-intl-universal';
 
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
@@ -293,7 +294,7 @@ const App = () => {
                                     onClick={() => history.push('/wallet')}
                                 >
                                     <FolderOpenFilled />
-                                    Wallet
+                                    {intl.get('wallet.Wallet')}
                                 </NavButton>
 
                                 <NavButton
@@ -301,7 +302,7 @@ const App = () => {
                                     onClick={() => history.push('/tokens')}
                                 >
                                     <AppstoreAddOutlined />
-                                    Tokens
+                                    {intl.get('wallet.Tokens')}
                                 </NavButton>
 
                                 <NavButton
@@ -309,14 +310,14 @@ const App = () => {
                                     onClick={() => history.push('/send')}
                                 >
                                     <CaretRightOutlined />
-                                    Send
+                                    {intl.get('wallet.Send')}
                                 </NavButton>
                                 <NavButton
                                     active={selectedKey === 'configure'}
                                     onClick={() => history.push('/configure')}
                                 >
                                     <SettingFilled />
-                                    Settings
+                                    {intl.get('wallet.Settings')}
                                 </NavButton>
                             </Footer>
                         ) : null}

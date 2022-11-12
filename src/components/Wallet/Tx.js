@@ -10,6 +10,7 @@ import { formatBalance } from '@utils/cashMethods';
 import { ThemedLockFilledGrey } from 'components/Common/CustomIcons';
 import { Button } from 'antd';
 import { FormattedTxAddress } from 'components/Common/FormattedWalletAddress';
+import intl from 'react-intl-universal';
 
 const DateType = styled.div`
     color: ${props => props.theme.greyDark} !important;
@@ -152,7 +153,7 @@ const Tx = ({ data }) => {
                     <div className='label'>
                         {data.outgoingTx 
                             ? <SentLabel>
-                                    Sent to: {
+                                    {intl.get('wallet.SentTo')} {
                                         data.destinationAddress && 
                                         <FormattedTxAddress address={data.destinationAddress.slice(-8)} />
                                     }
@@ -216,7 +217,7 @@ const Tx = ({ data }) => {
                                 ) : (
                                     data.opReturnMessage ? (
                                         <MessageLabel>
-                                            External Message
+                                            {intl.get('wallet.ExternalMessage')}
                                         </MessageLabel>
                                     ) : (
                                         <div></div>
@@ -235,7 +236,7 @@ const Tx = ({ data }) => {
                                             size='small'
                                             type="text"
                                         >
-                                            Reply
+                                            {intl.get('wallet.Reply')}
                                         </ReplyButton>
                                     </Link>
                                 ) : (

@@ -12,6 +12,8 @@ import ScanQRCode from './ScanQRCode';
 import useBCH from '@hooks/useBCH';
 import { currency } from '@components/Common/Ticker.js';
 import UploadImageToScan from './UploadImageToScan';
+import AppLocale from '../../lang';
+import intl from 'react-intl-universal';
 
 export const AntdFormCss = css`
     .ant-input-group-addon {
@@ -308,6 +310,40 @@ FormItemWithQRCodeAddon.propTypes = {
     codeType: PropTypes.string,
 };
 
+export const LanguageSelectDropdown = selectProps => {
+  const { Option } = Select;
+
+  // Build select dropdown from currency.languages
+  const languageMenuOptions = [];
+  for (var key in AppLocale) {
+    const languageMenuOption = {
+        value: key,
+        label: intl.get(key)
+      };
+    languageMenuOptions.push(languageMenuOption);
+  }
+
+  const languageOptions = languageMenuOptions.map(languageMenuOption => {
+    return (
+      <Option key={languageMenuOption.value} value={languageMenuOption.value} className="selectedLanguageOption">
+        {languageMenuOption.label}
+      </Option>
+    );
+  });
+  
+  return (
+    <Select
+      className="select-after"
+      style={{
+        width: '100%'
+      }}
+      {...selectProps}
+    >
+      {languageOptions}
+    </Select>
+  );
+};
+
 export const CurrencySelectDropdown = selectProps => {
     const { Option } = Select;
 
@@ -407,19 +443,19 @@ export const OpReturnMessageInput = ({value, onChange, maxByteLength, labelTop, 
                     maskClosable: 'true',
                     content: (
                         <OpReturnMessageHelp>
-                            <div className='heading'>Higher Fee</div>
+                            <div className='heading'>{intl.get('send.HigherFee')}</div>
                             <ul>
-                                <li>Transaction with attached message will incur <em>higher fee.</em></li>
+                                <li>{intl.get('send.TransactionAttached')}<em>{intl.get('send.HigherFee')}.</em></li>
                             </ul>
-                            <div className='heading'>Encryption</div>
+                            <div className='heading'>{intl.get('send.Encryption')}</div>
                             <ul>
-                                <li>Message is encrypted and only readable to the intended recipient.</li>
-                                <li>Encrypted message can only be sent to <em>wallets with at least 1 outgoing transaction.</em></li>
+                                <li>{intl.get('send.Encryption')}</li>
+                                <li>{intl.get('send.EncryptedMessageSentTo')}<em>{intl.get('send.WalletLeastTransaction')}</em></li>
                             </ul>
-                            <div className='heading'>Message Length</div>
+                            <div className='heading'>{intl.get('send.MessageLength')}</div>
                             <ul>
-                                <li>Depending on your language, <em>each character may occupy from 1 to 4 bytes.</em></li>
-                                <li>Encrypted message max length is 206 bytes.</li>
+                                <li>{intl.get('send.DependingLanguage')}<em>{intl.get('send.EachCharacrterByte')}</em></li>
+                                <li>{intl.get('send.EncryptedMaxLength')}</li>
                             </ul>
                         </OpReturnMessageHelp>
                     ),

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import Tx from './Tx';
+import intl from 'react-intl-universal';
 
 const TxHistoryHeading = styled.h4`
     font-size: 20px;
@@ -13,18 +14,16 @@ const TxHistoryHeading = styled.h4`
     }
 `;
 
-const TxHistory = ({ txs, fiatPrice, fiatCurrency }) => {
+const TxHistory = ({ txs }) => {
     return (
         <div>
             <TxHistoryHeading>
-                Recent Transactions
+                {intl.get('wallet.RecentTransaction')}
             </TxHistoryHeading>
             {txs.map(tx => (
                 <Tx
                     key={tx.txid}
                     data={tx}
-                    fiatPrice={fiatPrice}
-                    fiatCurrency={fiatCurrency}
                 />
             ))}
         </div>
@@ -32,9 +31,7 @@ const TxHistory = ({ txs, fiatPrice, fiatCurrency }) => {
 };
 
 TxHistory.propTypes = {
-    txs: PropTypes.array,
-    fiatPrice: PropTypes.number,
-    fiatCurrency: PropTypes.string,
+    txs: PropTypes.array
 };
 
 export default TxHistory;

@@ -24,7 +24,7 @@ export const currency = {
     tokenIconsUrl: '', //https://tokens.bitcoin.com/32 for BCH SLP
     txHistoryCount: 10,
     hydrateUtxoBatchSize: 20,
-    defaultSettings: { fiatCurrency: 'usd' },
+    defaultSettings: { lang: 'en' },
     opReturn: {
         opReturnPrefixHex: '6a',
         opReturnAppPrefixLengthHex: '04',

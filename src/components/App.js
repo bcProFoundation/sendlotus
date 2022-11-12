@@ -36,6 +36,7 @@ import {
 import { checkForTokenById } from '@utils/tokenMethods.js';
 import ProtectableComponentWrapper from './Authentication/ProtectableComponentWrapper';
 import { PushNotificationContext } from 'utils/context';
+import intl from 'react-intl-universal';
 import { checkInWithPushNotificationServer } from 'utils/pushNotification';
 
 const GlobalStyle = createGlobalStyle`    
@@ -318,7 +319,7 @@ const App = () => {
                                     onClick={() => history.push('/wallet')}
                                 >
                                     <FolderOpenFilled />
-                                    Wallet
+                                    {intl.get('wallet.Wallet')}
                                 </NavButton>
 
                                 <NavButton
@@ -326,7 +327,7 @@ const App = () => {
                                     onClick={() => history.push('/send')}
                                 >
                                     <CaretRightOutlined />
-                                    Send
+                                    {intl.get('wallet.Send')}
                                 </NavButton>
 
                                 <NavButton
@@ -334,14 +335,14 @@ const App = () => {
                                     onClick={() => history.push('/lixi')}
                                 >
                                     <Icon component={IconLixi} />
-                                    Lixi
+                                    {intl.get('wallet.Lixi')}
                                 </NavButton>
                                 <NavButton
                                     active={selectedKey === 'configure'}
                                     onClick={() => history.push('/configure')}
                                 >
                                     <SettingFilled />
-                                    Settings
+                                    {intl.get('wallet.Settings')}
                                 </NavButton>
                             </Footer>
                         ) : null}

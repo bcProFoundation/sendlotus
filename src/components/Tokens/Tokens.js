@@ -26,7 +26,7 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
     wallet state parameters not stored in the wallet object are deprecated
     */
 
-    const { wallet, apiError, fiatPrice, cashtabSettings } = React.useContext(
+    const { wallet, apiError } = React.useContext(
         WalletContext,
     );
     const walletState = getWalletState(wallet);
@@ -66,24 +66,7 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
                 <AlertMsg>
                     You need at least{' '}
                     {fromSmallestDenomination(currency.dustSats).toString()}{' '}
-                    {currency.ticker} (
-                    {cashtabSettings
-                        ? `${
-                              currency.fiatCurrencies[
-                                  cashtabSettings.fiatCurrency
-                              ].symbol
-                          } `
-                        : '$ '}
-                    {(
-                        fromSmallestDenomination(currency.dustSats).toString() *
-                        fiatPrice
-                    ).toFixed(4)}{' '}
-                    {cashtabSettings
-                        ? `${currency.fiatCurrencies[
-                              cashtabSettings.fiatCurrency
-                          ].slug.toUpperCase()} `
-                        : 'USD'}
-                    ) to create a token
+                    {currency.ticker} to create a token
                 </AlertMsg>
             )}
 
