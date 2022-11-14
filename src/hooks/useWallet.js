@@ -888,7 +888,7 @@ const useWallet = () => {
         try {
             localSettings = await localforage.getItem('settings');
             // If there is no keyvalue pair in localforage with key 'settings'
-            if (localSettings === null) {
+            if (!localSettings || !localSettings['lang']) {
                 // Create one with the default settings from Ticker.js
                 localforage.setItem('settings', defaultLang);
                 // Set state to default settings
