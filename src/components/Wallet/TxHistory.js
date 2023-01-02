@@ -15,17 +15,18 @@ const TxHistoryHeading = styled.h4`
 `;
 
 const TxHistory = ({ txs }) => {
+    let keyPrefix = 0;
     return (
         <div>
             <TxHistoryHeading>
                 {intl.get('wallet.RecentTransaction')}
             </TxHistoryHeading>
-            {txs.map(tx => (
-                <Tx
-                    key={tx.txid}
-                    data={tx}
-                />
-            ))}
+            {txs.map(tx => {
+                keyPrefix++
+                return (
+                    <Tx key={keyPrefix + '_' + tx.txid} item={tx}/>
+                )
+            })}
         </div>
     );
 };

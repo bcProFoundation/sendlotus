@@ -9,7 +9,7 @@ import BigNumber from 'bignumber.js';
 import {
   loadStoredWallet,
   isValidStoredWallet,
-  isLegacyMigrationRequired,
+  isLegacyMigrationRequired
 } from '@utils/cashMethods';
 import { isValidCashtabSettings } from '@utils/validation';
 import localforage from 'localforage';
@@ -28,7 +28,8 @@ import {
   getTxHistoryChronik,
   getUtxosChronik,
   organizeUtxosByType,
-  parseChronikTx
+  parseChronikTx,
+  selectAllPaths
 } from '@utils/chronik';
 
 const chronik = new ChronikClient('https://chronik.be.cash/xpi');
@@ -94,17 +95,6 @@ const useWallet = () => {
     return setXPI(getXPI(currentApiIndex));
     // If you have more than one, use the next one
     // If you are at the "end" of the array, use the first one
-  };
-
-  const selectAll = wallet => {
-    const allPaths = [];
-    PATHS.map(x => {
-      const currentPathData = wallet[x];
-      if (currentPathData) {
-        allPaths.push(currentPathData);
-      }
-    });
-    return allPaths;
   };
 
   const deriveAccount = async (XPI, { masterHDNode, path }) => {
@@ -335,7 +325,7 @@ const useWallet = () => {
         return;
       }
 
-      const allWalletPaths = selectAll(walletToUpdate);
+      const allWalletPaths = selectAllPaths(walletToUpdate);
 
       const hash160AndAddressObjArray = allWalletPaths.map(item => {
         return {
@@ -381,7 +371,7 @@ const useWallet = () => {
       };
 
       // Set wallet with new state field
-      wallet.state = newState;
+      walletToUpdate.state = newState;
 
       // While a wallet being updated in the background
       //  user may choose to switch to another wallet
@@ -1203,6 +1193,7 @@ If the user is migrating from old version to this version, make sure to save the
   // @Todo: investigate and uncomment here
   return {
     XPI,
+    chronik,
     wallet,
     fiatPrice,
     loading,

@@ -4,7 +4,7 @@ import { decryptOpReturnMsg, getHashArrayFromWallet, getUtxoWif, parseOpReturn }
 
 const PATHS = ['Path899','Path1899','Path10605']
 const getWalletPathsFromWalletState = (wallet) => {
-  const allWalletPaths = selectAll(wallet);
+  const allWalletPaths = selectAllPaths(wallet);
   return allWalletPaths;
 };
 
@@ -348,7 +348,7 @@ export const parseChronikTx = async (XPI, chronik, tx, wallet ) => {
     wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
   ) {
     // const allWalletPaths = Object.values(wallet.entities);
-    const allWalletPaths = selectAll(wallet);
+    const allWalletPaths = selectAllPaths(wallet);
     const fundingWif = getUtxoWif(wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0], allWalletPaths);
     const decryption = await decryptOpReturnMsg(messageHex, fundingWif, otherPublicKey);
 
@@ -415,7 +415,7 @@ export const getTxHistoryChronik = async (chronik, XPI, wallet) => {
   };
 };
 
-const selectAll = wallet => {
+export const selectAllPaths = wallet => {
   const allPaths = [];
   PATHS.map(x => {
     const currentPathData = wallet[x];

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
     useLocation,
     useHistory
 } from 'react-router-dom';
@@ -26,11 +26,12 @@ import BalanceHeader from '@components/Common/BalanceHeader';
 import {
     ZeroBalanceHeader,
 } from '@components/Common/Atoms';
-import { 
+import {
     getWalletState,
     getDustXPI,
+    getUtxoWif,
 } from '@utils/cashMethods';
-import { 
+import {
     CashReceivedNotificationIcon,
 } from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
@@ -40,6 +41,9 @@ import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { askPermission, subscribeAllWalletsToPushNotification } from 'utils/pushNotification';
 import intl from 'react-intl-universal';
 import useXPI from '@hooks/useXPI';
+import {
+    selectAllPaths
+} from '@utils/chronik';
 
 const StyledCheckbox = styled(Checkbox)`
     .ant-checkbox-inner {
@@ -71,18 +75,19 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
     const pushNotificationConfig = React.useContext(PushNotificationContext);
     const location = useLocation();
     const history = useHistory();
-    const { wallet, fiatPrice, apiError, refresh } = ContextValue;
+    const { XPI, chronik, wallet, fiatPrice, apiError, refresh } = ContextValue;
 
     const currentAddress = wallet && wallet.Path10605 ? wallet.Path10605.xAddress : undefined;
     const walletState = getWalletState(wallet);
     const { balances, slpBalancesAndUtxos } = walletState;
 
-    const [isOpReturnMsgDisabled,setIsOpReturnMsgDisabled] = useState(true);
+    const [isOpReturnMsgDisabled, setIsOpReturnMsgDisabled] = useState(true);
     const [recipientPubKeyHex, setRecipientPubKeyHex] = useState(false);
     const [recipientPubKeyWarning, setRecipientPubKeyWarning] = useState(false);
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] = useState(true);
     const [xpiObj, setXpiObj] = useState(false);
+    const walletPaths = selectAllPaths(wallet)
 
     const [formData, setFormData] = useState({
         dirty: true,
@@ -123,11 +128,11 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
     }, [balances.totalBalance]);
 
     useEffect(async () => {
-         // jestXPI is only ever specified for unit tests, otherwise app will use getXPI();
-         const XPI = jestXPI ? jestXPI : getXPI();
+        // jestXPI is only ever specified for unit tests, otherwise app will use getXPI();
+        const XPI = jestXPI ? jestXPI : getXPI();
 
-         // set the XPI instance to state, for other functions to reference
-         setXpiObj(XPI);
+        // set the XPI instance to state, for other functions to reference
+        setXpiObj(XPI);
 
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
 
@@ -138,7 +143,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                 // send dust amount
                 value: getDustXPI(),
             });
-            await fetchRecipientPublicKey(XPI,location.state.replyAddress);
+            await fetchRecipientPublicKey(XPI, location.state.replyAddress);
         }
 
         // Do not set txInfo in state if query strings are not present
@@ -182,8 +187,8 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
         let encryptedMsg;
         try {
             const sharedKey = createSharedKey(privateKeyWIF, recipientPubKeyHex);
-            encryptedMsg = encrypt(sharedKey,Uint8Array.from(Buffer.from(plainTextMsg)));
-            
+            encryptedMsg = encrypt(sharedKey, Uint8Array.from(Buffer.from(plainTextMsg)));
+
         } catch (err) {
             console.log(`SendXPI.encryptOpReturnMsg() error: ` + err);
             throw err;
@@ -217,7 +222,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                 }
 
                 // subscribe all wallets to Push Notification in interactive mode
-                subscribeAllWalletsToPushNotification(pushNotificationConfig,true);
+                subscribeAllWalletsToPushNotification(pushNotificationConfig, true);
             },
             onCancel() {
                 pushNotificationConfig.turnOffPushNotification();
@@ -272,7 +277,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
             // XPI to an SLPA address
             passLoadingStatus(false);
             setSendXpiAddressError(
-                intl.get('send.PushNotificationTitle', {ticker: currency.ticker}),
+                intl.get('send.PushNotificationTitle', { ticker: currency.ticker }),
             );
             return;
         }
@@ -300,7 +305,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
         if (opReturnMsg &&
             typeof opReturnMsg !== 'undefined' &&
             opReturnMsg.trim() !== '' &&
-            recipientPubKeyHex ) {           
+            recipientPubKeyHex) {
             try {
                 encryptedOpReturnMsg = encryptOpReturnMsg(wallet.Path10605.fundingWif, recipientPubKeyHex, opReturnMsg);
             } catch (error) {
@@ -315,15 +320,20 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
         }
 
         try {
+            const fundingWif = getUtxoWif(slpBalancesAndUtxos.nonSlpUtxos[0], walletPaths);
             const link = await sendXpi(
-                xpiObj,
-                wallet,
+                XPI,
+                chronik,
+                walletPaths,
                 slpBalancesAndUtxos.nonSlpUtxos,
-                cleanAddress,
-                xpiValue,
                 currency.defaultFee,
-                encryptedOpReturnMsg,
+                opReturnMsg,
+                false, // indicate send mode is one to one
+                null,
+                cleanAddress,
+                value,
                 isEncryptedOptionalOpReturnMsg,
+                fundingWif
             );
 
             notification.success({
@@ -342,11 +352,11 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
 
             passLoadingStatus(false);
             // update the wallet the get the new utxos 1s after sending
-            setTimeout(refresh,1000);
+            setTimeout(refresh, 1000);
             // if Push Notification is not supported, pushNotificationConfig will be null
             // The allowPushNotification property value can be undefined, null, true, false
             // undefined & null mean config has not been set
-            if ( pushNotificationConfig && ( pushNotificationConfig.allowPushNotification === undefined || pushNotificationConfig.allowPushNotification === null) ) {
+            if (pushNotificationConfig && (pushNotificationConfig.allowPushNotification === undefined || pushNotificationConfig.allowPushNotification === null)) {
                 showPushNotificationPromptModal();
             } else {
                 // redirect to wallet home page
@@ -358,7 +368,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
             let message;
 
             if (!e.error && !e.message) {
-                message = intl.get('send.TransactionFail', {restUrl: getRestUrl()});
+                message = intl.get('send.TransactionFail', { restUrl: getRestUrl() });
             } else if (
                 /Could not communicate with full node or other external service/.test(
                     e.error,
@@ -371,7 +381,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                     'too-long-mempool-chain, too many unModal.ed ancestors [limit: 50] (code 64)',
                 )
             ) {
-                message = intl.get('send.TooManyUnModalMessage', {ticker: currency.ticker});
+                message = intl.get('send.TooManyUnModalMessage', { ticker: currency.ticker });
             } else {
                 message = e.message || e.error || JSON.stringify(e);
             }
@@ -407,15 +417,15 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                 error: 'fetch error - exception thrown'
             }
         }
-        const {success, publicKey} = recipientPubKey;
-        if ( success ) {
+        const { success, publicKey } = recipientPubKey;
+        if (success) {
             setRecipientPubKeyHex(publicKey);
             setIsOpReturnMsgDisabled(false);
             setRecipientPubKeyWarning(false);
         } else {
             setRecipientPubKeyHex(false);
             setIsOpReturnMsgDisabled(true);
-            if ( publicKey && publicKey === 'not found' ) {
+            if (publicKey && publicKey === 'not found') {
                 setRecipientPubKeyWarning(intl.get('send.CanNotSendMessage'));
             } else {
                 setRecipientPubKeyWarning(intl.get('send.NewAddressWarning'));
@@ -447,27 +457,28 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
         // If query string,
         // Show an alert that only amount and currency.ticker are supported
         setQueryStringText(queryString);
-    
+
         // Is this valid address?
         if (!isValid) {
-            error = intl.get('send.InvalidAddress', {ticker: currency.ticker});
+            error = intl.get('send.InvalidAddress', { ticker: currency.ticker });
             // If valid address but token format
             if (isValidTokenPrefix(address)) {
-                error = intl.get('send.NotSupportAddress', {ticker: currency.ticker});
+                error = intl.get('send.NotSupportAddress', { ticker: currency.ticker });
             }
-        
-        
-        // Is this address same with my address?
-        if (currentAddress && address && address === currentAddress) {
-            error = intl.get('send.CannotSendToYourself');
-        }}
+
+
+            // Is this address same with my address?
+            if (currentAddress && address && address === currentAddress) {
+                error = intl.get('send.CannotSendToYourself');
+            }
+        }
 
         setSendXpiAddressError(error);
 
         // if the address is correct
         // attempt the fetch the public key assocciated with this address
         if (!error) {
-            fetchRecipientPublicKey(xpiObj ,address);
+            fetchRecipientPublicKey(xpiObj, address);
         }
 
         // Set amount if it's in the query string
@@ -534,8 +545,8 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
             let value =
                 balances.totalBalance - txFeeXpi >= 0
                     ? (balances.totalBalance - txFeeXpi).toFixed(
-                          currency.cashDecimals,
-                      )
+                        currency.cashDecimals,
+                    )
                     : 0;
 
             setFormData({
@@ -590,12 +601,12 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                 onCancel={handleCancel}
             >
                 <p>
-                    {intl.get('send.HaveZeroTicker', {formDataValue: formData.value, ticker: currency.ticker, formDataAddress: formData.address})}
+                    {intl.get('send.HaveZeroTicker', { formDataValue: formData.value, ticker: currency.ticker, formDataAddress: formData.address })}
                 </p>
             </Modal>
             {!balances.totalBalance ? (
                 <ZeroBalanceHeader>
-                    {intl.get('send.HaveZeroTicker', {ticker: currency.ticker})}
+                    {intl.get('send.HaveZeroTicker', { ticker: currency.ticker })}
                     <br />
                     {intl.get('send.DepositFund')}
                 </ZeroBalanceHeader>
@@ -615,7 +626,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                             width: 'auto',
                         }}
                     >
-                         { recipientPubKeyWarning &&
+                        {recipientPubKeyWarning &&
                             <Alert
                                 style={{
                                     margin: '0 0 10px 0'
@@ -626,9 +637,9 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                             />
                         }
                         <FormItemWithQRCodeAddon
-                                style={{
-                                    margin: '0 0 10px 0'
-                                }}
+                            style={{
+                                margin: '0 0 10px 0'
+                            }}
                             loadWithCameraOpen={false}
                             validateStatus={sendXpiAddressError ? 'error' : ''}
                             help={
@@ -644,7 +655,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                             }
                             codeType='address'
                             inputProps={{
-                                placeholder: intl.get('send.TickerAddress', {ticker: currency.ticker}),
+                                placeholder: intl.get('send.TickerAddress', { ticker: currency.ticker }),
                                 name: 'address',
                                 onChange: e => handleAddressChange(e),
                                 required: true,
@@ -656,7 +667,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                             style={{
                                 margin: '0 0 10px 0'
                             }}
-                           
+
                             validateStatus={sendXpiAmountError ? 'error' : ''}
                             help={sendXpiAmountError ? sendXpiAmountError : ''}
                             onMax={onMax}
@@ -676,18 +687,18 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                         ></SendXpiInput>
                         {/* OP_RETURN message */}
                         <OpReturnMessageInput
-                             style={{
+                            style={{
                                 margin: '0 0 25px 0',
                             }}
                             name="opReturnMsg"
                             allowClear={true}
-                            autoSize={{minRows: 2, maxRows: 4}}
+                            autoSize={{ minRows: 2, maxRows: 4 }}
                             placeholder={intl.get('send.OptionalPrivateMessage')}
                             disabled={isOpReturnMsgDisabled}
                             value={
                                 opReturnMsg
                                     ? isEncryptedOptionalOpReturnMsg
-                                        ? opReturnMsg.substring(0,currency.opReturn.encryptedMsgByteLimit)
+                                        ? opReturnMsg.substring(0, currency.opReturn.encryptedMsgByteLimit)
                                         : opReturnMsg
                                     : ''
                             }
@@ -695,14 +706,14 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                             maxByteLength={computeOpReturnMsgMaxByteLength()}
                             labelTop={null}
                             labelBottom={null}
-                        />     
+                        />
                         {/* END OF OP_RETURN message */}
                         <div>
                             {!balances.totalBalance ||
-                            apiError ||
-                            sendXpiAmountError ||
-                            sendXpiAddressError ? (
-                                    <PrimaryButton>{intl.get('send.SendButton')}</PrimaryButton>
+                                apiError ||
+                                sendXpiAmountError ||
+                                sendXpiAddressError ? (
+                                <PrimaryButton>{intl.get('send.SendButton')}</PrimaryButton>
                             ) : (
                                 <>
                                     {txInfoFromUrl ? (
@@ -721,7 +732,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                         </div>
                         {queryStringText && (
                             <Alert
-                                message={intl.get('send.AlertQueryParam', {queryStringText: queryStringText, ticker: currency.ticker, })}
+                                message={intl.get('send.AlertQueryParam', { queryStringText: queryStringText, ticker: currency.ticker, })}
                                 type="warning"
                             />
                         )}
