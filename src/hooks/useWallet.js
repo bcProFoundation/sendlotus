@@ -324,7 +324,7 @@ const useWallet = () => {
     return setChronikWebsocket(ws);
   };
 
-  const update = async (walletToUpdate) => {
+  const update = async ({walletToUpdate}) => {
     // Check if walletRefreshInterval is set to 10, i.e. this was called by websocket tx detection
     // If walletRefreshInterval is 10, set it back to the usual refresh rate
     if (walletRefreshInterval === 10) {
