@@ -33,7 +33,7 @@ import {
 
 const chronik = new ChronikClient('https://chronik.be.cash/xpi');
 const websocketConnectedRefreshInterval = 10000;
-const PATHS = ['Path899','Path1899','Path10605']
+const PATHS = ['Path899', 'Path1899', 'Path10605']
 
 const useWallet = () => {
   const [wallet, setWallet] = useState(false);
@@ -324,18 +324,16 @@ const useWallet = () => {
     return setChronikWebsocket(ws);
   };
 
-  const update = async (wallet) => {
+  const update = async (walletToUpdate) => {
     // Check if walletRefreshInterval is set to 10, i.e. this was called by websocket tx detection
     // If walletRefreshInterval is 10, set it back to the usual refresh rate
     if (walletRefreshInterval === 10) {
       setWalletRefreshInterval(websocketConnectedRefreshInterval);
     }
     try {
-      if (!wallet) {
+      if (!walletToUpdate) {
         return;
       }
-
-      const walletToUpdate = wallet['walletToUpdate'];
 
       const allWalletPaths = selectAll(walletToUpdate);
 
@@ -384,10 +382,16 @@ const useWallet = () => {
 
       // Set wallet with new state field
       wallet.state = newState;
-      setWallet(wallet);
 
-      // Write this state to indexedDb using localForage
-      writeWalletState(wallet, newState);
+      // While a wallet being updated in the background
+      //  user may choose to switch to another wallet
+      //  in this case, the wallet being updated here is not the active wallet
+      //  and shoud not be overriding the currectly active wallet
+      if (walletToUpdate.name === wallet.name) {
+        setWallet(walletToUpdate);
+        // Write this state to indexedDb using localForage
+        writeWalletState(walletToUpdate, newState);
+      }
 
       // If everything executed correctly, remove apiError
       setApiError(false);

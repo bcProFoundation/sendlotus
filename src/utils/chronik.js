@@ -4,8 +4,7 @@ import { decryptOpReturnMsg, getHashArrayFromWallet, getUtxoWif, parseOpReturn }
 
 const PATHS = ['Path899','Path1899','Path10605']
 const getWalletPathsFromWalletState = (wallet) => {
-  const walletToUpdate = wallet['walletToUpdate'];
-  const allWalletPaths = selectAll(walletToUpdate);
+  const allWalletPaths = selectAll(wallet);
   return allWalletPaths;
 };
 
