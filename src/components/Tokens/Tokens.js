@@ -5,13 +5,12 @@ import { fromSmallestDenomination, getWalletState } from '@utils/cashMethods';
 import CreateTokenForm from '@components/Tokens/CreateTokenForm';
 import { currency } from '@components/Common/Ticker.js';
 import TokenList from '@components/Wallet/TokenList';
-import useBCH from '@hooks/useBCH';
+import useXPI from '@hooks/useXPI';
 import BalanceHeader from '@components/Common/BalanceHeader';
-import BalanceHeaderFiat from '@components/Common/BalanceHeaderFiat';
 import { ZeroBalanceHeader, AlertMsg } from '@components/Common/Atoms';
 import ApiError from '@components/Common/ApiError';
 
-const Tokens = ({ jestBCH, passLoadingStatus }) => {
+const Tokens = ({ jestXPI, passLoadingStatus }) => {
     /*
     Dev note
 
@@ -32,10 +31,10 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
     const walletState = getWalletState(wallet);
     const { balances, tokens } = walletState;
 
-    const { getBCH, getRestUrl, createToken } = useBCH();
+    const { getXPI, getRestUrl, createToken } = useXPI();
 
     // Support using locally installed bchjs for unit tests
-    const BCH = jestBCH ? jestBCH : getBCH();
+    const XPI = jestXPI ? jestXPI : getXPI();
     return (
         <>
             {!balances.totalBalance ? (
@@ -56,7 +55,7 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
             )}
             {apiError && <ApiError />}
             <CreateTokenForm
-                BCH={BCH}
+                XPI={XPI}
                 getRestUrl={getRestUrl}
                 createToken={createToken}
                 disabled={balances.totalBalanceInSatoshis < currency.dustSats}
@@ -95,7 +94,7 @@ Tokens.defaultProps = {
 };
 
 Tokens.propTypes = {
-    jestBCH: PropTypes.object,
+    jestXPI: PropTypes.object,
     passLoadingStatus: PropTypes.func,
 };
 

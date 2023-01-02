@@ -33,8 +33,7 @@ import {
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 import {
-    getWalletState,
-    convertEtokenToSimpleledger,
+    getWalletState
 } from '@utils/cashMethods';
 import { TokenReceivedNotificationIcon } from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
@@ -103,9 +102,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
 
         // Clear params from address
         let cleanAddress = address.split('?')[0];
-
-        // Convert to simpleledger prefix if etoken
-        cleanAddress = convertEtokenToSimpleledger(cleanAddress);
 
         try {
             const link = await sendToken(BCH, wallet, slpBalancesAndUtxos, {

@@ -9,7 +9,6 @@ import {
 import { LockOutlined } from '@ant-design/icons';
 import styled, { css } from 'styled-components';
 import ScanQRCode from './ScanQRCode';
-import useBCH from '@hooks/useBCH';
 import { currency } from '@components/Common/Ticker.js';
 import UploadImageToScan from './UploadImageToScan';
 import AppLocale from '../../lang';
@@ -146,7 +145,7 @@ export const StyledScanQRCode = styled(ScanQRCode)`
     justify-content: center;
 `;
 
-export const SendBchInput = ({
+export const SendXpiInput = ({
     onMax,
     inputProps,
     selectProps,
@@ -229,7 +228,7 @@ export const SendBchInput = ({
     );
 };
 
-SendBchInput.propTypes = {
+SendXpiInput.propTypes = {
     onMax: PropTypes.func,
     inputProps: PropTypes.object,
     selectProps: PropTypes.object,
@@ -381,28 +380,6 @@ export const CurrencySelectDropdown = selectProps => {
             {currencyOptions}
         </Select>
     );
-};
-
-export const AddressValidators = () => {
-    const { BCH } = useBCH();
-
-    return {
-        safelyDetectAddressFormat: value => {
-            try {
-                return BCH.Address.detectAddressFormat(value);
-            } catch (error) {
-                return null;
-            }
-        },
-        isSLPAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'slpaddr',
-        isBCHAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'cashaddr',
-        isLegacyAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'legacy',
-        isXAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'xaddr',
-    }();
 };
 
 // OP_RETURN message related component

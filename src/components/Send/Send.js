@@ -11,11 +11,10 @@ import { Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton from '@components/Common/PrimaryButton';
 import {
-    SendBchInput,
+    SendXpiInput,
     FormItemWithQRCodeAddon,
     OpReturnMessageInput
 } from '@components/Common/EnhancedInputs';
-import useBCH from '@hooks/useBCH';
 import {
     currency,
     isValidTokenPrefix,
@@ -40,6 +39,7 @@ import { PushNotificationContext } from 'utils/context';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { askPermission, subscribeAllWalletsToPushNotification } from 'utils/pushNotification';
 import intl from 'react-intl-universal';
+import useXPI from '@hooks/useXPI';
 
 const StyledCheckbox = styled(Checkbox)`
     .ant-checkbox-inner {
@@ -60,8 +60,8 @@ const StyledCheckbox = styled(Checkbox)`
     }
 `
 
-// Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
-const SendBCH = ({ jestBCH, passLoadingStatus }) => {
+// Note jestXPI is only used for unit tests; XPIJS must be mocked for jest
+const SendXPI = ({ jestXPI, passLoadingStatus }) => {
     // use balance parameters from wallet.state object and not legacy balances parameter from walletState, if user has migrated wallet
     // this handles edge case of user with old wallet who has not opened latest Cashtab version yet
 
@@ -82,7 +82,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const [recipientPubKeyWarning, setRecipientPubKeyWarning] = useState(false);
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] = useState(true);
-    const [bchObj, setBchObj] = useState(false);
+    const [xpiObj, setXpiObj] = useState(false);
 
     const [formData, setFormData] = useState({
         dirty: true,
@@ -90,8 +90,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         address: '',
     });
     const [queryStringText, setQueryStringText] = useState(null);
-    const [sendBchAddressError, setSendBchAddressError] = useState(false);
-    const [sendBchAmountError, setSendBchAmountError] = useState(false);
+    const [sendXpiAddressError, setSendXpiAddressError] = useState(false);
+    const [sendXpiAmountError, setSendXpiAmountError] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState(currency.ticker);
 
     // Support cashtab button from web pages
@@ -113,7 +113,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         setIsModalVisible(false);
     };
 
-    const { getBCH, getRestUrl, sendBch, calcFee } = useBCH();
+    const { getXPI, getRestUrl, sendXpi, calcFee } = useXPI();
 
 
     // If the balance has changed, unlock the UI
@@ -123,11 +123,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     }, [balances.totalBalance]);
 
     useEffect(async () => {
-         // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-         const BCH = jestBCH ? jestBCH : getBCH();
+         // jestXPI is only ever specified for unit tests, otherwise app will use getXPI();
+         const XPI = jestXPI ? jestXPI : getXPI();
 
-         // set the BCH instance to state, for other functions to reference
-         setBchObj(BCH);
+         // set the XPI instance to state, for other functions to reference
+         setXpiObj(XPI);
 
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
 
@@ -138,7 +138,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 // send dust amount
                 value: getDustXPI(),
             });
-            await fetchRecipientPublicKey(BCH,location.state.replyAddress);
+            await fetchRecipientPublicKey(XPI,location.state.replyAddress);
         }
 
         // Do not set txInfo in state if query strings are not present
@@ -185,7 +185,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             encryptedMsg = encrypt(sharedKey,Uint8Array.from(Buffer.from(plainTextMsg)));
             
         } catch (err) {
-            console.log(`SendBCH.encryptOpReturnMsg() error: ` + err);
+            console.log(`SendXPI.encryptOpReturnMsg() error: ` + err);
             throw err;
         }
 
@@ -243,8 +243,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }
 
         // Event("Category", "Action", "Label")
-        // Track number of BCHA send transactions and whether users
-        // are sending BCHA or USD
+        // Track number of XPI send transactions and whether users
+        // are sending XPI or USD
         Event('Send.js', 'Send', selectedCurrency);
 
         passLoadingStatus(true);
@@ -256,7 +256,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // Ensure address has bitcoincash: prefix and checksum
         // cleanAddress = toLegacy(cleanAddress);
 
-        const isValidAddress = bchObj.Address.isXAddress(cleanAddress);
+        const isValidAddress = xpiObj.Address.isXAddress(cleanAddress);
         // try {
         //     hasValidLotusPrefix = cleanAddress.startsWith(
         //         currency.legacyPrefix + ':',
@@ -269,19 +269,19 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         if (!isValidAddress) {
             // set loading to false and set address validation to false
             // Now that the no-prefix case is handled, this happens when user tries to send
-            // BCHA to an SLPA address
+            // XPI to an SLPA address
             passLoadingStatus(false);
-            setSendBchAddressError(
+            setSendXpiAddressError(
                 intl.get('send.PushNotificationTitle', {ticker: currency.ticker}),
             );
             return;
         }
 
-        // Calculate the amount in BCH
-        let bchValue = value;
+        // Calculate the amount in XPI
+        let xpiValue = value;
 
         // if (selectedCurrency !== 'XPI') {
-        //     bchValue = fiatToCrypto(value, fiatPrice);
+        //     xpiValue = fiatToCrypto(value, fiatPrice);
         // }
 
         // encrypted message limit truncation
@@ -315,12 +315,12 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }
 
         try {
-            const link = await sendBch(
-                bchObj,
+            const link = await sendXpi(
+                xpiObj,
                 wallet,
                 slpBalancesAndUtxos.nonSlpUtxos,
                 cleanAddress,
-                bchValue,
+                xpiValue,
                 currency.defaultFee,
                 encryptedOpReturnMsg,
                 isEncryptedOptionalOpReturnMsg,
@@ -385,10 +385,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }
     }
 
-    const fetchRecipientPublicKey = async (BCH, recipientAddress) => {
+    const fetchRecipientPublicKey = async (XPI, recipientAddress) => {
         let recipientPubKey;
         try {
-            // see https://api.fullstack.cash/docs/#api-Encryption-Get_encryption_key_for_bch_address
+            // see https://api.fullstack.cash/docs/#api-Encryption-Get_encryption_key_for_xpi_address
             // if successful, returns
             // { 
             //   success: true,
@@ -399,9 +399,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             //   success: false,
             //   publicKey: "not found"
             // }
-            recipientPubKey = await BCH.encryption.getPubKey(recipientAddress);
+            recipientPubKey = await XPI.encryption.getPubKey(recipientAddress);
         } catch (err) {
-            console.log(`SendBCH.handleAddressChange() error: ` + err);
+            console.log(`SendXPI.handleAddressChange() error: ` + err);
             recipientPubKey = {
                 success: false,
                 error: 'fetch error - exception thrown'
@@ -429,7 +429,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         let addressString = value;
 
         // parse address
-        const addressInfo = parseAddress(bchObj, addressString);
+        const addressInfo = parseAddress(xpiObj, addressString);
         /*
         Model
 
@@ -462,17 +462,17 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             error = intl.get('send.CannotSendToYourself');
         }}
 
-        setSendBchAddressError(error);
+        setSendXpiAddressError(error);
 
         // if the address is correct
         // attempt the fetch the public key assocciated with this address
         if (!error) {
-            fetchRecipientPublicKey(bchObj ,address);
+            fetchRecipientPublicKey(xpiObj ,address);
         }
 
         // Set amount if it's in the query string
         if (amount !== null) {
-            // Set currency to BCHA
+            // Set currency to XPI
             setSelectedCurrency(currency.ticker);
 
             // Use this object to mimic user input and get validation for the value
@@ -482,7 +482,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     value: amount,
                 },
             };
-            handleBchAmountChange(amountObj);
+            handleXpiAmountChange(amountObj);
             setFormData({
                 ...formData,
                 value: amount,
@@ -498,23 +498,23 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const handleSelectedCurrencyChange = e => {
         setSelectedCurrency(e);
-        // Clear input field to prevent accidentally sending 1 BCH instead of 1 USD
+        // Clear input field to prevent accidentally sending 1 XPI instead of 1 USD
         setFormData(p => ({
             ...p,
             value: '',
         }));
     };
 
-    const handleBchAmountChange = e => {
+    const handleXpiAmountChange = e => {
         const { value, name } = e.target;
-        let bchValue = value;
+        let xpiValue = value;
         const error = shouldRejectAmountInput(
-            bchValue,
+            xpiValue,
             selectedCurrency,
             fiatPrice,
             balances.totalBalance,
         );
-        setSendBchAmountError(error);
+        setSendXpiAmountError(error);
 
         setFormData(p => ({
             ...p,
@@ -524,16 +524,16 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const onMax = async () => {
         // Clear amt error
-        setSendBchAmountError(false);
-        // Set currency to BCH
+        setSendXpiAmountError(false);
+        // Set currency to XPI
         setSelectedCurrency(currency.ticker);
         try {
-            const txFeeSats = calcFee(bchObj, slpBalancesAndUtxos.nonSlpUtxos);
+            const txFeeSats = calcFee(xpiObj, slpBalancesAndUtxos.nonSlpUtxos);
 
-            const txFeeBch = txFeeSats / 10 ** currency.cashDecimals;
+            const txFeeXpi = txFeeSats / 10 ** currency.cashDecimals;
             let value =
-                balances.totalBalance - txFeeBch >= 0
-                    ? (balances.totalBalance - txFeeBch).toFixed(
+                balances.totalBalance - txFeeXpi >= 0
+                    ? (balances.totalBalance - txFeeXpi).toFixed(
                           currency.cashDecimals,
                       )
                     : 0;
@@ -630,9 +630,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                     margin: '0 0 10px 0'
                                 }}
                             loadWithCameraOpen={false}
-                            validateStatus={sendBchAddressError ? 'error' : ''}
+                            validateStatus={sendXpiAddressError ? 'error' : ''}
                             help={
-                                sendBchAddressError ? sendBchAddressError : ''
+                                sendXpiAddressError ? sendXpiAddressError : ''
                             }
                             onScan={result =>
                                 handleAddressChange({
@@ -652,19 +652,19 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             }}
                         ></FormItemWithQRCodeAddon>
                         {sendOnlyMessageCheckbox}
-                        <SendBchInput
+                        <SendXpiInput
                             style={{
                                 margin: '0 0 10px 0'
                             }}
                            
-                            validateStatus={sendBchAmountError ? 'error' : ''}
-                            help={sendBchAmountError ? sendBchAmountError : ''}
+                            validateStatus={sendXpiAmountError ? 'error' : ''}
+                            help={sendXpiAmountError ? sendXpiAmountError : ''}
                             onMax={onMax}
                             inputProps={{
                                 name: 'value',
                                 dollar: selectedCurrency === 'USD' ? 1 : 0,
                                 placeholder: intl.get('send.Amount'),
-                                onChange: e => handleBchAmountChange(e),
+                                onChange: e => handleXpiAmountChange(e),
                                 required: true,
                                 value: formData.value,
                             }}
@@ -673,7 +673,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 disabled: queryStringText !== null,
                                 onChange: e => handleSelectedCurrencyChange(e),
                             }}
-                        ></SendBchInput>
+                        ></SendXpiInput>
                         {/* OP_RETURN message */}
                         <OpReturnMessageInput
                              style={{
@@ -700,8 +700,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         <div>
                             {!balances.totalBalance ||
                             apiError ||
-                            sendBchAmountError ||
-                            sendBchAddressError ? (
+                            sendXpiAmountError ||
+                            sendXpiAddressError ? (
                                     <PrimaryButton>{intl.get('send.SendButton')}</PrimaryButton>
                             ) : (
                                 <>
@@ -740,15 +740,15 @@ in order to pass the rendering unit test in Send.test.js
 status => {console.log(status)} is an arbitrary stub function
 */
 
-SendBCH.defaultProps = {
+SendXPI.defaultProps = {
     passLoadingStatus: status => {
         console.log(status);
     },
 };
 
-SendBCH.propTypes = {
-    jestBCH: PropTypes.object,
+SendXPI.propTypes = {
+    jestXPI: PropTypes.object,
     passLoadingStatus: PropTypes.func,
 };
 
-export default SendBCH;
+export default SendXPI;

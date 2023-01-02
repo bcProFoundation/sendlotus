@@ -12,6 +12,7 @@
         "@zxing/library": "0.8.0",
         "antd": "^4.9.3",
         "bignumber.js": "^9.0.0",
+        "chronik-client": "^0.8.1",
         "dotenv": "^8.2.0",
         "dotenv-expand": "^5.1.0",
         "ecashaddrjs": "^1.0.1",
