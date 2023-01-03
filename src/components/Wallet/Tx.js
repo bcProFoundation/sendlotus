@@ -103,7 +103,7 @@ const ReplyButton = styled(Button)`
     color: ${props => props.theme.grey} !important;
 `
 
-const Tx = ({ key, item }) => {
+const Tx = ({ item }) => {
     let memo = '';
     if (item.parsed.isLotusMessage) {
         if (item.parsed.isEncryptedMessage && item.parsed.decryptionSuccess) {
@@ -113,7 +113,7 @@ const Tx = ({ key, item }) => {
         }
     }
     return (
-        <div key={key}
+        <div
             css={`
                 position: relative;
             `}
@@ -215,7 +215,7 @@ const Tx = ({ key, item }) => {
 };
 
 Tx.propTypes = {
-    data: PropTypes.object,
+    item: PropTypes.object,
     fiatPrice: PropTypes.number,
     fiatCurrency: PropTypes.string,
 };

@@ -350,13 +350,18 @@ export const parseChronikTx = async (XPI, chronik, tx, wallet ) => {
     // const allWalletPaths = Object.values(wallet.entities);
     const allWalletPaths = selectAllPaths(wallet);
     const fundingWif = getUtxoWif(wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0], allWalletPaths);
-    const decryption = await decryptOpReturnMsg(messageHex, fundingWif, otherPublicKey);
+    try {
+      const decryption = await decryptOpReturnMsg(messageHex, fundingWif, otherPublicKey);
 
-    if (decryption.success) {
-      state = Buffer.from(decryption.decryptedMsg).toString('utf8');
-      decryptionSuccess = true;
-    } else {
-      opReturnMessage = 'Error in decrypting message!';
+      if (decryption.success) {
+        state = Buffer.from(decryption.decryptedMsg).toString('utf8');
+        decryptionSuccess = true;
+      } else {
+        opReturnMessage = 'Error in decrypting message!';
+      }
+    }
+    catch (err){
+      console.log('err', err);
     }
   }
 
