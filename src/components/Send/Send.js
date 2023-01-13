@@ -234,42 +234,49 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
 
     async function submit() {
         setFormData({
-          ...formData,
-          dirty: false
+            ...formData,
+            dirty: false
         });
-    
+
         if (!formData.address || !formData.value || Number(formData.value) <= 0) {
-          return;
+            return;
         }
-    
+
         const { address, value } = formData;
-    
+
         // Get the param-free address
         let cleanAddress = address.split('?')[0];
         const isValidAddress = XPI.Address.isXAddress(cleanAddress);
         if (!isValidAddress) {
-          setSendXpiAddressError(`Destination is not a valid XPI address`);
-          return;
+            setSendXpiAddressError(`Destination is not a valid XPI address`);
+            return;
         }
         try {
             const allWalletPaths = selectAllPaths(wallet);
-            const nonSlpToken = wallet.state.slpBalancesAndUtxos.nonSlpUtxos.find(x => x.address == wallet.Path10605.xAddress);
-            const fundingWif = getUtxoWif(nonSlpToken, allWalletPaths);
-    
-          const link = await sendXpi(
-            XPI,
-            chronik,
-            allWalletPaths,
-            slpBalancesAndUtxos.nonSlpUtxos,
-            currency.defaultFee,
-            opReturnMsg,
-            false, // indicate send mode is one to one
-            null,
-            cleanAddress,
-            value,
-            isEncryptedOptionalOpReturnMsg,
-            fundingWif
-          );
+            const nonSlpUtxos = slpBalancesAndUtxos.nonSlpUtxos.filter(x => x.address == wallet.Path10605.xAddress);
+            if (!nonSlpUtxos.length) {
+                setSendXpiAddressError(`Not enough fund`);
+                return;
+            }
+            const fundingWif = getUtxoWif(nonSlpUtxos[0], allWalletPaths);
+
+            // only use path 10605 incase sending message
+            const sendNonSlpUtxos = isEncryptedOptionalOpReturnMsg && opReturnMsg ? nonSlpUtxos : slpBalancesAndUtxos.nonSlpUtxos;
+
+            const link = await sendXpi(
+                XPI,
+                chronik,
+                allWalletPaths,
+                sendNonSlpUtxos,
+                currency.defaultFee,
+                opReturnMsg,
+                false, // indicate send mode is one to one
+                null,
+                cleanAddress,
+                value,
+                isEncryptedOptionalOpReturnMsg,
+                fundingWif
+            );
 
             notification.success({
                 message: 'Success',
@@ -626,7 +633,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                                 margin: '0 0 25px 0',
                             }}
                             name="opReturnMsg"
-                            allowclear={true}
+                            allowClear={true}
                             autoSize={{ minRows: 2, maxRows: 4 }}
                             placeholder={intl.get('send.OptionalPrivateMessage')}
                             disabled={isOpReturnMsgDisabled}
