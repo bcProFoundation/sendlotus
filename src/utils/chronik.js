@@ -349,12 +349,13 @@ export const parseChronikTx = async (XPI, chronik, tx, wallet ) => {
   ) {
     // const allWalletPaths = Object.values(wallet.entities);
     const allWalletPaths = selectAllPaths(wallet);
-    const fundingWif = getUtxoWif(wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0], allWalletPaths);
+    const nonSlpToken = wallet.state.slpBalancesAndUtxos.nonSlpUtxos.find(x => x.address == wallet.Path10605.xAddress);
+    const fundingWif = getUtxoWif(nonSlpToken, allWalletPaths);
     try {
       const decryption = await decryptOpReturnMsg(messageHex, fundingWif, otherPublicKey);
 
       if (decryption.success) {
-        state = Buffer.from(decryption.decryptedMsg).toString('utf8');
+        opReturnMessage = Buffer.from(decryption.decryptedMsg).toString('utf8');
         decryptionSuccess = true;
       } else {
         opReturnMessage = 'Error in decrypting message!';

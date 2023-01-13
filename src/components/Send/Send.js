@@ -87,8 +87,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
     const [opReturnMsg, setOpReturnMsg] = useState(false);
     const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] = useState(true);
     const [xpiObj, setXpiObj] = useState(false);
-    const walletPaths = selectAllPaths(wallet)
-
+    const allWalletPaths = selectAllPaths(wallet)
     const [formData, setFormData] = useState({
         dirty: true,
         value: '',
@@ -235,106 +234,42 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
 
     async function submit() {
         setFormData({
-            ...formData,
-            dirty: false,
+          ...formData,
+          dirty: false
         });
-
-        if (
-            !formData.address ||
-            !formData.value ||
-            Number(formData.value) <= 0
-        ) {
-            return;
+    
+        if (!formData.address || !formData.value || Number(formData.value) <= 0) {
+          return;
         }
-
-        // Event("Category", "Action", "Label")
-        // Track number of XPI send transactions and whether users
-        // are sending XPI or USD
-        Event('Send.js', 'Send', selectedCurrency);
-
-        passLoadingStatus(true);
+    
         const { address, value } = formData;
-
+    
         // Get the param-free address
         let cleanAddress = address.split('?')[0];
-
-        // Ensure address has bitcoincash: prefix and checksum
-        // cleanAddress = toLegacy(cleanAddress);
-
-        const isValidAddress = xpiObj.Address.isXAddress(cleanAddress);
-        // try {
-        //     hasValidLotusPrefix = cleanAddress.startsWith(
-        //         currency.legacyPrefix + ':',
-        //     );
-        // } catch (err) {
-        //     hasValidCashPrefix = false;
-        //     console.log(`toLegacy() returned an error:`, cleanAddress);
-        // }
-
+        const isValidAddress = XPI.Address.isXAddress(cleanAddress);
         if (!isValidAddress) {
-            // set loading to false and set address validation to false
-            // Now that the no-prefix case is handled, this happens when user tries to send
-            // XPI to an SLPA address
-            passLoadingStatus(false);
-            setSendXpiAddressError(
-                intl.get('send.PushNotificationTitle', { ticker: currency.ticker }),
-            );
-            return;
+          setSendXpiAddressError(`Destination is not a valid XPI address`);
+          return;
         }
-
-        // Calculate the amount in XPI
-        let xpiValue = value;
-
-        // if (selectedCurrency !== 'XPI') {
-        //     xpiValue = fiatToCrypto(value, fiatPrice);
-        // }
-
-        // encrypted message limit truncation
-        // NO Need this, since the OpReturn Input field make sure the message length is within limit
-        // let optionalOpReturnMsg;
-        // if (isEncryptedOptionalOpReturnMsg && opReturnMsg) {
-        //     optionalOpReturnMsg = opReturnMsg.substring(
-        //         0,
-        //         currency.opReturn.encryptedMsgByteLimit,
-        //     );
-        // } else {
-        //     optionalOpReturnMsg = opReturnMsg;
-        // }
-
-        let encryptedOpReturnMsg = undefined;
-        if (opReturnMsg &&
-            typeof opReturnMsg !== 'undefined' &&
-            opReturnMsg.trim() !== '' &&
-            recipientPubKeyHex) {
-            try {
-                encryptedOpReturnMsg = encryptOpReturnMsg(wallet.Path10605.fundingWif, recipientPubKeyHex, opReturnMsg);
-            } catch (error) {
-                notification.error({
-                    message: 'Error',
-                    description: 'Cannot encrypt message',
-                    duration: 5,
-                });
-                console.log(error);
-                return;
-            }
-        }
-
         try {
-            const fundingWif = getUtxoWif(slpBalancesAndUtxos.nonSlpUtxos[0], walletPaths);
-            const link = await sendXpi(
-                XPI,
-                chronik,
-                walletPaths,
-                slpBalancesAndUtxos.nonSlpUtxos,
-                currency.defaultFee,
-                opReturnMsg,
-                false, // indicate send mode is one to one
-                null,
-                cleanAddress,
-                value,
-                isEncryptedOptionalOpReturnMsg,
-                fundingWif
-            );
+            const allWalletPaths = selectAllPaths(wallet);
+            const nonSlpToken = wallet.state.slpBalancesAndUtxos.nonSlpUtxos.find(x => x.address == wallet.Path10605.xAddress);
+            const fundingWif = getUtxoWif(nonSlpToken, allWalletPaths);
+    
+          const link = await sendXpi(
+            XPI,
+            chronik,
+            allWalletPaths,
+            slpBalancesAndUtxos.nonSlpUtxos,
+            currency.defaultFee,
+            opReturnMsg,
+            false, // indicate send mode is one to one
+            null,
+            cleanAddress,
+            value,
+            isEncryptedOptionalOpReturnMsg,
+            fundingWif
+          );
 
             notification.success({
                 message: 'Success',
@@ -461,16 +396,16 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
         // Is this valid address?
         if (!isValid) {
             error = intl.get('send.InvalidAddress', { ticker: currency.ticker });
-            // If valid address but token format
-            if (isValidTokenPrefix(address)) {
-                error = intl.get('send.NotSupportAddress', { ticker: currency.ticker });
-            }
+        }
 
+        // If valid address but token format
+        if (isValidTokenPrefix(address)) {
+            error = intl.get('send.NotSupportAddress', { ticker: currency.ticker });
+        }
 
-            // Is this address same with my address?
-            if (currentAddress && address && address === currentAddress) {
-                error = intl.get('send.CannotSendToYourself');
-            }
+        // Is this address same with my address?
+        if (currentAddress && address && address === currentAddress) {
+            error = intl.get('send.CannotSendToYourself');
         }
 
         setSendXpiAddressError(error);
@@ -596,7 +531,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
         <>
             <Modal
                 title="Modal. Send"
-                visible={isModalVisible}
+                open={isModalVisible}
                 onOk={handleOk}
                 onCancel={handleCancel}
             >
@@ -691,7 +626,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                                 margin: '0 0 25px 0',
                             }}
                             name="opReturnMsg"
-                            allowClear={true}
+                            allowclear={true}
                             autoSize={{ minRows: 2, maxRows: 4 }}
                             placeholder={intl.get('send.OptionalPrivateMessage')}
                             disabled={isOpReturnMsgDisabled}

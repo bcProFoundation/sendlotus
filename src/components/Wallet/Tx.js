@@ -194,7 +194,7 @@ const Tx = ({ item }) => {
                                     to={{
                                         pathname: `/send`,
                                         state: {
-                                            replyAddress: item.parsed.destinationAddress,
+                                            replyAddress: item.parsed.replyAddress,
                                         },
                                     }}
                                 >
