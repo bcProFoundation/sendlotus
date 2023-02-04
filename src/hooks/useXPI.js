@@ -94,6 +94,7 @@ export default function useXPI() {
       }
 
       let encryptedEj; // serialized encryption data object
+      let opReturnData;
 
       // if the user has opted to encrypt this message
       if (encryptionFlag && optionalOpReturnMsg) {
@@ -116,9 +117,10 @@ export default function useXPI() {
       // Start of building the OP_RETURN output.
       // Only build the OP_RETURN output if the user supplied it
       if (optionalOpReturnMsg && typeof optionalOpReturnMsg !== 'undefined' && optionalOpReturnMsg.trim() !== '') {
-        const opReturnData = generateOpReturnScript(XPI, optionalOpReturnMsg, encryptionFlag, encryptedEj);
+        opReturnData = generateOpReturnScript(XPI, optionalOpReturnMsg, encryptionFlag, encryptedEj);
         txBuilder.addOutput(opReturnData, 0);
       }
+      const opReturnLength = opReturnData ? opReturnData.length : 0;
 
       // generate the tx inputs and add to txBuilder instance
       // returns the updated txBuilder, txFee, totalInputUtxoValue and inputUtxos
@@ -129,7 +131,8 @@ export default function useXPI() {
         txBuilder,
         destinationAddressAndValueArray,
         satoshisToSend,
-        feeInSatsPerByte
+        feeInSatsPerByte,
+        opReturnLength
       );
 
       const changeAddress = getChangeAddressFromInputUtxos(XPI, txInputObj.inputUtxos);

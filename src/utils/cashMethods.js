@@ -464,7 +464,8 @@ export const generateOpReturnScript = (
     txBuilder,
     destinationAddressAndValueArray,
     satoshisToSend,
-    feeInSatsPerByte
+    feeInSatsPerByte,
+    opReturnLength
   ) => {
     const inputUtxos = [];
     let txFee = 0;
@@ -493,7 +494,7 @@ export const generateOpReturnScript = (
         txBuilder.addInput(txid, vout);
 
         inputUtxos.push(utxo);
-        txFee = calcFee(inputUtxos, txOutputs, feeInSatsPerByte);
+        txFee = calcFee(inputUtxos, txOutputs, feeInSatsPerByte, opReturnLength);
 
         if (totalInputUtxoValue.minus(satoshisToSend).minus(txFee).gte(0)) {
           break;

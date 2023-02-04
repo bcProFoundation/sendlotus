@@ -633,8 +633,6 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                                 margin: '0 0 25px 0',
                             }}
                             name="opReturnMsg"
-                            allowClear={true}
-                            autoSize={{ minRows: 2, maxRows: 4 }}
                             placeholder={intl.get('send.OptionalPrivateMessage')}
                             disabled={isOpReturnMsgDisabled}
                             value={
