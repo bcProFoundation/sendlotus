@@ -10,7 +10,7 @@ export const currency = {
     legacyPrefix: 'bitcoincash',
     prefixes: ['lotus'],
     coingeckoId: 'bitcoin-cash-abc-2',
-    defaultFee: 1.01,
+    defaultFee: 2.01,
     dustSats: 550,
     etokenSats: 546,
     cashDecimals: 6,
