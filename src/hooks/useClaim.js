@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import axios from 'axios';
-import useBCH from '@hooks/useBCH';
+import useXPI from '@hooks/useXPI';
 
 const SITE_KEY = "6Lc1rGwdAAAAABrD2AxMVIj4p_7ZlFKdE5xCFOrb";
 
@@ -31,8 +31,8 @@ const loadScriptByURL = async (id, url) => {
 }
 
 const useClaim = (address) => {
-    const { getBCH } = useBCH();
-    const BCH = getBCH();
+    const { getXPI } = useXPI();
+    const XPI = getXPI();
 
     useEffect(async () => {
         if (address) {
@@ -56,7 +56,7 @@ const useClaim = (address) => {
             // Get the param-free address
             let cleanAddress = address.split('?')[0];
 
-            const isValidAddress = BCH.Address.isXAddress(cleanAddress);
+            const isValidAddress = XPI.Address.isXAddress(cleanAddress);
 
             if (!isValidAddress) {
                 const error = `Destination is not a valid ${currency.ticker} address`;
@@ -90,7 +90,7 @@ const useClaim = (address) => {
             // Get the param-free address
             let cleanAddress = address.split('?')[0];
 
-            const isValidAddress = BCH.Address.isXAddress(cleanAddress);
+            const isValidAddress = XPI.Address.isXAddress(cleanAddress);
 
             if (!isValidAddress) {
                 const error = `Destination is not a valid ${currency.ticker} address`;

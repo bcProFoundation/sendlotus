@@ -132,7 +132,7 @@ export function toLegacy(address) {
     return legacyAddress;
 }
 
-export function parseAddress(BCH, addressString, isToken = false) {
+export function parseAddress(XPI, addressString, isToken = false) {
     // Build return obj
     const addressInfo = {
         address: '',
@@ -151,13 +151,13 @@ export function parseAddress(BCH, addressString, isToken = false) {
     
     try {
         if (isToken) {
-            isValidAddress = BCH.Address.isCashAddress(cleanAddress);
+            isValidAddress = XPI.Address.isCashAddress(cleanAddress);
             const { prefix } = cashaddr.decode(cleanAddress);
             if (!currency.tokenPrefixes.includes(prefix)) {
                 isValidAddress = false;
             }
         } else {
-            isValidAddress = BCH.Address.isXAddress(cleanAddress);
+            isValidAddress = XPI.Address.isXAddress(cleanAddress);
         }
         
     } catch (err) {

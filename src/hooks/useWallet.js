@@ -5,1184 +5,1238 @@ import Paragraph from 'antd/lib/typography/Paragraph';
 import { notification } from 'antd';
 import useAsyncTimeout from '@hooks/useAsyncTimeout';
 import usePrevious from '@hooks/usePrevious';
-import useBCH from '@hooks/useBCH';
 import BigNumber from 'bignumber.js';
 import {
-    fromSmallestDenomination,
-    loadStoredWallet,
-    isValidStoredWallet,
-    isLegacyMigrationRequired,
+  loadStoredWallet,
+  isValidStoredWallet,
+  isLegacyMigrationRequired
 } from '@utils/cashMethods';
 import { isValidCashtabSettings } from '@utils/validation';
 import localforage from 'localforage';
 import { currency } from '@components/Common/Ticker';
-import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
 import {
-    CashReceivedNotificationIcon,
-    TokenReceivedNotificationIcon,
+  CashReceivedNotificationIcon,
+  TokenReceivedNotificationIcon,
 } from '@components/Common/CustomIcons';
 import intl from 'react-intl-universal';
 import AppLocale from '../lang';
+import { ChronikClient } from 'chronik-client';
+import { getHashArrayFromWallet, getWalletBalanceFromUtxos } from '@utils/cashMethods';
+import useXPI from '@hooks/useXPI';
+import {
+  getTxHistoryChronik,
+  getUtxosChronik,
+  organizeUtxosByType,
+  parseChronikTx,
+  selectAllPaths
+} from '@utils/chronik';
+
+const chronik = new ChronikClient('https://chronik.be.cash/xpi');
+const websocketConnectedRefreshInterval = 10000;
+const PATHS = ['Path899', 'Path1899', 'Path10605']
 
 const useWallet = () => {
-    const [wallet, setWallet] = useState(false);
-    const [cashtabSettings, setCashtabSettings] = useState(false);
-    const [fiatPrice, setFiatPrice] = useState(null);
-    const [apiError, setApiError] = useState(false);
-    const [checkFiatInterval, setCheckFiatInterval] = useState(null);
-    const {
-        getBCH,
-        getUtxos,
-        getHydratedUtxoDetails,
-        getSlpBalancesAndUtxos,
-        getTxHistory,
-        getTxData,
-        addTokenTxData,
-    } = useBCH();
-    const [loading, setLoading] = useState(true);
-    const [apiIndex, setApiIndex] = useState(0);
-    // const [BCH, setBCH] = useState(getBCH(apiIndex));
-    const [BCH, setBCH] = useState(() => {
-        return getBCH(apiIndex)
-    });
-    const { balances, tokens, utxos } = isValidStoredWallet(wallet)
-        ? wallet.state
-        : {
-              balances: {},
-              tokens: [],
-              utxos: null,
-          };
-    const previousBalances = usePrevious(balances);
-    const previousTokens = usePrevious(tokens);
-    const previousWallet = usePrevious(wallet);
-    const previousUtxos = usePrevious(utxos);
-    
-    // this flag is set by the update() function
-    // it makes sure that the next update will only run
-    // after the previous update is done
-    const [isUpdateRunning, setIsUpdateRunning] = useState(false);
-
-    // If you catch API errors, call this function
-    const tryNextAPI = () => {
-        let currentApiIndex = apiIndex;
-        // How many APIs do you have?
-        const apiString = process.env.REACT_APP_BCHA_APIS;
-
-        const apiArray = apiString.split(',');
-
-        console.log(`You have ${apiArray.length} APIs to choose from`);
-        console.log(`Current selection: ${apiIndex}`);
-        // If only one, exit
-        if (apiArray.length === 0) {
-            console.log(
-                `There are no backup APIs, you are stuck with this error`,
-            );
-            return;
-        } else if (currentApiIndex < apiArray.length - 1) {
-            currentApiIndex += 1;
-            console.log(
-                `Incrementing API index from ${apiIndex} to ${currentApiIndex}`,
-            );
-        } else {
-            // Otherwise use the first option again
-            console.log(`Retrying first API index`);
-            currentApiIndex = 0;
-        }
-        //return setApiIndex(currentApiIndex);
-        console.log(`Setting Api Index to ${currentApiIndex}`);
-        setApiIndex(currentApiIndex);
-        return setBCH(getBCH(currentApiIndex));
-        // If you have more than one, use the next one
-        // If you are at the "end" of the array, use the first one
+  const [wallet, setWallet] = useState(false);
+  const [chronikWebsocket, setChronikWebsocket] = useState(null);
+  const [walletRefreshInterval, setWalletRefreshInterval] = useState(5000);
+  const [cashtabSettings, setCashtabSettings] = useState(false);
+  const [fiatPrice, setFiatPrice] = useState(null);
+  const [apiError, setApiError] = useState(false);
+  const [checkFiatInterval, setCheckFiatInterval] = useState(null);
+  const { getXPI } = useXPI();
+  const [loading, setLoading] = useState(true);
+  const [apiIndex, setApiIndex] = useState(0);
+  const [XPI, setXPI] = useState(() => {
+    return getXPI(apiIndex)
+  });
+  const { balances, tokens, utxos } = isValidStoredWallet(wallet)
+    ? wallet.state
+    : {
+      balances: {},
+      tokens: [],
+      utxos: null,
     };
+  const previousBalances = usePrevious(balances);
+  const previousTokens = usePrevious(tokens);
+  const previousWallet = usePrevious(wallet);
+  const previousUtxos = usePrevious(utxos);
 
-    const normalizeSlpBalancesAndUtxos = (slpBalancesAndUtxos, wallet) => {
-        const Accounts = [wallet.Path10605, wallet.Path1899, wallet.Path899];
-        slpBalancesAndUtxos.nonSlpUtxos.forEach(utxo => {
-            const derivatedAccount = Accounts.find(
-                account => account.xAddress === utxo.address,
-            );
-            utxo.wif = derivatedAccount.fundingWif;
-        });
+  // this flag is set by the update() function
+  // it makes sure that the next update will only run
+  // after the previous update is done
+  const [isUpdateRunning, setIsUpdateRunning] = useState(false);
 
-        return slpBalancesAndUtxos;
+  // If you catch API errors, call this function
+  const tryNextAPI = () => {
+    let currentApiIndex = apiIndex;
+    // How many APIs do you have?
+    const apiString = process.env.REACT_APP_BCHA_APIS;
+
+    const apiArray = apiString.split(',');
+
+    console.log(`You have ${apiArray.length} APIs to choose from`);
+    console.log(`Current selection: ${apiIndex}`);
+    // If only one, exit
+    if (apiArray.length === 0) {
+      console.log(`There are no backup APIs, you are stuck with this error`);
+      return;
+    } else if (currentApiIndex < apiArray.length - 1) {
+      currentApiIndex += 1;
+      console.log(`Incrementing API index from ${apiIndex} to ${currentApiIndex}`);
+    } else {
+      // Otherwise use the first option again
+      console.log(`Retrying first API index`);
+      currentApiIndex = 0;
+    }
+    //return setApiIndex(currentApiIndex);
+    console.log(`Setting Api Index to ${currentApiIndex}`);
+    setApiIndex(currentApiIndex);
+    return setXPI(getXPI(currentApiIndex));
+    // If you have more than one, use the next one
+    // If you are at the "end" of the array, use the first one
+  };
+
+  const deriveAccount = async (XPI, { masterHDNode, path }) => {
+    const node = XPI.HDNode.derivePath(masterHDNode, path);
+    const cashAddress = XPI.HDNode.toCashAddress(node);
+    const hash160 = XPI.Address.toHash160(cashAddress);
+    const slpAddress = XPI.SLP.Address.toSLPAddress(cashAddress);
+    const xAddress = XPI.HDNode.toXAddress(node);
+    const publicKey = XPI.HDNode.toPublicKey(node).toString('hex');
+    return {
+      path,
+      xAddress,
+      cashAddress,
+      slpAddress,
+      hash160,
+      fundingWif: XPI.HDNode.toWIF(node),
+      fundingAddress: XPI.SLP.Address.toSLPAddress(cashAddress),
+      legacyAddress: XPI.SLP.Address.toLegacyAddress(cashAddress),
+      publicKey
     };
-
-    const normalizeBalance = slpBalancesAndUtxos => {
-        const totalBalanceInSatoshis = slpBalancesAndUtxos.nonSlpUtxos.reduce(
-            (previousBalance, utxo) => previousBalance + utxo.value,
-            0,
-        );
-        return {
-            totalBalanceInSatoshis,
-            totalBalance: fromSmallestDenomination(totalBalanceInSatoshis),
-        };
-    };
-
-    const deriveAccount = async (BCH, { masterHDNode, path }) => {
-        const node = BCH.HDNode.derivePath(masterHDNode, path);
-        const publicKey = BCH.HDNode.toPublicKey(node).toString('hex');
-        const cashAddress = BCH.HDNode.toCashAddress(node);
-        const slpAddress = BCH.SLP.Address.toSLPAddress(cashAddress);
-        const xAddress = BCH.HDNode.toXAddress(node);
-
-        return {
-            publicKey,
-            xAddress,
-            cashAddress,
-            slpAddress,
-            fundingWif: BCH.HDNode.toWIF(node),
-            fundingAddress: BCH.SLP.Address.toSLPAddress(cashAddress),
-            legacyAddress: BCH.SLP.Address.toLegacyAddress(cashAddress),
-        };
-    };
-
-    const loadWalletFromStorageOnStartup = async setWallet => {
-        // get wallet object from localforage
-        const wallet = await getWallet();
-        // If wallet object in storage is valid, use it to set state on startup
-        if (isValidStoredWallet(wallet)) {
-            // Convert all the token balance figures to big numbers
-            const liveWalletState = loadStoredWallet(wallet.state);
-            wallet.state = liveWalletState;
-
-            setWallet(wallet);
-            return setLoading(false);
-        }
-        // Loading will remain true until API calls populate this legacy wallet
-        setWallet(wallet);
-    };
-
-    const haveUtxosChanged = (wallet, utxos, previousUtxos) => {
-        // Relevant points for this array comparing exercise
-        // https://stackoverflow.com/questions/13757109/triple-equal-signs-return-false-for-arrays-in-javascript-why
-        // https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
-
-        // If this is initial state
-        if (utxos === null) {
-            // Then make sure to get slpBalancesAndUtxos
-            return true;
-        }
-        // If this is the first time the wallet received utxos
-        if (typeof utxos === 'undefined') {
-            // Then they have certainly changed
-            return true;
-        }
-        if (typeof previousUtxos === 'undefined') {
-            // Compare to what you have in localStorage on startup
-            // If previousUtxos are undefined, see if you have previousUtxos in wallet state
-            // If you do, and it has everything you need, set wallet state with that instead of calling hydrateUtxos on all utxos
-            if (isValidStoredWallet(wallet)) {
-                // Convert all the token balance figures to big numbers
-                const liveWalletState = loadStoredWallet(wallet.state);
-                wallet.state = liveWalletState;
-
-                return setWallet(wallet);
-            }
-            // If wallet in storage is a legacy wallet or otherwise does not have all state fields,
-            // then assume utxos have changed
-            return true;
-        }
-        // return true for empty array, since this means you definitely do not want to skip the next API call
-        if (utxos && utxos.length === 0) {
-            return true;
-        }
-
-        // If wallet is valid, compare what exists in written wallet state instead of former api call
-        let utxosToCompare = previousUtxos;
-        if (isValidStoredWallet(wallet)) {
-            try {
-                utxosToCompare = wallet.state.utxos;
-            } catch (err) {
-                console.log(`Error setting utxos to wallet.state.utxos`, err);
-                console.log(`Wallet at err`, wallet);
-                // If this happens, assume utxo set has changed
-                return true;
-            }
-        }
-
-        // Compare utxo sets
-        return !isEqual(utxos, utxosToCompare);
-    };
-
-    const update = async ({ walletToUpdate }) => {
-        //console.log(`tick()`);
-        //console.time("update");
-        if (!walletToUpdate || isUpdateRunning) {
-            return;
-        }
-        try {
-            setIsUpdateRunning(true);
-            const xAddresses = [
-                walletToUpdate.Path10605.xAddress,
-                walletToUpdate.Path1899.xAddress,
-                walletToUpdate.Path899.xAddress
-            ];
-
-            const publicKeys = [
-                walletToUpdate.Path10605.publicKey,
-                walletToUpdate.Path1899.publicKey,
-                walletToUpdate.Path899.publicKey,
-            ];
-            const utxos = await getUtxos(BCH, xAddresses);
-
-            // If an error is returned or utxos from only 1 address are returned
-            if (!utxos || isEmpty(utxos) || utxos.error || utxos.length < 1) {
-                // Throw error here to prevent more attempted api calls
-                // as you are likely already at rate limits
-                throw new Error('Error fetching utxos');
-            }
-
-            // Need to call wToUpdateith wallet as a parameter rather than trusting it is in state, otherwise can sometimes get wallet=false from haveUtxosChanged
-            const utxosHaveChanged = haveUtxosChanged(
-                walletToUpdate,
-                utxos,
-                previousUtxos,
-            );
-
-            // If the utxo set has not changed,
-            if (!utxosHaveChanged) {
-                // remove api error here; otherwise it will remain if recovering from a rate
-                // limit error with an unchanged utxo set
-                setApiError(false);
-                // then wallet.state has not changed and does not need to be updated
-                //console.timeEnd("update");
-                return;
-            }
-
-
-            // @TODO: we does not support slp here, so comment out below code and keep it as reference
-            // const hydratedUtxoDetails = await getHydratedUtxoDetails(
-            //     BCH,
-            //     utxos,
-            // );
-
-            // We do not support slp here, so we assume all uxtos are invalid (in slp context)
-            // This simulates the effect of hydrating utxos with slp details
-            //  with all utxos marked as not valid slp - meaning it is not part of slp transaction
-            //  we do this to avoid actually hit the api server
-            let slpUtxos = JSON.parse(JSON.stringify(utxos)); // deep clone the utxos
-            for (let i = 0; i < slpUtxos.length; i += 1) {
-                let theseUtxos = slpUtxos[i].utxos;
-                for (let j = 0; j < theseUtxos.length; j += 1) {
-                    const utxo = theseUtxos[j];
-                    utxo.txid = utxo.tx_hash;
-                    utxo.vout = utxo.tx_pos;
-                    utxo.isValid = false;
-                }
-            }
-            const hydratedUtxoDetails = { slpUtxos };
-
-            const slpBalancesAndUtxos = await getSlpBalancesAndUtxos(
-                BCH,
-                hydratedUtxoDetails,
-            );
-            const txHistory = await getTxHistory(BCH, xAddresses);
-
-            // public keys are used to determined if a tx is incoming outgoing
-            const parsedTxHistory = await getTxData(BCH, txHistory, publicKeys, wallet);
-
-            const parsedWithTokens = await addTokenTxData(BCH, parsedTxHistory);
-
-            console.log(`slpBalancesAndUtxos`, slpBalancesAndUtxos);
-            if (typeof slpBalancesAndUtxos === 'undefined') {
-                console.log(`slpBalancesAndUtxos is undefined`);
-                throw new Error('slpBalancesAndUtxos is undefined');
-            }
-            const { tokens } = slpBalancesAndUtxos;
-
-            const newState = {
-                balances: {},
-                tokens: [],
-                slpBalancesAndUtxos: [],
-            };
-
-            newState.slpBalancesAndUtxos = normalizeSlpBalancesAndUtxos(
-                slpBalancesAndUtxos,
-                walletToUpdate,
-            );
-
-            newState.balances = normalizeBalance(slpBalancesAndUtxos);
-
-            newState.tokens = tokens;
-
-            newState.parsedTxHistory = parsedWithTokens;
-
-            newState.utxos = utxos;
-
-            newState.hydratedUtxoDetails = hydratedUtxoDetails;
-            
-            // Set wallet with new state field
-            walletToUpdate.state = newState;
-
-           
-            // While a wallet being updated in the background
-            //  user may choose to switch to another wallet
-            //  in this case, the wallet being updated here is not the active wallet
-            //  and shoud not be overriding the currectly active wallet
-            if (walletToUpdate.name === wallet.name) {
-                setWallet(walletToUpdate);
-                // Write this state to indexedDb using localForage
-                writeWalletState(walletToUpdate, newState);
-            }
-
-
-            // If everything executed correctly, remove apiError
-            setApiError(false);
-        } catch (error) {
-            console.log(`Error in update({wallet})`);
-            console.log(error);
-            // Set this in state so that transactions are disabled until the issue is resolved
-            setApiError(true);
-            //console.timeEnd("update");
-            // Try another endpoint
-            console.log(`Trying next API...`);
-            tryNextAPI();
-        } finally {
-            setIsUpdateRunning(false);
-        }
-        //console.timeEnd("update");
-    };
-
-    const getActiveWalletFromLocalForage = async () => {
-        let wallet;
-        try {
-            wallet = await localforage.getItem('wallet');
-        } catch (err) {
-            console.log(`Error in getActiveWalletFromLocalForage`, err);
-            wallet = null;
-        }
-        return wallet;
-    };
-
-    /*
-    const getSavedWalletsFromLocalForage = async () => {
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-        } catch (err) {
-            console.log(`Error in getSavedWalletsFromLocalForage`, err);
-            savedWallets = null;
-        }
-        return savedWallets;
-    };
-    */
-
-    const getWallet = async () => {
-        let wallet;
-        let existingWallet;
-        try {
-            existingWallet = await getActiveWalletFromLocalForage();
-            // existing wallet will be
-            // 1 - the 'wallet' value from localForage, if it exists
-            // 2 - false if it does not exist in localForage
-            // 3 - null if error
-
-            // If the wallet does not have Path10605, add it
-            // or Path10605 does not have a public key, add it
-            if (existingWallet) {
-                if (isLegacyMigrationRequired(existingWallet)) {
-                    console.log(
-                        `Wallet does not have Path10605 or does not have public key`,
-                    );
-                    existingWallet = await migrateLegacyWallet(
-                        BCH,
-                        existingWallet,
-                    );
-                }
-            }
-
-            // If not in localforage then existingWallet = false, check localstorage
-            if (!existingWallet) {
-                console.log(`no existing wallet, checking local storage`);
-                existingWallet = JSON.parse(
-                    window.localStorage.getItem('wallet'),
-                );
-                console.log(`existingWallet from localStorage`, existingWallet);
-                // If you find it here, move it to indexedDb
-                if (existingWallet !== null) {
-                    wallet = await getWalletDetails(existingWallet);
-                    await localforage.setItem('wallet', wallet);
-                    return wallet;
-                }
-            }
-        } catch (err) {
-            console.log(`Error in getWallet()`, err);
-            /* 
-            Error here implies problem interacting with localForage or localStorage API
-            
-            Have not seen this error in testing
-
-            In this case, you still want to return 'wallet' using the logic below based on 
-            the determination of 'existingWallet' from the logic above
-            */
-        }
-
-        if (existingWallet === null || !existingWallet) {
-            wallet = await getWalletDetails(existingWallet);
-            await localforage.setItem('wallet', wallet);
-        } else {
-            wallet = existingWallet;
-        }
-        return wallet;
-    };
-
-    const migrateLegacyWallet = async (BCH, wallet) => {
-        console.log(`migrateLegacyWallet`);
-        console.log(`legacyWallet`, wallet);
-        const NETWORK = process.env.REACT_APP_NETWORK;
-        const mnemonic = wallet.mnemonic;
-        const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
-
-        let masterHDNode;
-
-        if (NETWORK === `mainnet`) {
-            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
-        } else {
-            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer, 'testnet');
-        }
-        const Path899 = await deriveAccount(BCH, {
-            masterHDNode,
-            path: "m/44'/899'/0'/0/0",
-        });
-        const Path1899 = await deriveAccount(BCH, {
-            masterHDNode,
-            path: "m/44'/1899'/0'/0/0",
-        });
-        const Path10605 = await deriveAccount(BCH, {
-            masterHDNode,
-            path: "m/44'/10605'/0'/0/0",
-        });
-
-        wallet.Path899 = Path899;
-        wallet.Path1899 = Path1899;
-        wallet.Path10605 = Path10605;
-
-        try {
-            await localforage.setItem('wallet', wallet);
-        } catch (err) {
-            console.log(
-                `Error setting wallet to wallet indexedDb in migrateLegacyWallet()`,
-            );
-            console.log(err);
-        }
-
-        return wallet;
-    };
-
-    const writeWalletState = async (wallet, newState) => {
-        // Add new state as an object on the active wallet
-        wallet.state = newState;
-        try {
-            await localforage.setItem('wallet', wallet);
-        } catch (err) {
-            console.log(`Error in writeWalletState()`);
-            console.log(err);
-        }
-    };
-
-    const getWalletDetails = async wallet => {
-        if (!wallet) {
-            return false;
-        }
-        // Since this info is in localforage now, only get the var
-        const NETWORK = process.env.REACT_APP_NETWORK;
-        const mnemonic = wallet.mnemonic;
-        const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
-        let masterHDNode;
-
-        if (NETWORK === `mainnet`) {
-            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
-        } else {
-            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer, 'testnet');
-        }
-
-        // const Path245 = await deriveAccount(BCH, {
-        //     masterHDNode,
-        //     path: "m/44'/245'/0'/0/0",
-        // });
-        // const Path145 = await deriveAccount(BCH, {
-        //     masterHDNode,
-        //     path: "m/44'/145'/0'/0/0",
-        // });
-        const Path899 = await deriveAccount(BCH, {
-            masterHDNode,
-            path: "m/44'/899'/0'/0/0",
-        });
-        const Path1899 = await deriveAccount(BCH, {
-            masterHDNode,
-            path: "m/44'/1899'/0'/0/0",
-        });
-        const Path10605 = await deriveAccount(BCH, {
-            masterHDNode,
-            path: "m/44'/10605'/0'/0/0",
-        });
-
-        let name = Path10605.xAddress.slice(-8);
-        // Only set the name if it does not currently exist
-        if (wallet && wallet.name) {
-            name = wallet.name;
-        }
-
-        return {
-            mnemonic: wallet.mnemonic,
-            name,
-            // Path245,
-            // Path145,
-            Path899,
-            Path1899,
-            Path10605
-        };
-    };
-
-    const getSavedWallets = async activeWallet => {
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-            if (savedWallets === null) {
-                savedWallets = [];
-            }
-        } catch (err) {
-            console.log(`Error in getSavedWallets`);
-            console.log(err);
-            savedWallets = [];
-        }
-        // Even though the active wallet is still stored in savedWallets, don't return it in this function
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (
-                typeof activeWallet !== 'undefined' &&
-                activeWallet.name &&
-                savedWallets[i].name === activeWallet.name
-            ) {
-                savedWallets.splice(i, 1);
-            }
-        }
-        return savedWallets;
-    };
-
-    const activateWallet = async walletToActivate => {
-        /*
-    If the user is migrating from old version to this version, make sure to save the activeWallet
-
-    1 - check savedWallets for the previously active wallet
-    2 - If not there, add it
-    */
-        let currentlyActiveWallet;
-        try {
-            currentlyActiveWallet = await localforage.getItem('wallet');
-        } catch (err) {
-            console.log(
-                `Error in localforage.getItem("wallet") in activateWallet()`,
-            );
-            return false;
-        }
-        // Get savedwallets
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-        } catch (err) {
-            console.log(
-                `Error in localforage.getItem("savedWallets") in activateWallet()`,
-            );
-            return false;
-        }
-        /*
-        When a legacy user runs cashtabapp.com/, their active wallet will be migrated to Path1899 by 
-        the getWallet function
-
-        Wallets in savedWallets are migrated when they are activated, in this function
-
-        Two cases to handle
-
-        1 - currentlyActiveWallet has Path1899, but its stored keyvalue pair in savedWallets does not
-            > Update savedWallets so that Path1899 is added to currentlyActiveWallet
-        
-        2 - walletToActivate does not have Path1899
-            > Update walletToActivate with Path1899 before activation
-
-        NOTE: since publicKey property is added later,
-        wallet without public key in Path10605 is also considered legacy and required migration.
-        */
-
-        // Need to handle a similar situation with state
-        // If you find the activeWallet in savedWallets but without state, resave active wallet with state
-        // Note you do not have the Case 2 described above here, as wallet state is added in the update() function of useWallet.js
-        // Also note, since state can be expected to change frequently (unlike path deriv), you will likely save it every time you activate a new wallet
-        // Check savedWallets for currentlyActiveWallet
-        let walletInSavedWallets = false;
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (savedWallets[i].name === currentlyActiveWallet.name) {
-                walletInSavedWallets = true;
-                // Check savedWallets for unmigrated currentlyActiveWallet
-                if (isLegacyMigrationRequired(savedWallets[i])) {
-                    // Case 1, described above
-                    savedWallets[i].Path10605 = currentlyActiveWallet.Path10605;
-                    savedWallets[i].Path1899 = currentlyActiveWallet.Path1899;
-                    savedWallets[i].Path899 = currentlyActiveWallet.Path899;
-                }
-
-                /*
-                Update wallet state
-                Note, this makes previous `walletUnmigrated` variable redundant
-                savedWallets[i] should always be updated, since wallet state can be expected to change most of the time
-                */
-                savedWallets[i].state = currentlyActiveWallet.state;
-            }
-        }
-
-        // resave savedWallets
-        try {
-            // Set walletName as the active wallet
-            await localforage.setItem('savedWallets', savedWallets);
-        } catch (err) {
-            console.log(
-                `Error in localforage.setItem("savedWallets") in activateWallet() for unmigrated wallet`,
-            );
-        }
-
-        if (!walletInSavedWallets) {
-            console.log(`Wallet is not in saved Wallets, adding`);
-            savedWallets.push(currentlyActiveWallet);
-            // resave savedWallets
-            try {
-                // Set walletName as the active wallet
-                await localforage.setItem('savedWallets', savedWallets);
-            } catch (err) {
-                console.log(
-                    `Error in localforage.setItem("savedWallets") in activateWallet()`,
-                );
-            }
-        }
-    
-        // If wallet does not have Path10605, Path1899, Path899, add it
-        // or each of the Path10605, Path1899, Path899 does not have a public key, add it
-        // by calling migrateLagacyWallet()
-        if (isLegacyMigrationRequired(walletToActivate)) {
-            // Case 2, described above
-            console.log(`Legacy Wallet. Migrating...`);
-            console.log(`walletToActivate`, walletToActivate);
-            walletToActivate = await migrateLegacyWallet(BCH, walletToActivate);
-        } else {
-            // Otherwise activate it as normal
-            // Now that we have verified the last wallet was saved, we can activate the new wallet
-            try {
-                await localforage.setItem('wallet', walletToActivate);
-            } catch (err) {
-                console.log(
-                    `Error in localforage.setItem("wallet", walletToActivate) in activateWallet()`,
-                );
-                return false;
-            }
-        }
-        // Make sure stored wallet is in correct format to be used as live wallet
-        if (isValidStoredWallet(walletToActivate)) {
-            // Convert all the token balance figures to big numbers
-            const liveWalletState = loadStoredWallet(walletToActivate.state);
-            walletToActivate.state = liveWalletState;
-        }
-
-        return walletToActivate;
-    };
-
-    const renameWallet = async (oldName, newName) => {
-        // Load savedWallets
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-        } catch (err) {
-            console.log(
-                `Error in await localforage.getItem("savedWallets") in renameWallet`,
-            );
-            console.log(err);
-            return false;
-        }
-        // Verify that no existing wallet has this name
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (savedWallets[i].name === newName) {
-                // return an error
-                return false;
-            }
-        }
-
-        // change name of desired wallet
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (savedWallets[i].name === oldName) {
-                // Replace the name of this entry with the new name
-                savedWallets[i].name = newName;
-            }
-        }
-        // resave savedWallets
-        try {
-            // Set walletName as the active wallet
-            await localforage.setItem('savedWallets', savedWallets);
-        } catch (err) {
-            console.log(
-                `Error in localforage.setItem("savedWallets", savedWallets) in renameWallet()`,
-            );
-            return false;
-        }
-        return true;
-    };
-
-    const deleteWallet = async walletToBeDeleted => {
-        // delete a wallet
-        // returns true if wallet is successfully deleted
-        // otherwise returns false
-        // Load savedWallets
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-        } catch (err) {
-            console.log(
-                `Error in await localforage.getItem("savedWallets") in deleteWallet`,
-            );
-            console.log(err);
-            return false;
-        }
-        // Iterate over to find the wallet to be deleted
-        // Verify that no existing wallet has this name
-        let walletFoundAndRemoved = false;
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (savedWallets[i].name === walletToBeDeleted.name) {
-                // Verify it has the same mnemonic too, that's a better UUID
-                if (savedWallets[i].mnemonic === walletToBeDeleted.mnemonic) {
-                    // Delete it
-                    savedWallets.splice(i, 1);
-                    walletFoundAndRemoved = true;
-                }
-            }
-        }
-        // If you don't find the wallet, return false
-        if (!walletFoundAndRemoved) {
-            return false;
-        }
-
-        // Resave savedWallets less the deleted wallet
-        try {
-            // Set walletName as the active wallet
-            await localforage.setItem('savedWallets', savedWallets);
-        } catch (err) {
-            console.log(
-                `Error in localforage.setItem("savedWallets", savedWallets) in deleteWallet()`,
-            );
-            return false;
-        }
-        return true;
-    };
-
-    const addNewSavedWallet = async importMnemonic => {
-        // Add a new wallet to savedWallets from importMnemonic or just new wallet
-        const lang = 'english';
-        // create 128 bit BIP39 mnemonic
-        const Bip39128BitMnemonic = importMnemonic
-            ? importMnemonic
-            : BCH.Mnemonic.generate(128, BCH.Mnemonic.wordLists()[lang]);
-        const newSavedWallet = await getWalletDetails({
-            mnemonic: Bip39128BitMnemonic.toString(),
-        });
-        // Get saved wallets
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-            // If this doesn't exist yet, savedWallets === null
-            if (savedWallets === null) {
-                savedWallets = [];
-            }
-        } catch (err) {
-            console.log(
-                `Error in savedWallets = await localforage.getItem("savedWallets") in addNewSavedWallet()`,
-            );
-            console.log(err);
-            console.log(`savedWallets in error state`, savedWallets);
-        }
-        // If this wallet is from an imported mnemonic, make sure it does not already exist in savedWallets
-        if (importMnemonic) {
-            for (let i = 0; i < savedWallets.length; i += 1) {
-                // Check for condition "importing new wallet that is already in savedWallets"
-                if (savedWallets[i].mnemonic === importMnemonic) {
-                    // set this as the active wallet to keep name history
-                    console.log(
-                        `Error: this wallet already exists in savedWallets`,
-                    );
-                    console.log(`Wallet not being added.`);
-                    return false;
-                }
-            }
-        }
-        // add newSavedWallet
-        savedWallets.push(newSavedWallet);
-        // update savedWallets
-        try {
-            await localforage.setItem('savedWallets', savedWallets);
-        } catch (err) {
-            console.log(
-                `Error in localforage.setItem("savedWallets", activeWallet) called in createWallet with ${importMnemonic}`,
-            );
-            console.log(`savedWallets`, savedWallets);
-            console.log(err);
-        }
-        return true;
-    };
-
-    const createWallet = async importMnemonic => {
-        const lang = 'english';
-        // create 128 bit BIP39 mnemonic
-        const Bip39128BitMnemonic = importMnemonic
-            ? importMnemonic
-            : BCH.Mnemonic.generate(128, BCH.Mnemonic.wordLists()[lang]);
-        const wallet = await getWalletDetails({
-            mnemonic: Bip39128BitMnemonic.toString(),
-        });
-
-        try {
-            await localforage.setItem('wallet', wallet);
-        } catch (err) {
-            console.log(
-                `Error setting wallet to wallet indexedDb in createWallet()`,
-            );
-            console.log(err);
-        }
-        // Since this function is only called from OnBoarding.js, also add this to the saved wallet
-        try {
-            await localforage.setItem('savedWallets', [wallet]);
-        } catch (err) {
-            console.log(
-                `Error setting wallet to savedWallets indexedDb in createWallet()`,
-            );
-            console.log(err);
-        }
-        return wallet;
-    };
-
-    const validateMnemonic = (
-        mnemonic,
-        wordlist = BCH.Mnemonic.wordLists().english,
-    ) => {
-        let mnemonicTestOutput;
-
-        try {
-            mnemonicTestOutput = BCH.Mnemonic.validate(mnemonic, wordlist);
-
-            if (mnemonicTestOutput === 'Valid mnemonic') {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (err) {
-            console.log(err);
-            return false;
-        }
-    };
-
-    const handleUpdateWallet = async setWallet => {
-        await loadWalletFromStorageOnStartup(setWallet);
-    };
-
-    const loadCashtabSettings = async () => {
-        // get settings object from localforage
-        let localSettings;
-        const defaultLang = {
-            lang: 'en'
-        };
-        try {
-            localSettings = await localforage.getItem('settings');
-            // If there is no keyvalue pair in localforage with key 'settings'
-            if (!localSettings || !localSettings['lang']) {
-                // Create one with the default settings from Ticker.js
-                localforage.setItem('settings', defaultLang);
-                // Set state to default settings
-                setCashtabSettings(defaultLang);
-                const initialLocale = await initLocale(AppLocale[defaultLang.lang]);
-                return defaultLang;
-            } else {
-                const currentLang = AppLocale[localSettings['lang']];
-                const initialLocale = await initLocale(currentLang);
-                setCashtabSettings(currentLang);
-            }
-        } catch (err) {
-            console.log(`Error getting cashtabSettings`, err);
-            // TODO If they do not exist, write them
-            // TODO add function to change them
-            setCashtabSettings(currency.defaultSettings);
-            return currency.defaultSettings;
-        }
-        // If you found an object in localforage at the settings key, make sure it's valid
-        if (isValidCashtabSettings(localSettings)) {
-            setCashtabSettings(localSettings);
-            return localSettings;
-        }
-        // if not valid, also set cashtabSettings to default
-        setCashtabSettings(defaultLang);
-        return defaultLang;
-    };
-
-    const clearFiatPriceApi = fiatPriceApi => {
-        // Clear fiat price check interval of previously selected currency
-        clearInterval(fiatPriceApi);
-    };
-
-    const initLocale = currentAppLocale => {
-        return intl
-          .init({
-            currentLocale: currentAppLocale.locale,
-            locales: {
-              [currentAppLocale.locale]: currentAppLocale.messages
-            }
-          })
-          .then(() => {
-            return true;
-          })
-          .catch(err => {
-            return false;
-          });
+  };
+
+  const loadWalletFromStorageOnStartup = async setWallet => {
+    // get wallet object from localforage
+    const wallet = await getWallet();
+    // If wallet object in storage is valid, use it to set state on startup
+    if (isValidStoredWallet(wallet)) {
+      // Convert all the token balance figures to big numbers
+      const liveWalletState = loadStoredWallet(wallet.state);
+      wallet.state = liveWalletState;
+
+      setWallet(wallet);
+      return setLoading(false);
+    }
+    // Loading will remain true until API calls populate this legacy wallet
+    setWallet(wallet);
+  };
+
+  const haveUtxosChanged = (wallet, utxos, previousUtxos) => {
+    // Relevant points for this array comparing exercise
+    // https://stackoverflow.com/questions/13757109/triple-equal-signs-return-false-for-arrays-in-javascript-why
+    // https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
+
+    // If this is initial state
+    if (utxos === null) {
+      // Then make sure to get slpBalancesAndUtxos
+      return true;
+    }
+    // If this is the first time the wallet received utxos
+    if (typeof utxos === 'undefined') {
+      // Then they have certainly changed
+      return true;
+    }
+    if (typeof previousUtxos === 'undefined') {
+      // Compare to what you have in localStorage on startup
+      // If previousUtxos are undefined, see if you have previousUtxos in wallet state
+      // If you do, and it has everything you need, set wallet state with that instead of calling hydrateUtxos on all utxos
+      if (isValidStoredWallet(wallet)) {
+        // Convert all the token balance figures to big numbers
+        const liveWalletState = loadStoredWallet(wallet.state);
+        wallet.state = liveWalletState;
+
+        return setWallet(wallet);
       }
-    const changeCashtabSettings = async (key, newValue) => {
-        // Set loading to true as you do not want to display the fiat price of the last currency
-        // loading = true will lock the UI until the fiat price has updated
-        setLoading(true);
-        // Get settings from localforage
-        let currentSettings;
-        let newSettings;
-        try {
-            currentSettings = await localforage.getItem('settings');
-        } catch (err) {
-            console.log(`Error in changeCashtabSettings`, err);
-            // Set fiat price to null, which disables fiat sends throughout the app
-            setFiatPrice(null);
-            // Unlock the UI
-            setLoading(false);
-            return;
-        }
-        // Make sure function was called with valid params
-        if (
-            Object.keys(currentSettings).includes(key)
-        ) {
-            // Update settings
-            newSettings = currentSettings;
-            newSettings[key] = newValue;
-        }
-        // Set new settings in state so they are available in context throughout the app
-        setCashtabSettings(newSettings);
-        
-        if (key === 'lang') {
-            const initSuccess = await initLocale(AppLocale[newValue]);
-        }
-        // Write new settings in localforage
-        try {
-            await localforage.setItem('settings', newSettings);
-        } catch (err) {
-            console.log(
-                `Error writing newSettings object to localforage in changeCashtabSettings`,
-                err,
-            );
-            console.log(`newSettings`, newSettings);
-            // do nothing. If this happens, the user will see default currency next time they load the app.
-        }
-        setLoading(false);
-    };
+      // If wallet in storage is a legacy wallet or otherwise does not have all state fields,
+      // then assume utxos have changed
+      return true;
+    }
+    // return true for empty array, since this means you definitely do not want to skip the next API call
+    if (utxos && utxos.length === 0) {
+      return true;
+    }
 
-    // Parse for incoming XEC transactions
+    // If wallet is valid, compare what exists in written wallet state instead of former api call
+    let utxosToCompare = previousUtxos;
+    if (isValidStoredWallet(wallet)) {
+      try {
+        utxosToCompare = wallet.state.utxos;
+      } catch (err) {
+        console.log(`Error setting utxos to wallet.state.utxos`, err);
+        console.log(`Wallet at err`, wallet);
+        // If this happens, assume utxo set has changed
+        return true;
+      }
+    }
+
+    // Compare utxo sets
+    return !isEqual(utxos, utxosToCompare);
+  };
+
+  // Parse chronik ws message for incoming tx notifications
+  const processChronikWsMsg = async (msg, wallet) => {
+    // get the message type
+    const { type } = msg;
+
+    // For now, only act on "first seen" transactions, as the only logic to happen is first seen notifications
+    // Dev note: Other chronik msg types
+    // "BlockConnected", arrives as new blocks are found
+    // "Confirmed", arrives as subscribed + seen txid is confirmed in a block
+    if (type !== 'AddedToMempool') {
+      return;
+    }
+
+    // If you see a tx from your subscribed addresses added to the mempool, then the wallet utxo set has changed
+    // Update it
+    setWalletRefreshInterval(10);
+
+    // get txid info
+    const txid = msg.txid;
+    let incomingTxDetails;
+    try {
+      incomingTxDetails = await chronik.tx(txid);
+    } catch (err) {
+      // In this case, no notification
+      return console.log(`Error in chronik.tx(${txid} while processing an incoming websocket tx`, err);
+    }
+
+    // parse tx for notification
+    const parsedChronikTx = await parseChronikTx(XPI, chronik, incomingTxDetails, wallet);
+
+    if (parsedChronikTx && parsedChronikTx.incoming) {
+      // Notification
+      dispatch(xpiReceivedNotificationWebSocket(parsedChronikTx.xpiAmount));
+    }
+  };
+
+  // Chronik websockets
+  const initializeWebsocket = async (wallet) => {
+    console.log(`Initializing websocket connection for wallet ${wallet}`);
+
+    const hash160Array = getHashArrayFromWallet(wallet);
+    if (!wallet || !hash160Array) {
+      return setChronikWebsocket(null);
+    }
+
+    // Initialize if not in state
+    let ws = chronikWebsocket;
+    if (ws === null) {
+      console.log('start connect websocket');
+      ws = chronik.ws({
+        onMessage: (msg) => {
+          processChronikWsMsg(msg, wallet);
+        },
+        onReconnect: e => {
+          // Fired before a reconnect attempt is made:
+          console.log('Reconnecting websocket, disconnection cause: ', e);
+        },
+        onConnect: e => {
+          console.log(`Chronik websocket connected`, e);
+          console.log(
+            `Websocket connected, adjusting wallet refresh interval to ${websocketConnectedRefreshInterval / 1000}s`
+          );
+          setWalletRefreshInterval(websocketConnectedRefreshInterval);
+        },
+        onError: e => {
+          console.log('error', e);
+        }
+      });
+
+      // Wait for websocket to be connected:
+      await ws.waitForOpen();
+    } else {
+      /*        
+      If the websocket connection is not null, initializeWebsocket was called
+      because one of the websocket's dependencies changed
+ 
+      Update the onMessage method to get the latest dependencies (wallet, fiatPrice)
+      */
+      ws.onMessage = (msg) => {
+        processChronikWsMsg(msg, wallet);
+      };
+    }
+
+    // Check if current subscriptions match current wallet
+    let activeSubscriptionsMatchActiveWallet = true;
+
+    const previousWebsocketSubscriptions = ws._subs;
+    // If there are no previous subscriptions, then activeSubscriptionsMatchActiveWallet is certainly false
+    if (previousWebsocketSubscriptions.length === 0) {
+      activeSubscriptionsMatchActiveWallet = false;
+    } else {
+      const subscribedHash160Array = previousWebsocketSubscriptions.map(function (subscription) {
+        return subscription.scriptPayload;
+      });
+      // Confirm that websocket is subscribed to every address in wallet hash160Array
+      for (let i = 0; i < hash160Array.length; i += 1) {
+        if (!subscribedHash160Array.includes(hash160Array[i])) {
+          activeSubscriptionsMatchActiveWallet = false;
+        }
+      }
+    }
+
+    // If you are already subscribed to the right addresses, exit here
+    // You get to this situation if fiatPrice changed but wallet.mnemonic did not
+    if (activeSubscriptionsMatchActiveWallet) {
+      // Put connected websocket in state
+      return setChronikWebsocket(ws);
+    }
+
+    // Unsubscribe to any active subscriptions
+    console.log(`previousWebsocketSubscriptions`, previousWebsocketSubscriptions);
+    if (previousWebsocketSubscriptions.length > 0) {
+      for (let i = 0; i < previousWebsocketSubscriptions.length; i += 1) {
+        const unsubHash160 = previousWebsocketSubscriptions[i].scriptPayload;
+        ws.unsubscribe('p2pkh', unsubHash160);
+        console.log(`ws.unsubscribe('p2pkh', ${unsubHash160})`);
+      }
+    }
+
+    // Subscribe to addresses of current wallet
+    for (let i = 0; i < hash160Array.length; i += 1) {
+      ws.subscribe('p2pkh', hash160Array[i]);
+      console.log(`ws.subscribe('p2pkh', ${hash160Array[i]})`);
+    }
+
+    // Put connected websocket in state
+    return setChronikWebsocket(ws);
+  };
+
+  const update = async ({walletToUpdate}) => {
+    // Check if walletRefreshInterval is set to 10, i.e. this was called by websocket tx detection
+    // If walletRefreshInterval is 10, set it back to the usual refresh rate
+    if (walletRefreshInterval === 10) {
+      setWalletRefreshInterval(websocketConnectedRefreshInterval);
+    }
+    try {
+      if (!walletToUpdate) {
+        return;
+      }
+
+      const allWalletPaths = selectAllPaths(walletToUpdate);
+
+      const hash160AndAddressObjArray = allWalletPaths.map(item => {
+        return {
+          address: item.xAddress,
+          hash160: item.hash160
+        };
+      });
+
+      // Check that server is live
+      try {
+        await XPI.Blockchain.getBlockCount();
+      } catch (err) {
+        console.log(`Error in XPI.Blockchain.getBlockCount, the full node is likely down`, err);
+        throw new Error(`Node unavailable`);
+      }
+
+      const chronikUtxos = await getUtxosChronik(chronik, hash160AndAddressObjArray);
+      const walletUtxos = walletToUpdate.state && walletToUpdate.state.utxos ? walletToUpdate.state.utxos : [];
+
+      // Need to call wToUpdateith wallet as a parameter rather than trusting it is in state, otherwise can sometimes get wallet=false from haveUtxosChanged
+      const utxosHaveChanged = haveUtxosChanged(chronikUtxos, walletUtxos);
+
+      // If the utxo set has not changed,
+      if (!utxosHaveChanged) {
+        // remove api error here; otherwise it will remain if recovering from a rate
+        // limit error with an unchanged utxo set
+        setApiError(false);
+        // then wallet.state has not changed and does not need to be updated
+        //console.timeEnd("update");
+        return;
+      }
+
+      const { nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
+      const { chronikTxHistory } = await getTxHistoryChronik(chronik, XPI, wallet);
+
+      const newState = {
+        balances: getWalletBalanceFromUtxos(nonSlpUtxos),
+        slpBalancesAndUtxos: {
+          nonSlpUtxos
+        },
+        parsedTxHistory: chronikTxHistory,
+        utxos: chronikUtxos
+      };
+
+      // Set wallet with new state field
+      walletToUpdate.state = newState;
+
+      // While a wallet being updated in the background
+      //  user may choose to switch to another wallet
+      //  in this case, the wallet being updated here is not the active wallet
+      //  and shoud not be overriding the currectly active wallet
+      if (walletToUpdate.name === wallet.name) {
+        setWallet(walletToUpdate);
+        // Write this state to indexedDb using localForage
+        writeWalletState(walletToUpdate, newState);
+      }
+
+      // If everything executed correctly, remove apiError
+      setApiError(false);
+    } catch (error) {
+      console.log(`Error in update({wallet})`);
+      console.log(error);
+      // Set this in state so that transactions are disabled until the issue is resolved
+      setApiError(true);
+      //console.timeEnd("update");
+      // Try another endpoint
+      console.log(`Trying next API...`);
+      // tryNextAPI();
+    }
+  };
+
+  const getActiveWalletFromLocalForage = async () => {
+    let wallet;
+    try {
+      wallet = await localforage.getItem('wallet');
+    } catch (err) {
+      console.log(`Error in getActiveWalletFromLocalForage`, err);
+      wallet = null;
+    }
+    return wallet;
+  };
+
+  /*
+  const getSavedWalletsFromLocalForage = async () => {
+      let savedWallets;
+      try {
+          savedWallets = await localforage.getItem('savedWallets');
+      } catch (err) {
+          console.log(`Error in getSavedWalletsFromLocalForage`, err);
+          savedWallets = null;
+      }
+      return savedWallets;
+  };
+  */
+
+  const getWallet = async () => {
+    let wallet;
+    let existingWallet;
+    try {
+      existingWallet = await getActiveWalletFromLocalForage();
+      // existing wallet will be
+      // 1 - the 'wallet' value from localForage, if it exists
+      // 2 - false if it does not exist in localForage
+      // 3 - null if error
+
+      // If the wallet does not have Path10605, add it
+      // or Path10605 does not have a public key, add it
+      if (existingWallet) {
+        if (isLegacyMigrationRequired(existingWallet)) {
+          console.log(
+            `Wallet does not have Path10605 or does not have public key`,
+          );
+          existingWallet = await migrateLegacyWallet(
+            XPI,
+            existingWallet,
+          );
+        }
+      }
+
+      // If not in localforage then existingWallet = false, check localstorage
+      if (!existingWallet) {
+        console.log(`no existing wallet, checking local storage`);
+        existingWallet = JSON.parse(
+          window.localStorage.getItem('wallet'),
+        );
+        console.log(`existingWallet from localStorage`, existingWallet);
+        // If you find it here, move it to indexedDb
+        if (existingWallet !== null) {
+          wallet = await getWalletDetails(existingWallet);
+          await localforage.setItem('wallet', wallet);
+          return wallet;
+        }
+      }
+    } catch (err) {
+      console.log(`Error in getWallet()`, err);
+      /* 
+      Error here implies problem interacting with localForage or localStorage API
+      
+      Have not seen this error in testing
+
+      In this case, you still want to return 'wallet' using the logic below based on 
+      the determination of 'existingWallet' from the logic above
+      */
+    }
+
+    if (existingWallet === null || !existingWallet) {
+      wallet = await getWalletDetails(existingWallet);
+      await localforage.setItem('wallet', wallet);
+    } else {
+      wallet = existingWallet;
+    }
+    return wallet;
+  };
+
+  const migrateLegacyWallet = async (XPI, wallet) => {
+    console.log(`migrateLegacyWallet`);
+    console.log(`legacyWallet`, wallet);
+    const NETWORK = process.env.REACT_APP_NETWORK;
+    const mnemonic = wallet.mnemonic;
+    const rootSeedBuffer = await XPI.Mnemonic.toSeed(mnemonic);
+
+    let masterHDNode;
+
+    if (NETWORK === `mainnet`) {
+      masterHDNode = XPI.HDNode.fromSeed(rootSeedBuffer);
+    } else {
+      masterHDNode = XPI.HDNode.fromSeed(rootSeedBuffer, 'testnet');
+    }
+    const Path899 = await deriveAccount(XPI, {
+      masterHDNode,
+      path: "m/44'/899'/0'/0/0",
+    });
+    const Path1899 = await deriveAccount(XPI, {
+      masterHDNode,
+      path: "m/44'/1899'/0'/0/0",
+    });
+    const Path10605 = await deriveAccount(XPI, {
+      masterHDNode,
+      path: "m/44'/10605'/0'/0/0",
+    });
+
+    wallet.Path899 = Path899;
+    wallet.Path1899 = Path1899;
+    wallet.Path10605 = Path10605;
+
+    try {
+      await localforage.setItem('wallet', wallet);
+    } catch (err) {
+      console.log(
+        `Error setting wallet to wallet indexedDb in migrateLegacyWallet()`,
+      );
+      console.log(err);
+    }
+
+    return wallet;
+  };
+
+  const writeWalletState = async (wallet, newState) => {
+    // Add new state as an object on the active wallet
+    wallet.state = newState;
+    try {
+      await localforage.setItem('wallet', wallet);
+    } catch (err) {
+      console.log(`Error in writeWalletState()`);
+      console.log(err);
+    }
+  };
+
+  const getWalletDetails = async wallet => {
+    if (!wallet) {
+      return false;
+    }
+    // Since this info is in localforage now, only get the var
+    const NETWORK = process.env.REACT_APP_NETWORK;
+    const mnemonic = wallet.mnemonic;
+    const rootSeedBuffer = await XPI.Mnemonic.toSeed(mnemonic);
+    let masterHDNode;
+
+    if (NETWORK === `mainnet`) {
+      masterHDNode = XPI.HDNode.fromSeed(rootSeedBuffer);
+    } else {
+      masterHDNode = XPI.HDNode.fromSeed(rootSeedBuffer, 'testnet');
+    }
+
+    // const Path245 = await deriveAccount(XPI, {
+    //     masterHDNode,
+    //     path: "m/44'/245'/0'/0/0",
+    // });
+    // const Path145 = await deriveAccount(XPI, {
+    //     masterHDNode,
+    //     path: "m/44'/145'/0'/0/0",
+    // });
+    const Path899 = await deriveAccount(XPI, {
+      masterHDNode,
+      path: "m/44'/899'/0'/0/0",
+    });
+    const Path1899 = await deriveAccount(XPI, {
+      masterHDNode,
+      path: "m/44'/1899'/0'/0/0",
+    });
+    const Path10605 = await deriveAccount(XPI, {
+      masterHDNode,
+      path: "m/44'/10605'/0'/0/0",
+    });
+
+    let name = Path10605.xAddress.slice(-8);
+    // Only set the name if it does not currently exist
+    if (wallet && wallet.name) {
+      name = wallet.name;
+    }
+
+    return {
+      mnemonic: wallet.mnemonic,
+      name,
+      // Path245,
+      // Path145,
+      Path899,
+      Path1899,
+      Path10605
+    };
+  };
+
+  const getSavedWallets = async activeWallet => {
+    let savedWallets;
+    try {
+      savedWallets = await localforage.getItem('savedWallets');
+      if (savedWallets === null) {
+        savedWallets = [];
+      }
+    } catch (err) {
+      console.log(`Error in getSavedWallets`);
+      console.log(err);
+      savedWallets = [];
+    }
+    // Even though the active wallet is still stored in savedWallets, don't return it in this function
+    for (let i = 0; i < savedWallets.length; i += 1) {
+      if (
+        typeof activeWallet !== 'undefined' &&
+        activeWallet.name &&
+        savedWallets[i].name === activeWallet.name
+      ) {
+        savedWallets.splice(i, 1);
+      }
+    }
+    return savedWallets;
+  };
+
+  const activateWallet = async walletToActivate => {
+    /*
+If the user is migrating from old version to this version, make sure to save the activeWallet
+
+1 - check savedWallets for the previously active wallet
+2 - If not there, add it
+*/
+    let currentlyActiveWallet;
+    try {
+      currentlyActiveWallet = await localforage.getItem('wallet');
+    } catch (err) {
+      console.log(
+        `Error in localforage.getItem("wallet") in activateWallet()`,
+      );
+      return false;
+    }
+    // Get savedwallets
+    let savedWallets;
+    try {
+      savedWallets = await localforage.getItem('savedWallets');
+    } catch (err) {
+      console.log(
+        `Error in localforage.getItem("savedWallets") in activateWallet()`,
+      );
+      return false;
+    }
+    /*
+    When a legacy user runs cashtabapp.com/, their active wallet will be migrated to Path1899 by 
+    the getWallet function
+
+    Wallets in savedWallets are migrated when they are activated, in this function
+
+    Two cases to handle
+
+    1 - currentlyActiveWallet has Path1899, but its stored keyvalue pair in savedWallets does not
+        > Update savedWallets so that Path1899 is added to currentlyActiveWallet
+    
+    2 - walletToActivate does not have Path1899
+        > Update walletToActivate with Path1899 before activation
+
+    NOTE: since publicKey property is added later,
+    wallet without public key in Path10605 is also considered legacy and required migration.
+    */
+
+    // Need to handle a similar situation with state
+    // If you find the activeWallet in savedWallets but without state, resave active wallet with state
+    // Note you do not have the Case 2 described above here, as wallet state is added in the update() function of useWallet.js
+    // Also note, since state can be expected to change frequently (unlike path deriv), you will likely save it every time you activate a new wallet
+    // Check savedWallets for currentlyActiveWallet
+    let walletInSavedWallets = false;
+    for (let i = 0; i < savedWallets.length; i += 1) {
+      if (savedWallets[i].name === currentlyActiveWallet.name) {
+        walletInSavedWallets = true;
+        // Check savedWallets for unmigrated currentlyActiveWallet
+        if (isLegacyMigrationRequired(savedWallets[i])) {
+          // Case 1, described above
+          savedWallets[i].Path10605 = currentlyActiveWallet.Path10605;
+          savedWallets[i].Path1899 = currentlyActiveWallet.Path1899;
+          savedWallets[i].Path899 = currentlyActiveWallet.Path899;
+        }
+
+        /*
+        Update wallet state
+        Note, this makes previous `walletUnmigrated` variable redundant
+        savedWallets[i] should always be updated, since wallet state can be expected to change most of the time
+        */
+        savedWallets[i].state = currentlyActiveWallet.state;
+      }
+    }
+
+    // resave savedWallets
+    try {
+      // Set walletName as the active wallet
+      await localforage.setItem('savedWallets', savedWallets);
+    } catch (err) {
+      console.log(
+        `Error in localforage.setItem("savedWallets") in activateWallet() for unmigrated wallet`,
+      );
+    }
+
+    if (!walletInSavedWallets) {
+      console.log(`Wallet is not in saved Wallets, adding`);
+      savedWallets.push(currentlyActiveWallet);
+      // resave savedWallets
+      try {
+        // Set walletName as the active wallet
+        await localforage.setItem('savedWallets', savedWallets);
+      } catch (err) {
+        console.log(
+          `Error in localforage.setItem("savedWallets") in activateWallet()`,
+        );
+      }
+    }
+
+    // If wallet does not have Path10605, Path1899, Path899, add it
+    // or each of the Path10605, Path1899, Path899 does not have a public key, add it
+    // by calling migrateLagacyWallet()
+    if (isLegacyMigrationRequired(walletToActivate)) {
+      // Case 2, described above
+      console.log(`Legacy Wallet. Migrating...`);
+      console.log(`walletToActivate`, walletToActivate);
+      walletToActivate = await migrateLegacyWallet(XPI, walletToActivate);
+    } else {
+      // Otherwise activate it as normal
+      // Now that we have verified the last wallet was saved, we can activate the new wallet
+      try {
+        await localforage.setItem('wallet', walletToActivate);
+      } catch (err) {
+        console.log(
+          `Error in localforage.setItem("wallet", walletToActivate) in activateWallet()`,
+        );
+        return false;
+      }
+    }
+    // Make sure stored wallet is in correct format to be used as live wallet
+    if (isValidStoredWallet(walletToActivate)) {
+      // Convert all the token balance figures to big numbers
+      const liveWalletState = loadStoredWallet(walletToActivate.state);
+      walletToActivate.state = liveWalletState;
+    }
+
+    return walletToActivate;
+  };
+
+  const renameWallet = async (oldName, newName) => {
+    // Load savedWallets
+    let savedWallets;
+    try {
+      savedWallets = await localforage.getItem('savedWallets');
+    } catch (err) {
+      console.log(
+        `Error in await localforage.getItem("savedWallets") in renameWallet`,
+      );
+      console.log(err);
+      return false;
+    }
+    // Verify that no existing wallet has this name
+    for (let i = 0; i < savedWallets.length; i += 1) {
+      if (savedWallets[i].name === newName) {
+        // return an error
+        return false;
+      }
+    }
+
+    // change name of desired wallet
+    for (let i = 0; i < savedWallets.length; i += 1) {
+      if (savedWallets[i].name === oldName) {
+        // Replace the name of this entry with the new name
+        savedWallets[i].name = newName;
+      }
+    }
+    // resave savedWallets
+    try {
+      // Set walletName as the active wallet
+      await localforage.setItem('savedWallets', savedWallets);
+    } catch (err) {
+      console.log(
+        `Error in localforage.setItem("savedWallets", savedWallets) in renameWallet()`,
+      );
+      return false;
+    }
+    return true;
+  };
+
+  const deleteWallet = async walletToBeDeleted => {
+    // delete a wallet
+    // returns true if wallet is successfully deleted
+    // otherwise returns false
+    // Load savedWallets
+    let savedWallets;
+    try {
+      savedWallets = await localforage.getItem('savedWallets');
+    } catch (err) {
+      console.log(
+        `Error in await localforage.getItem("savedWallets") in deleteWallet`,
+      );
+      console.log(err);
+      return false;
+    }
+    // Iterate over to find the wallet to be deleted
+    // Verify that no existing wallet has this name
+    let walletFoundAndRemoved = false;
+    for (let i = 0; i < savedWallets.length; i += 1) {
+      if (savedWallets[i].name === walletToBeDeleted.name) {
+        // Verify it has the same mnemonic too, that's a better UUID
+        if (savedWallets[i].mnemonic === walletToBeDeleted.mnemonic) {
+          // Delete it
+          savedWallets.splice(i, 1);
+          walletFoundAndRemoved = true;
+        }
+      }
+    }
+    // If you don't find the wallet, return false
+    if (!walletFoundAndRemoved) {
+      return false;
+    }
+
+    // Resave savedWallets less the deleted wallet
+    try {
+      // Set walletName as the active wallet
+      await localforage.setItem('savedWallets', savedWallets);
+    } catch (err) {
+      console.log(
+        `Error in localforage.setItem("savedWallets", savedWallets) in deleteWallet()`,
+      );
+      return false;
+    }
+    return true;
+  };
+
+  const addNewSavedWallet = async importMnemonic => {
+    // Add a new wallet to savedWallets from importMnemonic or just new wallet
+    const lang = 'english';
+    // create 128 bit BIP39 mnemonic
+    const Bip39128BitMnemonic = importMnemonic
+      ? importMnemonic
+      : XPI.Mnemonic.generate(128, XPI.Mnemonic.wordLists()[lang]);
+    const newSavedWallet = await getWalletDetails({
+      mnemonic: Bip39128BitMnemonic.toString(),
+    });
+    // Get saved wallets
+    let savedWallets;
+    try {
+      savedWallets = await localforage.getItem('savedWallets');
+      // If this doesn't exist yet, savedWallets === null
+      if (savedWallets === null) {
+        savedWallets = [];
+      }
+    } catch (err) {
+      console.log(
+        `Error in savedWallets = await localforage.getItem("savedWallets") in addNewSavedWallet()`,
+      );
+      console.log(err);
+      console.log(`savedWallets in error state`, savedWallets);
+    }
+    // If this wallet is from an imported mnemonic, make sure it does not already exist in savedWallets
+    if (importMnemonic) {
+      for (let i = 0; i < savedWallets.length; i += 1) {
+        // Check for condition "importing new wallet that is already in savedWallets"
+        if (savedWallets[i].mnemonic === importMnemonic) {
+          // set this as the active wallet to keep name history
+          console.log(
+            `Error: this wallet already exists in savedWallets`,
+          );
+          console.log(`Wallet not being added.`);
+          return false;
+        }
+      }
+    }
+    // add newSavedWallet
+    savedWallets.push(newSavedWallet);
+    // update savedWallets
+    try {
+      await localforage.setItem('savedWallets', savedWallets);
+    } catch (err) {
+      console.log(
+        `Error in localforage.setItem("savedWallets", activeWallet) called in createWallet with ${importMnemonic}`,
+      );
+      console.log(`savedWallets`, savedWallets);
+      console.log(err);
+    }
+    return true;
+  };
+
+  const createWallet = async importMnemonic => {
+    const lang = 'english';
+    // create 128 bit BIP39 mnemonic
+    const Bip39128BitMnemonic = importMnemonic
+      ? importMnemonic
+      : XPI.Mnemonic.generate(128, XPI.Mnemonic.wordLists()[lang]);
+    const wallet = await getWalletDetails({
+      mnemonic: Bip39128BitMnemonic.toString(),
+    });
+
+    try {
+      await localforage.setItem('wallet', wallet);
+    } catch (err) {
+      console.log(
+        `Error setting wallet to wallet indexedDb in createWallet()`,
+      );
+      console.log(err);
+    }
+    // Since this function is only called from OnBoarding.js, also add this to the saved wallet
+    try {
+      await localforage.setItem('savedWallets', [wallet]);
+    } catch (err) {
+      console.log(
+        `Error setting wallet to savedWallets indexedDb in createWallet()`,
+      );
+      console.log(err);
+    }
+    return wallet;
+  };
+
+  const validateMnemonic = (
+    mnemonic,
+    wordlist = XPI.Mnemonic.wordLists().english,
+  ) => {
+    let mnemonicTestOutput;
+
+    try {
+      mnemonicTestOutput = XPI.Mnemonic.validate(mnemonic, wordlist);
+
+      if (mnemonicTestOutput === 'Valid mnemonic') {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  };
+
+  const handleUpdateWallet = async setWallet => {
+    await loadWalletFromStorageOnStartup(setWallet);
+  };
+
+  const loadCashtabSettings = async () => {
+    // get settings object from localforage
+    let localSettings;
+    const defaultLang = {
+      lang: 'en'
+    };
+    try {
+      localSettings = await localforage.getItem('settings');
+      // If there is no keyvalue pair in localforage with key 'settings'
+      if (!localSettings || !localSettings['lang']) {
+        // Create one with the default settings from Ticker.js
+        localforage.setItem('settings', defaultLang);
+        // Set state to default settings
+        setCashtabSettings(defaultLang);
+        const initialLocale = await initLocale(AppLocale[defaultLang.lang]);
+        return defaultLang;
+      } else {
+        const currentLang = AppLocale[localSettings['lang']];
+        const initialLocale = await initLocale(currentLang);
+        setCashtabSettings(currentLang);
+      }
+    } catch (err) {
+      console.log(`Error getting cashtabSettings`, err);
+      // TODO If they do not exist, write them
+      // TODO add function to change them
+      setCashtabSettings(currency.defaultSettings);
+      return currency.defaultSettings;
+    }
+    // If you found an object in localforage at the settings key, make sure it's valid
+    if (isValidCashtabSettings(localSettings)) {
+      setCashtabSettings(localSettings);
+      return localSettings;
+    }
+    // if not valid, also set cashtabSettings to default
+    setCashtabSettings(defaultLang);
+    return defaultLang;
+  };
+
+  const clearFiatPriceApi = fiatPriceApi => {
+    // Clear fiat price check interval of previously selected currency
+    clearInterval(fiatPriceApi);
+  };
+
+  const initLocale = currentAppLocale => {
+    return intl
+      .init({
+        currentLocale: currentAppLocale.locale,
+        locales: {
+          [currentAppLocale.locale]: currentAppLocale.messages
+        }
+      })
+      .then(() => {
+        return true;
+      })
+      .catch(err => {
+        return false;
+      });
+  }
+  const changeCashtabSettings = async (key, newValue) => {
+    // Set loading to true as you do not want to display the fiat price of the last currency
+    // loading = true will lock the UI until the fiat price has updated
+    setLoading(true);
+    // Get settings from localforage
+    let currentSettings;
+    let newSettings;
+    try {
+      currentSettings = await localforage.getItem('settings');
+    } catch (err) {
+      console.log(`Error in changeCashtabSettings`, err);
+      // Set fiat price to null, which disables fiat sends throughout the app
+      setFiatPrice(null);
+      // Unlock the UI
+      setLoading(false);
+      return;
+    }
+    // Make sure function was called with valid params
     if (
-        previousBalances &&
-        balances &&
-        'totalBalance' in previousBalances &&
-        'totalBalance' in balances &&
-        new BigNumber(balances.totalBalance)
-            .minus(previousBalances.totalBalance)
-            .gt(0)
+      Object.keys(currentSettings).includes(key)
     ) {
+      // Update settings
+      newSettings = currentSettings;
+      newSettings[key] = newValue;
+    }
+    // Set new settings in state so they are available in context throughout the app
+    setCashtabSettings(newSettings);
+
+    if (key === 'lang') {
+      const initSuccess = await initLocale(AppLocale[newValue]);
+    }
+    // Write new settings in localforage
+    try {
+      await localforage.setItem('settings', newSettings);
+    } catch (err) {
+      console.log(
+        `Error writing newSettings object to localforage in changeCashtabSettings`,
+        err,
+      );
+      console.log(`newSettings`, newSettings);
+      // do nothing. If this happens, the user will see default currency next time they load the app.
+    }
+    setLoading(false);
+  };
+
+  // Parse for incoming XEC transactions
+  if (
+    previousBalances &&
+    balances &&
+    'totalBalance' in previousBalances &&
+    'totalBalance' in balances &&
+    new BigNumber(balances.totalBalance)
+      .minus(previousBalances.totalBalance)
+      .gt(0)
+  ) {
+    notification.success({
+      message: 'Transaction received',
+      description: (
+        <Paragraph>
+          +{' '}
+          {parseFloat(
+            Number(
+              balances.totalBalance -
+              previousBalances.totalBalance,
+            ).toFixed(currency.cashDecimals),
+          ).toLocaleString()}{' '}
+          {currency.ticker}{' '}
+        </Paragraph>
+      ),
+      duration: 3,
+      icon: <CashReceivedNotificationIcon />,
+      style: { width: '100%' },
+    });
+  }
+
+  // Parse for incoming eToken transactions
+  if (
+    tokens &&
+    tokens[0] &&
+    tokens[0].balance &&
+    previousTokens &&
+    previousTokens[0] &&
+    previousTokens[0].balance
+  ) {
+    // If tokens length is greater than previousTokens length, a new token has been received
+    // Note, a user could receive a new token, AND more of existing tokens in between app updates
+    // In this case, the app will only notify about the new token
+    // TODO better handling for all possible cases to cover this
+    // TODO handle with websockets for better response time, less complicated calc
+    if (tokens.length > previousTokens.length) {
+      // Find the new token
+      const tokenIds = tokens.map(({ tokenId }) => tokenId);
+      const previousTokenIds = previousTokens.map(
+        ({ tokenId }) => tokenId,
+      );
+      //console.log(`tokenIds`, tokenIds);
+      //console.log(`previousTokenIds`, previousTokenIds);
+
+      // An array with the new token Id
+      const newTokenIdArr = tokenIds.filter(
+        tokenId => !previousTokenIds.includes(tokenId),
+      );
+      // It's possible that 2 new tokens were received
+      // To do, handle this case
+      const newTokenId = newTokenIdArr[0];
+      //console.log(newTokenId);
+
+      // How much of this tokenId did you get?
+      // would be at
+
+      // Find where the newTokenId is
+      const receivedTokenObjectIndex = tokens.findIndex(
+        x => x.tokenId === newTokenId,
+      );
+      //console.log(`receivedTokenObjectIndex`, receivedTokenObjectIndex);
+      // Calculate amount received
+      //console.log(`receivedTokenObject:`, tokens[receivedTokenObjectIndex]);
+
+      const receivedSlpQty = tokens[
+        receivedTokenObjectIndex
+      ].balance.toString();
+      const receivedSlpTicker =
+        tokens[receivedTokenObjectIndex].info.tokenTicker;
+      const receivedSlpName =
+        tokens[receivedTokenObjectIndex].info.tokenName;
+      //console.log(`receivedSlpQty`, receivedSlpQty);
+
+      // Notification if you received SLP
+      if (receivedSlpQty > 0) {
         notification.success({
-            message: 'Transaction received',
+          message: `${currency.tokenTicker} transaction received: ${receivedSlpTicker}`,
+          description: (
+            <Paragraph>
+              You received {receivedSlpQty} {receivedSlpName}
+            </Paragraph>
+          ),
+          duration: 3,
+          icon: <TokenReceivedNotificationIcon />,
+          style: { width: '100%' },
+        });
+      }
+
+      //
+    } else {
+      // If tokens[i].balance > previousTokens[i].balance, a new SLP tx of an existing token has been received
+      // Note that tokens[i].balance is of type BigNumber
+      for (let i = 0; i < tokens.length; i += 1) {
+        if (tokens[i].balance.gt(previousTokens[i].balance)) {
+          // Received this token
+          // console.log(`previousTokenId`, previousTokens[i].tokenId);
+          // console.log(`currentTokenId`, tokens[i].tokenId);
+
+          if (previousTokens[i].tokenId !== tokens[i].tokenId) {
+            console.log(
+              `TokenIds do not match, breaking from SLP notifications`,
+            );
+            // Then don't send the notification
+            // Also don't 'continue' ; this means you have sent a token, just stop iterating through
+            break;
+          }
+          const receivedSlpQty = tokens[i].balance.minus(
+            previousTokens[i].balance,
+          );
+
+          const receivedSlpTicker = tokens[i].info.tokenTicker;
+          const receivedSlpName = tokens[i].info.tokenName;
+
+          notification.success({
+            message: `${currency.tokenTicker} transaction received: ${receivedSlpTicker}`,
             description: (
-                <Paragraph>
-                    +{' '}
-                    {parseFloat(
-                        Number(
-                            balances.totalBalance -
-                                previousBalances.totalBalance,
-                        ).toFixed(currency.cashDecimals),
-                    ).toLocaleString()}{' '}
-                    {currency.ticker}{' '}
-                </Paragraph>
+              <Paragraph>
+                You received {receivedSlpQty.toString()}{' '}
+                {receivedSlpName}
+              </Paragraph>
             ),
             duration: 3,
-            icon: <CashReceivedNotificationIcon />,
+            icon: <TokenReceivedNotificationIcon />,
             style: { width: '100%' },
-        });
-    }
-
-    // Parse for incoming eToken transactions
-    if (
-        tokens &&
-        tokens[0] &&
-        tokens[0].balance &&
-        previousTokens &&
-        previousTokens[0] &&
-        previousTokens[0].balance
-    ) {
-        // If tokens length is greater than previousTokens length, a new token has been received
-        // Note, a user could receive a new token, AND more of existing tokens in between app updates
-        // In this case, the app will only notify about the new token
-        // TODO better handling for all possible cases to cover this
-        // TODO handle with websockets for better response time, less complicated calc
-        if (tokens.length > previousTokens.length) {
-            // Find the new token
-            const tokenIds = tokens.map(({ tokenId }) => tokenId);
-            const previousTokenIds = previousTokens.map(
-                ({ tokenId }) => tokenId,
-            );
-            //console.log(`tokenIds`, tokenIds);
-            //console.log(`previousTokenIds`, previousTokenIds);
-
-            // An array with the new token Id
-            const newTokenIdArr = tokenIds.filter(
-                tokenId => !previousTokenIds.includes(tokenId),
-            );
-            // It's possible that 2 new tokens were received
-            // To do, handle this case
-            const newTokenId = newTokenIdArr[0];
-            //console.log(newTokenId);
-
-            // How much of this tokenId did you get?
-            // would be at
-
-            // Find where the newTokenId is
-            const receivedTokenObjectIndex = tokens.findIndex(
-                x => x.tokenId === newTokenId,
-            );
-            //console.log(`receivedTokenObjectIndex`, receivedTokenObjectIndex);
-            // Calculate amount received
-            //console.log(`receivedTokenObject:`, tokens[receivedTokenObjectIndex]);
-
-            const receivedSlpQty = tokens[
-                receivedTokenObjectIndex
-            ].balance.toString();
-            const receivedSlpTicker =
-                tokens[receivedTokenObjectIndex].info.tokenTicker;
-            const receivedSlpName =
-                tokens[receivedTokenObjectIndex].info.tokenName;
-            //console.log(`receivedSlpQty`, receivedSlpQty);
-
-            // Notification if you received SLP
-            if (receivedSlpQty > 0) {
-                notification.success({
-                    message: `${currency.tokenTicker} transaction received: ${receivedSlpTicker}`,
-                    description: (
-                        <Paragraph>
-                            You received {receivedSlpQty} {receivedSlpName}
-                        </Paragraph>
-                    ),
-                    duration: 3,
-                    icon: <TokenReceivedNotificationIcon />,
-                    style: { width: '100%' },
-                });
-            }
-
-            //
-        } else {
-            // If tokens[i].balance > previousTokens[i].balance, a new SLP tx of an existing token has been received
-            // Note that tokens[i].balance is of type BigNumber
-            for (let i = 0; i < tokens.length; i += 1) {
-                if (tokens[i].balance.gt(previousTokens[i].balance)) {
-                    // Received this token
-                    // console.log(`previousTokenId`, previousTokens[i].tokenId);
-                    // console.log(`currentTokenId`, tokens[i].tokenId);
-
-                    if (previousTokens[i].tokenId !== tokens[i].tokenId) {
-                        console.log(
-                            `TokenIds do not match, breaking from SLP notifications`,
-                        );
-                        // Then don't send the notification
-                        // Also don't 'continue' ; this means you have sent a token, just stop iterating through
-                        break;
-                    }
-                    const receivedSlpQty = tokens[i].balance.minus(
-                        previousTokens[i].balance,
-                    );
-
-                    const receivedSlpTicker = tokens[i].info.tokenTicker;
-                    const receivedSlpName = tokens[i].info.tokenName;
-
-                    notification.success({
-                        message: `${currency.tokenTicker} transaction received: ${receivedSlpTicker}`,
-                        description: (
-                            <Paragraph>
-                                You received {receivedSlpQty.toString()}{' '}
-                                {receivedSlpName}
-                            </Paragraph>
-                        ),
-                        duration: 3,
-                        icon: <TokenReceivedNotificationIcon />,
-                        style: { width: '100%' },
-                    });
-                }
-            }
+          });
         }
+      }
     }
+  }
 
-    useEffect(async () => {
-        handleUpdateWallet(setWallet);
-        const initialSettings = await loadCashtabSettings();
-    }, []);
+  useEffect(async () => {
+    handleUpdateWallet(setWallet);
+    const initialSettings = await loadCashtabSettings();
+    await initializeWebsocket(wallet);
+  }, []);
 
 
-    // Update wallet every 10s
-    useAsyncTimeout(async () => {
-        const walletToUpdate = await getWallet();
+  // Update wallet every 10s
+  useAsyncTimeout(async () => {
+    const walletToUpdate = await getWallet();
+    update({
+      walletToUpdate
+    }).finally(() => {
+      setLoading(false);
+    });
+  }, 5000);
+
+  // @Todo: investigate and uncomment here
+  return {
+    XPI,
+    chronik,
+    wallet,
+    fiatPrice,
+    loading,
+    apiError,
+    cashtabSettings,
+    changeCashtabSettings,
+    getActiveWalletFromLocalForage,
+    getWallet,
+    validateMnemonic,
+    getWalletDetails,
+    getSavedWallets,
+    migrateLegacyWallet,
+    createWallet: async importMnemonic => {
+      setLoading(true);
+      const newWallet = await createWallet(importMnemonic);
+      setWallet(newWallet);
+
+      update({
+        wallet: newWallet,
+      }).finally(() => setLoading(false));
+    },
+    activateWallet: async walletToActivate => {
+      setLoading(true);
+      const newWallet = await activateWallet(walletToActivate);
+      setWallet(newWallet);
+      if (isValidStoredWallet(walletToActivate)) {
+        // If you have all state parameters needed in storage, immediately load the wallet
+        setLoading(false);
+      } else {
+        // If the wallet is missing state parameters in storage, wait for API info
+        // This handles case of unmigrated legacy wallet
         update({
-            walletToUpdate
-        }).finally(() => {
-            setLoading(false);
-        });
-    }, 5000);
-
-    // @Todo: investigate and uncomment here
-    return {
-        BCH,
-        wallet,
-        fiatPrice,
-        loading,
-        apiError,
-        cashtabSettings,
-        changeCashtabSettings,
-        getActiveWalletFromLocalForage,
-        getWallet,
-        validateMnemonic,
-        getWalletDetails,
-        getSavedWallets,
-        migrateLegacyWallet,
-        createWallet: async importMnemonic => {
-            setLoading(true);
-            const newWallet = await createWallet(importMnemonic);
-            setWallet(newWallet);
-
-            update({
-                wallet: newWallet,
-            }).finally(() => setLoading(false));
-        },
-        activateWallet: async walletToActivate => {
-            setLoading(true);
-            const newWallet = await activateWallet(walletToActivate);
-            setWallet(newWallet);
-            if (isValidStoredWallet(walletToActivate)) {
-                // If you have all state parameters needed in storage, immediately load the wallet
-                setLoading(false);
-            } else {
-                // If the wallet is missing state parameters in storage, wait for API info
-                // This handles case of unmigrated legacy wallet
-                update({
-                    wallet: newWallet,
-                }).finally(() => setLoading(false));
-            }
-        },
-        addNewSavedWallet,
-        renameWallet,
-        deleteWallet,
-        refresh: async () => {
-            update({walletToUpdate: wallet})
-        }
-    };
+          wallet: newWallet,
+        }).finally(() => setLoading(false));
+      }
+    },
+    addNewSavedWallet,
+    renameWallet,
+    deleteWallet,
+    refresh: async () => {
+      update({ walletToUpdate: wallet })
+    }
+  };
 };
 
 export default useWallet;

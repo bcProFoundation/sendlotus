@@ -254,13 +254,13 @@ const App = () => {
                                 <Route path="/wallet">
                                     <Wallet />
                                 </Route>
-                                <Route path="/tokens">
+                                {/* <Route path="/tokens">
                                     <Tokens
                                         passLoadingStatus={
                                             setLoadingUtxosAfterSend
                                         }
                                     />
-                                </Route>
+                                </Route> */}
                                 <Route path="/send">
                                     <Send
                                         passLoadingStatus={
@@ -297,13 +297,13 @@ const App = () => {
                                     {intl.get('wallet.Wallet')}
                                 </NavButton>
 
-                                <NavButton
+                                {/* <NavButton
                                     active={selectedKey === 'tokens'}
                                     onClick={() => history.push('/tokens')}
                                 >
                                     <AppstoreAddOutlined />
                                     {intl.get('wallet.Tokens')}
-                                </NavButton>
+                                </NavButton> */}
 
                                 <NavButton
                                     active={selectedKey === 'send'}

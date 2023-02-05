@@ -11,6 +11,7 @@ import { ThemedLockFilledGrey } from 'components/Common/CustomIcons';
 import { Button } from 'antd';
 import { FormattedTxAddress } from 'components/Common/FormattedWalletAddress';
 import intl from 'react-intl-universal';
+import { formatDate } from '@utils/formatting';
 
 const DateType = styled.div`
     color: ${props => props.theme.greyDark} !important;
@@ -99,19 +100,17 @@ const TxWrapper = styled.div`
 `;
 
 const ReplyButton = styled(Button)`
-    color: ${props => props.theme.grey } !important;
+    color: ${props => props.theme.grey} !important;
 `
 
-const Tx = ({ data }) => {
-    const txDate =
-        typeof data.blocktime === 'undefined'
-            ? new Date().toLocaleDateString()
-            : new Date(data.blocktime * 1000).toLocaleDateString();
-    // if data only includes height and txid, then the tx could not be parsed by cashtab
-    // render as such but keep link to block explorer
-    let unparsedTx = false;
-    if (!Object.keys(data).includes('outgoingTx')) {
-        unparsedTx = true;
+const Tx = ({ item }) => {
+    let memo = '';
+    if (item.parsed.isLotusMessage) {
+        if (item.parsed.isEncryptedMessage && item.parsed.decryptionSuccess) {
+            memo = item.parsed.opReturnMessage ?? '';
+        } else {
+            memo = item.parsed.opReturnMessage ?? '';
+        }
     }
     return (
         <div
@@ -121,7 +120,7 @@ const Tx = ({ data }) => {
         >
             {/* Link to the Explorer */}
             <a
-                href={`https://explorer.givelotus.org/tx/${data.txid}`}
+                href={`https://explorer.givelotus.org/tx/${item.txid}`}
                 target="_blank"
                 rel="noreferrer"
                 css={`
@@ -139,120 +138,84 @@ const Tx = ({ data }) => {
                     `}
                 />
             </a>
-            {unparsedTx ? (
-                <TxWrapper className='container'>
+            <TxWrapper outgoing={!item.parsed.incoming}>
+                <div className='label'>
+                    {!item.parsed.incoming
+                        ? <SentLabel>
+                            {intl.get('wallet.SentTo')} {
+                                item.parsed.destinationAddress &&
+                                <FormattedTxAddress address={item.parsed.destinationAddress.slice(-8)} />
+                            }
+                        </SentLabel>
+                        : <ReceivedLabel>
+                            From: {
+                                item.parsed.replyAddress &&
+                                <FormattedTxAddress address={item.parsed.replyAddress.slice(-8)} />
+                            }
+                        </ReceivedLabel>
+                    }
                     <DateType>
-                        <ReceivedLabel>Unparsed</ReceivedLabel>
-                        <br />
-                        {txDate}
+                        {formatDate(item.timeFirstSeen)}
                     </DateType>
-                    <TxInfo>Open in Explorer</TxInfo>
-                </TxWrapper>
-            ) : (
-                <TxWrapper outgoing={data.outgoingTx}>
-                    <div className='label'>
-                        {data.outgoingTx 
-                            ? <SentLabel>
-                                    {intl.get('wallet.SentTo')} {
-                                        data.destinationAddress && 
-                                        <FormattedTxAddress address={data.destinationAddress.slice(-8)} />
-                                    }
-                                </SentLabel>
-                            : <ReceivedLabel>
-                                    From: {
-                                        data.fromAddress && 
-                                        <FormattedTxAddress address={data.fromAddress.slice(-8)} />
-                                    }
-                                </ReceivedLabel>
-                        }
-                        <DateType>
-                            {txDate}
-                        </DateType>
-                    </div>
-                    <div className='amount'>
-                        <TxInfo outgoing={data.outgoingTx} className='amount'>
-                            {data.outgoingTx ? (
-                                <>
-                                    -{' '}
-                                    {formatBalance(
-                                        data.amountSent,
-                                    )}
-                                    &nbsp;
-                                    {currency.ticker}
-                                    <br />
-                                </>
-                            ) : (
-                                <>
-                                    +{' '}
-                                    {formatBalance(
-                                        data.amountReceived
-                                    )}
-                                    &nbsp;
-                                    {currency.ticker}
-                                    <br />
-                                </>
-                            )}
-                        </TxInfo>
-                    </div>
-                    <div className='msg'>
-                        <OpReturnType>
-                            <div>
-                                {data.opReturnMessage}
-                            </div>
-                            <div
-                                css={`
-                                    display: flex;
-                                    justify-content: space-between;
-                                `}
-                            >
-                                {data.isLotusChatMessage ? (
-                                    data.isEncryptedMessage ? (
-                                        <EncryptionMessageLabel>
-                                            <ThemedLockFilledGrey />
-                                        </EncryptionMessageLabel>
-                                    ) : (
-                                        <LotusChatMessageLabel>
-                                        </LotusChatMessageLabel>
-                                    )
-                                ) : (
-                                    data.opReturnMessage ? (
-                                        <MessageLabel>
-                                            {intl.get('wallet.ExternalMessage')}
-                                        </MessageLabel>
-                                    ) : (
-                                        <div></div>
-                                    )
+                </div>
+                <div className='amount'>
+                    <TxInfo outgoing={!item.parsed.incoming} className='amount'>
+                        {!item.parsed.incoming ? (
+                            <>
+                                -{' '}
+                                {formatBalance(
+                                    item.parsed.xpiAmount,
                                 )}
-                                {!data.outgoingTx && data.fromAddress ? (
-                                    <Link
-                                        to={{
-                                            pathname: `/send`,
-                                            state: {
-                                                replyAddress: data.fromAddress,
-                                            },
-                                        }}
+                                &nbsp;
+                                {currency.ticker}
+                                <br />
+                            </>
+                        ) : (
+                            <>
+                                +{' '}
+                                {formatBalance(
+                                    item.parsed.xpiAmount
+                                )}
+                                &nbsp;
+                                {currency.ticker}
+                                <br />
+                            </>
+                        )}
+                    </TxInfo>
+                </div>
+                <div className='msg'>
+                    <OpReturnType>
+                        <div>
+                            {memo}
+                        </div>
+                        <div>
+                            {item.parsed.incoming && (
+                                <Link
+                                    to={{
+                                        pathname: `/send`,
+                                        state: {
+                                            replyAddress: item.parsed.replyAddress,
+                                        },
+                                    }}
+                                >
+                                    <ReplyButton
+                                        size='small'
+                                        type="text"
                                     >
-                                        <ReplyButton
-                                            size='small'
-                                            type="text"
-                                        >
-                                            {intl.get('wallet.Reply')}
-                                        </ReplyButton>
-                                    </Link>
-                                ) : (
-                                    ''
-                                )}
-                            </div>
-                        </OpReturnType>
-                    </div>
-                </TxWrapper>
-            )}
+                                        {intl.get('wallet.Reply')}
+                                    </ReplyButton>
+                                </Link>
+                            )}
+                        </div>
+                    </OpReturnType>
+                </div>
+            </TxWrapper>
         </div>
     );
 };
 
 Tx.propTypes = {
-    data: PropTypes.object,
+    item: PropTypes.object,
     fiatPrice: PropTypes.number,
     fiatCurrency: PropTypes.string,
 };

@@ -117,8 +117,6 @@ export const QRCode = ({
     onClick = () => null,
     ...otherProps
 }) => {
-    address = address ? convertToEcashPrefix(address) : '';
-
     const [visible, setVisible] = useState(false);
 
     const txtRef = React.useRef(null);

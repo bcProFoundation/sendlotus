@@ -244,12 +244,12 @@ const App = () => {
         location && location.pathname ? location.pathname.substr(1) : '';
 
     // Easter egg boolean not used in extension/src/components/App.js
-    const hasTab = validWallet
-        ? checkForTokenById(
-            wallet.state.tokens,
-            '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
-        )
-        : false;
+    // const hasTab = validWallet
+    //     ? checkForTokenById(
+    //         wallet.state.tokens,
+    //         '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+    //     )
+    //     : false;
 
     return (
         <ThemeProvider theme={theme}>
@@ -267,9 +267,9 @@ const App = () => {
                                 <Link to="/"><LotusLogo src={LogoLotusPink} alt="lotus" /></Link>
                                 <Link to="/"><CashTabLogo src={CashTab} alt="cashtab" /></Link>
                                 {/*Begin component not included in extension as desktop only*/}
-                                {hasTab && (
+                                {/* {hasTab && (
                                     <EasterEgg src={TabCash} alt="tabcash" />
-                                )}
+                                )} */}
                                 {/*End component not included in extension as desktop only*/}
                                 {/*Begin component not included in extension as replaced by open in tab link*/}
                                 <a

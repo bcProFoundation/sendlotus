@@ -158,7 +158,7 @@ const ScanQRCode = ({
             </StyledScanQRCode>
             <StyledModal
                 title="Scan QR code"
-                visible={visible}
+                open={visible}
                 onCancel={() => setVisible(false)}
                 footer={null}
             >

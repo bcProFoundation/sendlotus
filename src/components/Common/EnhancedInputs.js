@@ -9,7 +9,6 @@ import {
 import { LockOutlined } from '@ant-design/icons';
 import styled, { css } from 'styled-components';
 import ScanQRCode from './ScanQRCode';
-import useBCH from '@hooks/useBCH';
 import { currency } from '@components/Common/Ticker.js';
 import UploadImageToScan from './UploadImageToScan';
 import AppLocale from '../../lang';
@@ -146,7 +145,7 @@ export const StyledScanQRCode = styled(ScanQRCode)`
     justify-content: center;
 `;
 
-export const SendBchInput = ({
+export const SendXpiInput = ({
     onMax,
     inputProps,
     selectProps,
@@ -229,7 +228,7 @@ export const SendBchInput = ({
     );
 };
 
-SendBchInput.propTypes = {
+SendXpiInput.propTypes = {
     onMax: PropTypes.func,
     inputProps: PropTypes.object,
     selectProps: PropTypes.object,
@@ -288,7 +287,7 @@ export const FormItemWithQRCodeAddon = ({
                             <StyledScanQRCode
                                 loadWithCameraOpen={loadWithCameraOpen}
                                 onScan={onScan}
-                                codeType={codeType}   
+                                codeType={codeType}
                             />
                             <UploadImageToScan
                                 onScan={onScan}
@@ -311,37 +310,37 @@ FormItemWithQRCodeAddon.propTypes = {
 };
 
 export const LanguageSelectDropdown = selectProps => {
-  const { Option } = Select;
+    const { Option } = Select;
 
-  // Build select dropdown from currency.languages
-  const languageMenuOptions = [];
-  for (var key in AppLocale) {
-    const languageMenuOption = {
-        value: key,
-        label: intl.get(key)
-      };
-    languageMenuOptions.push(languageMenuOption);
-  }
+    // Build select dropdown from currency.languages
+    const languageMenuOptions = [];
+    for (var key in AppLocale) {
+        const languageMenuOption = {
+            value: key,
+            label: intl.get(key)
+        };
+        languageMenuOptions.push(languageMenuOption);
+    }
 
-  const languageOptions = languageMenuOptions.map(languageMenuOption => {
+    const languageOptions = languageMenuOptions.map(languageMenuOption => {
+        return (
+            <Option key={languageMenuOption.value} value={languageMenuOption.value} className="selectedLanguageOption">
+                {languageMenuOption.label}
+            </Option>
+        );
+    });
+
     return (
-      <Option key={languageMenuOption.value} value={languageMenuOption.value} className="selectedLanguageOption">
-        {languageMenuOption.label}
-      </Option>
+        <Select
+            className="select-after"
+            style={{
+                width: '100%'
+            }}
+            {...selectProps}
+        >
+            {languageOptions}
+        </Select>
     );
-  });
-  
-  return (
-    <Select
-      className="select-after"
-      style={{
-        width: '100%'
-      }}
-      {...selectProps}
-    >
-      {languageOptions}
-    </Select>
-  );
 };
 
 export const CurrencySelectDropdown = selectProps => {
@@ -383,28 +382,6 @@ export const CurrencySelectDropdown = selectProps => {
     );
 };
 
-export const AddressValidators = () => {
-    const { BCH } = useBCH();
-
-    return {
-        safelyDetectAddressFormat: value => {
-            try {
-                return BCH.Address.detectAddressFormat(value);
-            } catch (error) {
-                return null;
-            }
-        },
-        isSLPAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'slpaddr',
-        isBCHAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'cashaddr',
-        isLegacyAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'legacy',
-        isXAddress: value =>
-            AddressValidators.safelyDetectAddressFormat(value) === 'xaddr',
-    }();
-};
-
 // OP_RETURN message related component
 const OpReturnMessageHelp = styled.div`
     margin-top: 20px;
@@ -425,7 +402,7 @@ const OpReturnMessageHelp = styled.div`
     }
 `;
 
-export const OpReturnMessageInput = ({value, onChange, maxByteLength, labelTop, labelBottom,  ...otherProps}) => {
+export const OpReturnMessageInput = ({ value, onChange, maxByteLength, labelTop, labelBottom, ...otherProps }) => {
     // in order to access the theme object provided by styled-component ThemeProvider
     // we need to use Modal.useModal() hook
     // see https://ant.design/components/modal/#FAQ
@@ -433,7 +410,7 @@ export const OpReturnMessageInput = ({value, onChange, maxByteLength, labelTop, 
 
     // Help (?) Icon that shows the OP_RETURN info
     const helpInfoIcon = (
-        <ThemedQuerstionCircleOutlinedFaded 
+        <ThemedQuerstionCircleOutlinedFaded
             onClick={() => {
                 // console.log(contextHolder);
                 modal.info({
@@ -469,7 +446,7 @@ export const OpReturnMessageInput = ({value, onChange, maxByteLength, labelTop, 
         // until the length in bytes < maxByteLength
         let trim = msg;
         while (Buffer.from(trim).length > maxByteLength) {
-            trim = trim.substring(0,trim.length -1);
+            trim = trim.substring(0, trim.length - 1);
         }
         return trim;
     }
@@ -484,39 +461,40 @@ export const OpReturnMessageInput = ({value, onChange, maxByteLength, labelTop, 
     return (
         <AntdFormWrapper>
             <Form.Item {...otherProps} >
-               
-                <div
-                    css={`
+                <>
+
+                    <div
+                        css={`
                         display: flex;
                         justify-content: flex-start;
                         align-items: flex-end;
                     `}
-                >
-                    <div
-                        css={`
+                    >
+                        <div
+                            css={`
                             flex-grow: 1
                         `}
-                    >
-                        {labelTop}
+                        >
+                            {labelTop}
+                        </div>
+                        <div>
+                            {contextHolder}
+                            {Buffer.from(value).length}  / {maxByteLength} bytes {helpInfoIcon}
+                        </div>
+
                     </div>
-                    <div>
-                        {contextHolder}
-                        {Buffer.from(value).length}  / {maxByteLength} bytes {helpInfoIcon}
-                    </div>
-                
-                </div>
-                  
-                <Input.TextArea { ...otherProps } onChange={handleInputChange} value={value} />
-                { labelBottom && (
-                    <div
-                        css={`
+
+                    <Input.TextArea {...otherProps} onChange={handleInputChange} value={value} />
+                    {labelBottom && (
+                        <div
+                            css={`
                             text-align: right;
                             color: ${props => props.theme.greyLight}
                         `}
-                    >
-                        {labelBottom}
-                    </div>
-                )}
+                        >
+                            {labelBottom}
+                        </div>
+                    )}</>
             </Form.Item>
         </AntdFormWrapper>
     )

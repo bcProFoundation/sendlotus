@@ -10,7 +10,7 @@ const LixiEnvelopeWatingModal = ({ className, onOpenLixi, claimCode }) => {
     const specialclaimCode = '2LFmAfUm1A';
 
     return (
-        <Modal visible={true} closable={false} footer={null} className={className}>
+        <Modal open={true} closable={false} footer={null} className={className}>
             <div className='lixi-container' onClick={onOpenLixi}>
                 <Image preview={false} src={claimCode == specialclaimCode ? WeddingThemeCardGif : ThemeCardGif} className='envelope-background' />
             </div>
