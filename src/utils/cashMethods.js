@@ -174,7 +174,8 @@ export const isValidStoredWallet = walletStateFromStorage => {
         typeof walletStateFromStorage.state === 'object' &&
         'balances' in walletStateFromStorage.state &&
         'utxos' in walletStateFromStorage.state &&
-        'slpBalancesAndUtxos' in walletStateFromStorage.state
+        'slpBalancesAndUtxos' in walletStateFromStorage.state &&
+        !('tokens' in walletStateFromStorage.state)
     );
 };
 
@@ -211,10 +212,13 @@ export const isLegacyMigrationRequired = wallet => {
     if (
         !wallet.Path10605 ||
         !wallet.Path10605.publicKey ||
+        !wallet.Path10605.hash160 ||
         !wallet.Path1899 ||
         !wallet.Path1899.publicKey ||
+        !wallet.Path10605.hash160 ||
         !wallet.Path899 ||
-        !wallet.Path899.publicKey
+        !wallet.Path899.publicKey ||
+        !wallet.Path10605.hash160
     ) {
         return true;
     }

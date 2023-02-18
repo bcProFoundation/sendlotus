@@ -325,6 +325,17 @@ const useWallet = () => {
         return;
       }
 
+      if (isLegacyMigrationRequired(walletToUpdate)) {
+        walletToUpdate = await migrateLegacyWallet(
+          XPI,
+          walletToUpdate,
+        );
+      }
+
+      if (!isValidStoredWallet(walletToUpdate)) {
+        walletToUpdate.state = null;
+      }
+
       const allWalletPaths = selectAllPaths(walletToUpdate);
 
       const hash160AndAddressObjArray = allWalletPaths.map(item => {
