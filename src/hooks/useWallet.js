@@ -121,7 +121,7 @@ const useWallet = () => {
     // get wallet object from localforage
     const wallet = await getWallet();
     // If wallet object in storage is valid, use it to set state on startup
-    if (isLegacyMigrationRequired(wallet)) {
+    if (wallet && isLegacyMigrationRequired(wallet)) {
       wallet = await migrateLegacyWallet(
         XPI,
         wallet,
