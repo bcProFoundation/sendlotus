@@ -121,6 +121,13 @@ const useWallet = () => {
     // get wallet object from localforage
     const wallet = await getWallet();
     // If wallet object in storage is valid, use it to set state on startup
+    if (isLegacyMigrationRequired(wallet)) {
+      wallet = await migrateLegacyWallet(
+        XPI,
+        wallet,
+      );
+    }
+
     if (isValidStoredWallet(wallet)) {
       // Convert all the token balance figures to big numbers
       const liveWalletState = loadStoredWallet(wallet.state);
@@ -129,6 +136,7 @@ const useWallet = () => {
       setWallet(wallet);
       return setLoading(false);
     }
+     
     // Loading will remain true until API calls populate this legacy wallet
     setWallet(wallet);
   };
@@ -314,7 +322,7 @@ const useWallet = () => {
     return setChronikWebsocket(ws);
   };
 
-  const update = async ({walletToUpdate}) => {
+  const update = async ({ walletToUpdate }) => {
     // Check if walletRefreshInterval is set to 10, i.e. this was called by websocket tx detection
     // If walletRefreshInterval is 10, set it back to the usual refresh rate
     if (walletRefreshInterval === 10) {
