@@ -121,6 +121,13 @@ const useWallet = () => {
     // get wallet object from localforage
     const wallet = await getWallet();
     // If wallet object in storage is valid, use it to set state on startup
+    if (wallet && isLegacyMigrationRequired(wallet)) {
+      wallet = await migrateLegacyWallet(
+        XPI,
+        wallet,
+      );
+    }
+
     if (isValidStoredWallet(wallet)) {
       // Convert all the token balance figures to big numbers
       const liveWalletState = loadStoredWallet(wallet.state);
@@ -128,7 +135,10 @@ const useWallet = () => {
 
       setWallet(wallet);
       return setLoading(false);
+    } else {
+      setLoading(true)
     }
+     
     // Loading will remain true until API calls populate this legacy wallet
     setWallet(wallet);
   };
@@ -314,7 +324,7 @@ const useWallet = () => {
     return setChronikWebsocket(ws);
   };
 
-  const update = async ({walletToUpdate}) => {
+  const update = async ({ walletToUpdate }) => {
     // Check if walletRefreshInterval is set to 10, i.e. this was called by websocket tx detection
     // If walletRefreshInterval is 10, set it back to the usual refresh rate
     if (walletRefreshInterval === 10) {
@@ -447,7 +457,7 @@ const useWallet = () => {
       if (existingWallet) {
         if (isLegacyMigrationRequired(existingWallet)) {
           console.log(
-            `Wallet does not have Path10605 or does not have public key`,
+            `Wallet does not have Path10605 or does not have public key or does not have hash 160`,
           );
           existingWallet = await migrateLegacyWallet(
             XPI,
@@ -1199,7 +1209,7 @@ If the user is migrating from old version to this version, make sure to save the
     }).finally(() => {
       setLoading(false);
     });
-  }, 5000);
+  }, 10000);
 
   // @Todo: investigate and uncomment here
   return {
