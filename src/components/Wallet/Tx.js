@@ -104,14 +104,6 @@ const ReplyButton = styled(Button)`
 `
 
 const Tx = ({ item }) => {
-    let memo = '';
-    if (item.parsed.isLotusMessage) {
-        if (item.parsed.isEncryptedMessage && item.parsed.decryptionSuccess) {
-            memo = item.parsed.opReturnMessage ?? '';
-        } else {
-            memo = item.parsed.opReturnMessage ?? '';
-        }
-    }
     return (
         <div
             css={`
@@ -186,9 +178,31 @@ const Tx = ({ item }) => {
                 <div className='msg'>
                     <OpReturnType>
                         <div>
-                            {memo}
+                            {item.parsed.opReturnMessage}
                         </div>
-                        <div>
+                        <div
+                            css={`
+                                display: flex;
+                                justify-content: space-between;
+                            `}>
+                            {item.parsed.isLotusMessage ? (
+                                item.parsed.isEncryptedMessage ? (
+                                    <EncryptionMessageLabel>
+                                        <ThemedLockFilledGrey />
+                                    </EncryptionMessageLabel>
+                                ) : (
+                                    <LotusChatMessageLabel>
+                                    </LotusChatMessageLabel>
+                                )
+                            ) : (
+                                item.parsed.opReturnMessage ? (
+                                    <MessageLabel>
+                                        {intl.get('wallet.ExternalMessage')}
+                                    </MessageLabel>
+                                ) : (
+                                    <div></div>
+                                )
+                            )}
                             {item.parsed.incoming && (
                                 <Link
                                     to={{
