@@ -31,7 +31,8 @@ const TxHistoryWraper = styled.div`
 
 const TxHistory = ({ txs }) => {
     let keyIndex = 0;
-    const orderedWalletParsedHistory = _.orderBy(txs, x => x.timeFirstSeen, 'desc');
+    const fileredTxs = txs.filter(tx => tx.txid && tx.parsed);
+    const orderedWalletParsedHistory = _.orderBy(fileredTxs, x => x.timeFirstSeen, 'desc');
     const walletParsedHistoryGroupByDate = _.groupBy(orderedWalletParsedHistory, item => {
         const currentMonth = new Date().getMonth();
         const dateTime = new Date(formatDate(item.timeFirstSeen));

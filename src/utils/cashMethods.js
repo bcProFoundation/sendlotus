@@ -158,7 +158,7 @@ export const loadStoredWallet = walletStateFromStorage => {
 
 export const normalizeBalance = slpBalancesAndUtxos => {
     const totalBalanceInSatoshis = slpBalancesAndUtxos.nonSlpUtxos.reduce(
-        (previousBalance, utxo) => previousBalance + utxo.value,
+        (previousBalance, utxo) => previousBalance + Number(utxo.value),
         0,
     );
     return {

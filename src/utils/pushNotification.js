@@ -2,26 +2,26 @@ import { Modal } from 'antd';
 import { getAddressesOfSavedWallets, getAddressesOfWallet } from './cashMethods';
 
 export const askPermission = () => {
-    return new Promise(function(resolve, reject) {
-        const permissionResult = Notification.requestPermission(function(result) {
+    return new Promise(function (resolve, reject) {
+        const permissionResult = Notification.requestPermission(function (result) {
             resolve(result);
         });
-  
+
         if (permissionResult) {
             permissionResult.then(resolve, reject);
         }
     })
-    .then(function(permissionResult) {
-        if (permissionResult === 'denied') {
-            throw new Error('permission denied - Notification is blocked');
-        } else if ( permissionResult === 'default') {
-            throw new Error('permission not granted - Notification permission is neither granted nor blocked this time');
-        }
-    });
+        .then(function (permissionResult) {
+            if (permissionResult === 'denied') {
+                throw new Error('permission denied - Notification is blocked');
+            } else if (permissionResult === 'default') {
+                throw new Error('permission not granted - Notification permission is neither granted nor blocked this time');
+            }
+        });
 }
 
 export const getPlatformPermissionState = () => {
-    if ( 'Notification' in window) {
+    if ('Notification' in window) {
         return Notification.permission;
     }
 
@@ -51,7 +51,7 @@ export const subscribeAllWalletsToPushNotification = async (pushNotificationConf
             pushSubscription
         }
         console.log(JSON.stringify(subscriptionObject));
-        const res = await fetch( subscribeURL, {
+        const res = await fetch(subscribeURL, {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -60,12 +60,12 @@ export const subscribeAllWalletsToPushNotification = async (pushNotificationConf
             body: JSON.stringify(subscriptionObject)
         });
         const resData = await res.json();
-        if ( resData.error ) {
+        if (resData.error) {
             throw new Error(resData.error);
         }
         pushNotificationConfig.turnOnPushNotification();
         if (interactiveMode) {
-            Modal.success({content: 'Success! you will receive notification of new transaction'})
+            Modal.success({ content: 'Success! you will receive notification of new transaction' })
         }
     } catch (error) {
         console.log("Error in subscribeAllWalletsToPushNotification()", error);
@@ -77,7 +77,7 @@ export const subscribeAllWalletsToPushNotification = async (pushNotificationConf
         }
         return;
     }
-  }
+}
 
 export const unsubscribeAllWalletsFromPushNotification = async (pushNotificationConfig) => {
     if (!pushNotificationConfig || !pushNotificationConfig.allowPushNotification) return;
@@ -98,24 +98,28 @@ export const unsubscribeWalletFromPushNotification = async (pushNotificationConf
     unsubscribePushNotification(addresses, pushNotificationConfig.appId);
 }
 
-export const unsubscribePushNotification = async ( addresses, appId) => {
-    const unsubscriptionObject = { ids: addresses, clientAppId: appId};
+export const unsubscribePushNotification = async (addresses, appId) => {
+    const unsubscriptionObject = { ids: addresses, clientAppId: appId };
     const unsubscribeURL = process.env.REACT_APP_PUSH_SERVER_API + 'unsubscribe';
-    const res = await fetch( unsubscribeURL, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-            'content-type': 'application/json'
-        },
-        body: JSON.stringify(unsubscriptionObject)
-    });
-    res.json().then(data => {
-        if (data.success) {
-            console.log("Successfully unsubscribe Push Notification");
-        } else {
-            console.log(data.error);
-        }
-    });
+    try {
+        const res = await fetch(unsubscribeURL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify(unsubscriptionObject)
+        });
+        res.json().then(data => {
+            if (data.success) {
+                console.log("Successfully unsubscribe Push Notification");
+            } else {
+                console.log(data.error);
+            }
+        });
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 export const checkInWithPushNotificationServer = async (pushNotificationConfig) => {
