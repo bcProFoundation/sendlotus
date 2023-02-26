@@ -590,7 +590,7 @@ const Configure = () => {
             {savedWallets && savedWallets.length > 0 && (
                 <>
                     <StyledCollapse>
-                        <Panel header="Saved wallets" key="2">
+                        <Panel header="Saved wallets" key="3">
                             <AWRow>
                                 <h3>{wallet.name}</h3>
                                 <h4>{intl.get('setting.CurrentlActive')}</h4>
