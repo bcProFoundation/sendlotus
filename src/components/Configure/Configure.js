@@ -641,17 +641,20 @@ const Configure = () => {
                         </>
                     )}
                     <StyledSpacer />
-
                     <h2>{intl.get('language')}</h2>
-                    <AntdFormWrapper>
-                        <LanguageSelectDropdown
-                            defaultValue={intl.get(cashtabSettings.lang)}
-                            value={intl.get(cashtabSettings.lang)}
-                            onChange={(locale) => {
-                                changeCashtabSettings('lang', locale);
-                            }}
-                        />
-                    </AntdFormWrapper>
+                    {
+                        cashtabSettings && (
+                            <AntdFormWrapper>
+                                <LanguageSelectDropdown
+                                    defaultValue={intl.get(cashtabSettings?.lang ?? 'en')}
+                                    value={intl.get(cashtabSettings?.lang ?? 'en')}
+                                    onChange={(locale) => {
+                                        changeCashtabSettings('lang', locale);
+                                    }}
+                                />
+                            </AntdFormWrapper>
+                        )
+                    }
                     <StyledSpacer />
                     <h2>
                         <ThemedSettingOutlined /> {intl.get('setting.GeneralSettings')}
