@@ -2,7 +2,7 @@ import { currency } from '@components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import { decryptOpReturnMsg, getHashArrayFromWallet, getUtxoWif, parseOpReturn } from './cashMethods';
 
-const PATHS = ['Path899','Path1899','Path10605']
+const PATHS = ['Path899', 'Path1899', 'Path10605']
 const getWalletPathsFromWalletState = (wallet) => {
   const allWalletPaths = selectAllPaths(wallet);
   return allWalletPaths;
@@ -215,7 +215,7 @@ export const getRecipientPublicKey = async (
   throw new Error('Cannot send an encrypted message to a wallet with no outgoing transactions in the last 20 txs');
 };
 
-export const parseChronikTx = async (XPI, chronik, tx, wallet ) => {
+export const parseChronikTx = async (XPI, chronik, tx, wallet) => {
   const walletHash160s = getHashArrayFromWallet(wallet);
   const { inputs, outputs } = tx;
   // Assign defaults
@@ -249,7 +249,7 @@ export const parseChronikTx = async (XPI, chronik, tx, wallet ) => {
     // Incoming transaction means that all inputs are not from current addresses
     for (let j = 0; j < walletHash160s.length; j += 1) {
       const thisWalletHash160 = walletHash160s[j];
-      if (thisInputSendingHash160.includes(thisWalletHash160)) {
+      if (thisInputSendingHash160 && thisInputSendingHash160.includes(thisWalletHash160)) {
         // Then this is an outgoing tx
         incoming = false;
         // Break out of this for loop once you know this is an outgoing tx
@@ -320,7 +320,7 @@ export const parseChronikTx = async (XPI, chronik, tx, wallet ) => {
           const legacyDestinationAddress = XPI.Address.fromOutputScript(Buffer.from(thisOutput.outputScript, 'hex'));
           destinationAddress = XPI.Address.toXAddress(legacyDestinationAddress);
         }
-      } catch (err) {}
+      } catch (err) { }
     }
   }
 
@@ -335,7 +335,7 @@ export const parseChronikTx = async (XPI, chronik, tx, wallet ) => {
   let otherPublicKey;
   try {
     otherPublicKey = await getRecipientPublicKey(XPI, chronik, theOtherAddress);
-  } catch (err) {}
+  } catch (err) { }
 
   if (
     isLotusMessage &&
@@ -361,7 +361,7 @@ export const parseChronikTx = async (XPI, chronik, tx, wallet ) => {
         opReturnMessage = 'Error in decrypting message!';
       }
     }
-    catch (err){
+    catch (err) {
       console.log('err', err);
     }
   }
