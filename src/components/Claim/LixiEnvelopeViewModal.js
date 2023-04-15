@@ -205,7 +205,7 @@ const LixiEnvelopeViewModal =
         return (
             <Modal
                 title="Lixi Program sent you a small gift!"
-                open={true}
+                visible={true}
                 preview={false}
                 onCancel={handleCancelLixiModal}
                 getContainer={false}

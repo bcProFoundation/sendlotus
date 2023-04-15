@@ -193,7 +193,7 @@ const CreateTokenForm = ({
         <>
             <Modal
                 title={`Please review and confirm your token settings.`}
-                open={showConfirmCreateToken}
+                visible={showConfirmCreateToken}
                 onOk={createPreviewedToken}
                 onCancel={() => setShowConfirmCreateToken(false)}
             >
