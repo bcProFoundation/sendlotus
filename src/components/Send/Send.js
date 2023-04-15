@@ -538,7 +538,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
         <>
             <Modal
                 title="Modal. Send"
-                open={isModalVisible}
+                visible={isModalVisible}
                 onOk={handleOk}
                 onCancel={handleCancel}
             >

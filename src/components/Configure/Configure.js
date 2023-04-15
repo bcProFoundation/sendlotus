@@ -438,7 +438,7 @@ const Configure = () => {
                         <Modal
                             key={`${walletToBeRenamed?.name}`}
                             title={intl.get('setting.RenameWalletTitle', { walletName: walletToBeRenamed.name })}
-                            open={showRenameWalletModal}
+                            visible={showRenameWalletModal}
                             onOk={changeWalletName}
                             onCancel={() => cancelRenameWallet()}
                         >
@@ -474,7 +474,7 @@ const Configure = () => {
                         <Modal
                             key={`${walletToBeDeleted?.name}`}
                             title={intl.get('setting.DeleteWalletConfirmation', { walletToBeDeleted: walletToBeDeleted.name })}
-                            open={showDeleteWalletModal}
+                            visible={showDeleteWalletModal}
                             onOk={deleteSelectedWallet}
                             onCancel={() => cancelDeleteWallet()}
                         >
