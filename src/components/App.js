@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import 'antd/dist/antd.less';
 import { Spin } from 'antd';
 import { CashLoadingIcon } from '@components/Common/CustomIcons';
@@ -6,38 +6,36 @@ import '../index.css';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { theme } from '@assets/styles/theme';
 import {
-    FolderOpenFilled,
-    CaretRightOutlined,
     SettingFilled,
+    WalletFilled,
+    SendOutlined
 } from '@ant-design/icons';
 import Icon from '@ant-design/icons';
 import { ReactComponent as IconLixi } from '@assets/icon_lixi.svg';
 import Wallet from '@components/Wallet/Wallet';
+// import Tokens from '@components/Tokens/Tokens';
 import Send from '@components/Send/Send';
-import ClaimComponent from '@components/Claim/ClaimComponent';
+// import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
-import LogoLotusPink from '@assets/lotus-pink-logo.png'
-import TabCash from '@assets/tabcash.png';
+import LogoLotus from '@assets/lotus-pink-logo.png'
 import './App.css';
 import { WalletContext } from '@utils/context';
 import { isValidStoredWallet } from '@utils/cashMethods';
 import WalletLabel from '@components/Common/WalletLabel.js';
 import {
     Route,
+    Link,
     Redirect,
     Switch,
     useLocation,
     useHistory,
-    Link,
 } from 'react-router-dom';
-// Easter egg imports not used in extension/src/components/App.js
-import { checkForTokenById } from '@utils/tokenMethods.js';
-import ProtectableComponentWrapper from './Authentication/ProtectableComponentWrapper';
-import { PushNotificationContext } from 'utils/context';
+// Extension-only import used for open in new tab link
+import PopOut from '@assets/popout.svg';
 import intl from 'react-intl-universal';
-import { checkInWithPushNotificationServer } from 'utils/pushNotification';
+import ClaimComponent from './Claim/ClaimComponent';
 
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
@@ -74,17 +72,12 @@ const GlobalStyle = createGlobalStyle`
         background-image: ${props =>
         props.theme.buttons.primary.backgroundImage} !important;
     }
-    .ant-popover-inner {
-        background-color: ${props =>
-        props.theme.app.background} !important;
-    }
 `;
 
 const CustomApp = styled.div`
     text-align: center;
     font-family: 'Gilroy', sans-serif;
     background-color: ${props => props.theme.app.background};
-    overflow-y: scroll;
 `;
 
 const Footer = styled.div`
@@ -93,7 +86,7 @@ const Footer = styled.div`
     border-radius: 20px;
     position: fixed;
     bottom: 0;
-    width: 520px;
+    width: 500px;
     @media (max-width: 768px) {
         width: 100%;
     }
@@ -134,7 +127,11 @@ export const NavButton = styled.button`
         .anticon {
             color: ${props.theme.primary};
         }
-  `}
+  ` }
+    .ant-popover-inner {
+        background-color: ${props =>
+        props.theme.app.background} !important;
+    }
 `;
 
 export const WalletBody = styled.div`
@@ -143,7 +140,7 @@ export const WalletBody = styled.div`
     justify-content: center;
     width: 100%;
     min-height: 100vh;
-    background-image: ${props => props.theme.app.gradient};
+    background: ${props => props.theme.app.gradient};
     background-attachment: fixed;
 `;
 
@@ -170,7 +167,7 @@ export const HeaderCtn = styled.div`
     align-items: center;
     justify-content: flex-start !important;
     width: 100%;
-    padding: 10px 0 15px;
+    padding: 20px 0 30px;
     margin-bottom: 20px;
     justify-content: space-between;
     border-bottom: 1px solid ${props => props.theme.wallet.borders.color};
@@ -203,35 +200,18 @@ export const LotusLogo = styled.img`
         width: 60px;
     }
 `;
-export const AbcLogo = styled.img`
-    width: 150px;
-    @media (max-width: 768px) {
-        width: 120px;
-    }
+
+// Extension only styled components
+const OpenInTabBtn = styled.button`
+    background: none;
+    border: none;
 `;
 
-// Easter egg styled component not used in extension/src/components/App.js
-export const EasterEgg = styled.img`
-    position: fixed;
-    bottom: -195px;
-    margin: 0;
-    right: 10%;
-    transition-property: bottom;
-    transition-duration: 1.5s;
-    transition-timing-function: ease-out;
-
-    :hover {
-        bottom: 0;
-    }
-
-    @media screen and (max-width: 1250px) {
-        display: none;
-    }
+const ExtTabImg = styled.img`
+    max-width: 20px;
 `;
-
 
 const App = () => {
-    const pushNotificationConfig = React.useContext(PushNotificationContext);
     const ContextValue = React.useContext(WalletContext);
     const { wallet, loading } = ContextValue;
     const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
@@ -242,14 +222,10 @@ const App = () => {
     const history = useHistory();
     const selectedKey =
         location && location.pathname ? location.pathname.substr(1) : '';
-
-    // Easter egg boolean not used in extension/src/components/App.js
-    // const hasTab = validWallet
-    //     ? checkForTokenById(
-    //         wallet.state.tokens,
-    //         '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
-    //     )
-    //     : false;
+    // openInTab is an extension-only method
+    const openInTab = () => {
+        window.open(`index.html#/${selectedKey}`);
+    };
 
     return (
         <ThemeProvider theme={theme}>
@@ -264,69 +240,78 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
-                                <Link to="/"><LotusLogo src={LogoLotusPink} alt="lotus" /></Link>
-                                <Link to="/"><CashTabLogo src={CashTab} alt="cashtab" /></Link>
-                                {/*Begin component not included in extension as desktop only*/}
-                                {/* {hasTab && (
-                                    <EasterEgg src={TabCash} alt="tabcash" />
-                                )} */}
-                                {/*End component not included in extension as desktop only*/}
-                                {/*Begin component not included in extension as replaced by open in tab link*/}
-                                <a
-                                    href="https://givelotus.org//"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <Link to="/"><LotusLogo src={LogoLotus} alt="lotus" /></Link>
+                                <CashTabLogo src={CashTab} alt="cashtab" />
+                                {/*Begin extension-only components*/}
+                                <OpenInTabBtn
+                                    data-tip="Open in tab"
+                                    onClick={() => openInTab()}
                                 >
-                                </a>
-                                {/*Begin component not included in extension as replaced by open in tab link*/}
+                                    <ExtTabImg src={PopOut} alt="Open in tab" />
+                                </OpenInTabBtn>
+                                {/*End extension-only components*/}
                             </HeaderCtn>
-                            <ProtectableComponentWrapper>
-                                <WalletLabel name={wallet.name}></WalletLabel>
-                                <Switch>
-                                    <Route path="/wallet">
-                                        <Wallet />
-                                    </Route>
-                                    <Route path="/send">
-                                        <Send
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    </Route>
-                                    <Route path="/lixi/:claimCode"
-                                        render={props => (<ClaimComponent
-                                            claimCode={props.match.params.claimCode}
-                                            address={wallet?.Path10605?.xAddress}
-                                        />)}
+                            <WalletLabel name={wallet.name}></WalletLabel>
+                            <Switch>
+                                <Route exact path="/">
+                                    <Wallet />
+                                </Route>
+                                {/* <Route path="/tokens">
+                                    <Tokens
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
                                     />
-                                    <Route path="/lixi"
-                                        render={props => (<ClaimComponent
-                                            address={wallet?.Path10605?.xAddress}
-                                        />)}
+                                </Route> */}
+                                <Route path="/send">
+                                    <Send
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
                                     />
-                                    <Route path="/configure">
-                                        <Configure />
-                                    </Route>
-                                    <Redirect exact from="/" to="/wallet" />
-                                    <Route component={NotFound} />
-                                </Switch>
-                            </ProtectableComponentWrapper>
+                                </Route>
+                                    
+                                <Route path="/lixi/:claimCode"
+                                    render={props => (<ClaimComponent
+                                        claimCode={props.match.params.claimCode}
+                                        address={wallet?.Path10605?.xAddress}
+                                    />)}
+                                />
+                                <Route path="/lixi">
+                                    <ClaimComponent
+                                        address={wallet?.Path10605?.xAddress}
+                                    />
+                                </Route>
+                                <Route path="/configure">
+                                    <Configure />
+                                </Route>
+                                <Redirect exact from="/" to="/wallet" />
+                                <Route component={NotFound} />
+                            </Switch>
                         </WalletCtn>
                         {wallet ? (
                             <Footer>
                                 <NavButton
-                                    active={selectedKey === 'wallet'}
-                                    onClick={() => history.push('/wallet')}
+                                    active={!selectedKey}
+                                    onClick={() => history.push('/')}
                                 >
-                                    <FolderOpenFilled />
+                                    <WalletFilled />
                                     {intl.get('wallet.Wallet')}
                                 </NavButton>
+
+                                {/* <NavButton
+                                    active={selectedKey === 'tokens'}
+                                    onClick={() => history.push('/tokens')}
+                                >
+                                    <AppstoreAddOutlined />
+                                    {intl.get('wallet.Tokens')}
+                                </NavButton> */}
 
                                 <NavButton
                                     active={selectedKey === 'send'}
                                     onClick={() => history.push('/send')}
                                 >
-                                    <CaretRightOutlined />
+                                    <SendOutlined />
                                     {intl.get('wallet.Send')}
                                 </NavButton>
 
@@ -337,6 +322,7 @@ const App = () => {
                                     <Icon component={IconLixi} />
                                     {intl.get('wallet.Lixi')}
                                 </NavButton>
+
                                 <NavButton
                                     active={selectedKey === 'configure'}
                                     onClick={() => history.push('/configure')}

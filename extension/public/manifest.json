@@ -1,30 +1,38 @@
 {
-    "manifest_version": 2,
-
-    "name": "SendLotus",
-    "description": "A browser-integrated Lotus wallet",
-    "version": "1.0.0",
-    "content_scripts": [
-        {
-            "matches": ["file://*/*", "http://*/*", "https://*/*"],
-            "js": ["contentscript.js"],
-            "run_at": "document_idle",
-            "all_frames": true
-        }
-    ],
-    "background": {
-        "scripts": ["background.js"],
-        "persistent": false
-    },
-    "browser_action": {
-        "default_popup": "index.html",
-        "default_title": "SendLotus"
-    },
-    "icons": {
-        "16": "ecash16.png",
-        "48": "ecash48.png",
-        "128": "ecash128.png",
-        "192": "ecash192.png",
-        "512": "ecash512.png"
+  "manifest_version": 3,
+  "name": "SendLotus",
+  "description": "A browser-integrated Lotus wallet from BcPro Foundation",
+  "version": "2.0.0",
+  "content_scripts": [
+    {
+      "matches": ["file://*/*", "http://*/*", "https://*/*"],
+      "js": ["contentscript.js"],
+      "run_at": "document_idle",
+      "all_frames": true
     }
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "SendLotus"
+  },
+  "icons": {
+    "16": "ecash16.png",
+    "48": "ecash48.png",
+    "128": "ecash128.png",
+    "192": "ecash192.png",
+    "512": "ecash512.png"
+  },
+  "permissions": ["storage", "tabs"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["script.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

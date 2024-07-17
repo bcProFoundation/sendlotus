@@ -220,7 +220,7 @@ export const SendXpiInput = ({
                         disabled={!!(inputProps || {}).disabled}
                         onClick={!(inputProps || {}).disabled && onMax}
                     >
-                        max
+                        MAX
                     </InputNumberAddonText>
                 </Input.Group>
             </Form.Item>
@@ -461,8 +461,7 @@ export const OpReturnMessageInput = ({ value, onChange, maxByteLength, labelTop,
     return (
         <AntdFormWrapper>
             <Form.Item {...otherProps} >
-                <>
-
+                <React.Fragment>
                     <div
                         css={`
                         display: flex;
@@ -487,14 +486,11 @@ export const OpReturnMessageInput = ({ value, onChange, maxByteLength, labelTop,
                     <Input.TextArea {...otherProps} onChange={handleInputChange} value={value} />
                     {labelBottom && (
                         <div
-                            css={`
-                            text-align: right;
-                            color: ${props => props.theme.greyLight}
-                        `}
+                            style={{textAlign: 'right', color: `${props => props.theme.greyLight}`}}
                         >
                             {labelBottom}
                         </div>
-                    )}</>
+                    )}</React.Fragment>
             </Form.Item>
         </AntdFormWrapper>
     )

@@ -142,7 +142,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
                 // send dust amount
                 value: getDustXPI(),
             });
-            await fetchRecipientPublicKey(XPI, location.state.replyAddress);
+            // await fetchRecipientPublicKey(XPI, location.state.replyAddress);
         }
 
         // Do not set txInfo in state if query strings are not present
@@ -294,7 +294,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
 
             passLoadingStatus(false);
             // update the wallet the get the new utxos 1s after sending
-            setTimeout(refresh, 1000);
+            setTimeout(() => refresh(), 1000);
             // if Push Notification is not supported, pushNotificationConfig will be null
             // The allowPushNotification property value can be undefined, null, true, false
             // undefined & null mean config has not been set
@@ -339,26 +339,26 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
 
     const fetchRecipientPublicKey = async (XPI, recipientAddress) => {
         let recipientPubKey;
-        try {
-            // see https://api.fullstack.cash/docs/#api-Encryption-Get_encryption_key_for_xpi_address
-            // if successful, returns
-            // { 
-            //   success: true,
-            //   publicKey: hex string
-            // }
-            // if Address only has incoming transaction but NO outgoing transaction, returns
-            // { 
-            //   success: false,
-            //   publicKey: "not found"
-            // }
-            recipientPubKey = await XPI.encryption.getPubKey(recipientAddress);
-        } catch (err) {
-            console.log(`SendXPI.handleAddressChange() error: ` + err);
-            recipientPubKey = {
-                success: false,
-                error: 'fetch error - exception thrown'
-            }
-        }
+        // try {
+        //     // see https://api.fullstack.cash/docs/#api-Encryption-Get_encryption_key_for_xpi_address
+        //     // if successful, returns
+        //     // { 
+        //     //   success: true,
+        //     //   publicKey: hex string
+        //     // }
+        //     // if Address only has incoming transaction but NO outgoing transaction, returns
+        //     // { 
+        //     //   success: false,
+        //     //   publicKey: "not found"
+        //     // }
+        //     recipientPubKey = await XPI.encryption.getPubKey(recipientAddress);
+        // } catch (err) {
+        //     console.log(`SendXPI.handleAddressChange() error: ` + err);
+        //     recipientPubKey = {
+        //         success: false,
+        //         error: 'fetch error - exception thrown'
+        //     }
+        // }
         const { success, publicKey } = recipientPubKey;
         if (success) {
             setRecipientPubKeyHex(publicKey);
@@ -419,9 +419,9 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
 
         // if the address is correct
         // attempt the fetch the public key assocciated with this address
-        if (!error) {
-            fetchRecipientPublicKey(xpiObj, address);
-        }
+        // if (!error) {
+        //     fetchRecipientPublicKey(xpiObj, address);
+        // }
 
         // Set amount if it's in the query string
         if (amount !== null) {
@@ -506,11 +506,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
 
     // Only Send Mesage Checkbox
     const sendOnlyMessageCheckbox = (
-        <div
-            css={`
-                text-align: right;
-            `}
-        >
+        <div style={{textAlign: 'right'}}>
             {intl.get('send.SendOnlyMessage')} &nbsp;
             <StyledCheckbox
                 defaultChecked={false}
@@ -538,7 +534,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
         <>
             <Modal
                 title="Modal. Send"
-                visible={isModalVisible}
+                open={isModalVisible}
                 onOk={handleOk}
                 onCancel={handleCancel}
             >

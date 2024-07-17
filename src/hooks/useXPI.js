@@ -11,7 +11,8 @@ import {
 } from '@utils/cashMethods';
 import { getRecipientPublicKey } from '@utils/chronik';
 import intl from 'react-intl-universal';
-import SlpWallet from '@abcpros/minimal-xpi-slp-wallet';
+import BCHJS from '@bcpros/xpi-js';
+// import SlpWallet from '@abcpros/minimal-xpi-slp-wallet';
 
 export default function useXPI() {
   
@@ -22,15 +23,10 @@ export default function useXPI() {
             : process.env.REACT_APP_BCHA_APIS_TEST;
     const apiArray = apiString.split(',');
     return apiArray[apiIndex];
-};
+  };
 
   const getXPI = (apiIndex = 0) => {
-    let ConstructedSlpWallet;
-
-    ConstructedSlpWallet = new SlpWallet('', {
-      restURL: getRestUrl(apiIndex)
-    });
-    return ConstructedSlpWallet.bchjs;
+    return new BCHJS({});
   };
 
   const calcFee = (XPI, utxos, p2pkhOutputNumber = 2, satoshisPerByte = 2.01, opReturnLength = 0) => {

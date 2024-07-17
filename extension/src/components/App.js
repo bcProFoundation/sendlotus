@@ -6,19 +6,20 @@ import '../index.css';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { theme } from '@assets/styles/theme';
 import {
-    FolderOpenFilled,
-    CaretRightOutlined,
     SettingFilled,
-    AppstoreAddOutlined,
+    WalletFilled,
+    SendOutlined
 } from '@ant-design/icons';
+import Icon from '@ant-design/icons';
+import { ReactComponent as IconLixi } from '@assets/icon_lixi.svg';
 import Wallet from '@components/Wallet/Wallet';
-import Tokens from '@components/Tokens/Tokens';
+// import Tokens from '@components/Tokens/Tokens';
 import Send from '@components/Send/Send';
-import SendToken from '@components/Send/SendToken';
+// import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
-import LogoLotus from '@assets/logo_primary.png'
+import LogoLotus from '@assets/lotus-pink-logo.png'
 import './App.css';
 import { WalletContext } from '@utils/context';
 import { isValidStoredWallet } from '@utils/cashMethods';
@@ -34,6 +35,7 @@ import {
 // Extension-only import used for open in new tab link
 import PopOut from '@assets/popout.svg';
 import intl from 'react-intl-universal';
+import ClaimComponent from './Claim/ClaimComponent';
 
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
@@ -238,8 +240,8 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
-                                <Link to="/"><LotusLogo src={LogoLotusPink} alt="lotus" /></Link>
-                                <Link><CashTabLogo src={CashTab} alt="cashtab" /></Link>
+                                <Link to="/"><LotusLogo src={LogoLotus} alt="lotus" /></Link>
+                                <CashTabLogo src={CashTab} alt="cashtab" />
                                 {/*Begin extension-only components*/}
                                 <OpenInTabBtn
                                     data-tip="Open in tab"
@@ -251,7 +253,7 @@ const App = () => {
                             </HeaderCtn>
                             <WalletLabel name={wallet.name}></WalletLabel>
                             <Switch>
-                                <Route path="/wallet">
+                                <Route exact path="/">
                                     <Wallet />
                                 </Route>
                                 {/* <Route path="/tokens">
@@ -268,17 +270,18 @@ const App = () => {
                                         }
                                     />
                                 </Route>
+                                    
                                 <Route path="/lixi/:claimCode"
                                     render={props => (<ClaimComponent
                                         claimCode={props.match.params.claimCode}
                                         address={wallet?.Path10605?.xAddress}
                                     />)}
                                 />
-                                <Route path="/lixi"
-                                    render={props => (<ClaimComponent
+                                <Route path="/lixi">
+                                    <ClaimComponent
                                         address={wallet?.Path10605?.xAddress}
-                                    />)}
-                                />
+                                    />
+                                </Route>
                                 <Route path="/configure">
                                     <Configure />
                                 </Route>
@@ -289,11 +292,10 @@ const App = () => {
                         {wallet ? (
                             <Footer>
                                 <NavButton
-                                    disabled
-                                    active={selectedKey === 'wallet'}
-                                    onClick={() => history.push('/wallet')}
+                                    active={!selectedKey}
+                                    onClick={() => history.push('/')}
                                 >
-                                    <FolderOpenFilled />
+                                    <WalletFilled />
                                     {intl.get('wallet.Wallet')}
                                 </NavButton>
 
@@ -309,9 +311,18 @@ const App = () => {
                                     active={selectedKey === 'send'}
                                     onClick={() => history.push('/send')}
                                 >
-                                    <CaretRightOutlined />
+                                    <SendOutlined />
                                     {intl.get('wallet.Send')}
                                 </NavButton>
+
+                                <NavButton
+                                    active={selectedKey === 'lixi'}
+                                    onClick={() => history.push('/lixi')}
+                                >
+                                    <Icon component={IconLixi} />
+                                    {intl.get('wallet.Lixi')}
+                                </NavButton>
+
                                 <NavButton
                                     active={selectedKey === 'configure'}
                                     onClick={() => history.push('/configure')}
