@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
 import React, { useState, useEffect } from 'react';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import { notification } from 'antd';
@@ -226,7 +224,7 @@ const useWallet = () => {
 
     if (parsedChronikTx && parsedChronikTx.incoming) {
       // Notification
-      dispatch(xpiReceivedNotificationWebSocket(parsedChronikTx.xpiAmount));
+      // dispatch(xpiReceivedNotificationWebSocket(parsedChronikTx.xpiAmount));
     }
   };
 

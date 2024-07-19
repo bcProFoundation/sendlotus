@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import Tx from './Tx';
 import intl from 'react-intl-universal';
 import { formatDate } from '@utils/formatting';
+import _ from 'lodash';
 
 const TxHistoryHeading = styled.h4`
     font-size: 20px;

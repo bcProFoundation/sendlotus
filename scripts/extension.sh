@@ -51,7 +51,6 @@ cp -r build/* extension/dist
 browserify extension/src/contentscript.js -o extension/dist/contentscript.js
 browserify extension/src/service_worker.js -o extension/dist/service_worker.js
 browserify extension/src/script.js -o extension/dist/script.js
-browserify extension/src/background.js -o extension/dist/background.js
 
 # Delete extension build from build/ folder (reserved for web app builds)
 rm -Rf build

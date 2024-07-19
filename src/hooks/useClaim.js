@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import axios from 'axios';
 import useXPI from '@hooks/useXPI';
+import { currency } from '@components/Common/Ticker.js';
 
 const SITE_KEY = "6Lc1rGwdAAAAABrD2AxMVIj4p_7ZlFKdE5xCFOrb";
 

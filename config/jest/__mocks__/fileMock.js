@@ -2,4 +2,5 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-window.bitcoinAbc = 'cashtab';
+// See https://jestjs.io/docs/webpack
+module.exports = 'test-file-stub';

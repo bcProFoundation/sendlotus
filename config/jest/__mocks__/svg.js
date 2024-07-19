@@ -2,4 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-window.bitcoinAbc = 'cashtab';
+// See https://react-svgr.com/docs/jest/
+export default 'SvgrURL';
+export const ReactComponent = 'svg';
