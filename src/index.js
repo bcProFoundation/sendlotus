@@ -16,7 +16,6 @@ ReactDOM.render(
             <PushNotificationProvider>
                 <Router>
                     <CheckBrowser />
-                    {GA.init() && <GA.RouteTracker />}
                     {!inapp?.isInApp && <App />}
                 </Router>
             </PushNotificationProvider>
