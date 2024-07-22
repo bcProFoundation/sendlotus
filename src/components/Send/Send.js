@@ -81,7 +81,7 @@ const SendXPI = ({ jestXPI, passLoadingStatus }) => {
     const walletState = getWalletState(wallet);
     const { balances, slpBalancesAndUtxos } = walletState;
 
-    const [isOpReturnMsgDisabled, setIsOpReturnMsgDisabled] = useState(true);
+    const [isOpReturnMsgDisabled, setIsOpReturnMsgDisabled] = useState(false);
     const [recipientPubKeyHex, setRecipientPubKeyHex] = useState(false);
     const [recipientPubKeyWarning, setRecipientPubKeyWarning] = useState(false);
     const [opReturnMsg, setOpReturnMsg] = useState(false);

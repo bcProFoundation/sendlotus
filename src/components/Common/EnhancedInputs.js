@@ -178,7 +178,7 @@ export const SendXpiInput = ({
         <Select
             defaultValue={currency.ticker}
             className="select-after"
-            style={{ width: '25%' }}
+            style={{ width: '25%', height: '100%' }}
             {...selectProps}
         >
             {currencyOptions}
@@ -215,7 +215,10 @@ export const SendXpiInput = ({
                         style={{
                             width: '17%',
                             height: '60px',
-                            lineHeight: '60px',
+                            border: 'none',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 'bold',
                         }}
                         disabled={!!(inputProps || {}).disabled}
                         onClick={!(inputProps || {}).disabled && onMax}
@@ -409,37 +412,37 @@ export const OpReturnMessageInput = ({ value, onChange, maxByteLength, labelTop,
     const [modal, contextHolder] = Modal.useModal();
 
     // Help (?) Icon that shows the OP_RETURN info
-    const helpInfoIcon = (
-        <ThemedQuerstionCircleOutlinedFaded
-            onClick={() => {
-                // console.log(contextHolder);
-                modal.info({
-                    centered: true,
-                    okText: 'Got It',
-                    title: 'Optional Message',
-                    maskClosable: 'true',
-                    content: (
-                        <OpReturnMessageHelp>
-                            <div className='heading'>{intl.get('send.HigherFee')}</div>
-                            <ul>
-                                <li>{intl.get('send.TransactionAttached')}<em>{intl.get('send.HigherFee')}.</em></li>
-                            </ul>
-                            <div className='heading'>{intl.get('send.Encryption')}</div>
-                            <ul>
-                                <li>{intl.get('send.Encryption')}</li>
-                                <li>{intl.get('send.EncryptedMessageSentTo')}<em>{intl.get('send.WalletLeastTransaction')}</em></li>
-                            </ul>
-                            <div className='heading'>{intl.get('send.MessageLength')}</div>
-                            <ul>
-                                <li>{intl.get('send.DependingLanguage')}<em>{intl.get('send.EachCharacrterByte')}</em></li>
-                                <li>{intl.get('send.EncryptedMaxLength')}</li>
-                            </ul>
-                        </OpReturnMessageHelp>
-                    ),
-                })
-            }}
-        />
-    )
+    // const helpInfoIcon = (
+    //     <ThemedQuerstionCircleOutlinedFaded
+    //         onClick={() => {
+    //             // console.log(contextHolder);
+    //             modal.info({
+    //                 centered: true,
+    //                 okText: 'Got It',
+    //                 title: 'Optional Message',
+    //                 maskClosable: 'true',
+    //                 content: (
+    //                     <OpReturnMessageHelp>
+    //                         <div className='heading'>{intl.get('send.HigherFee')}</div>
+    //                         <ul>
+    //                             <li>{intl.get('send.TransactionAttached')}<em>{intl.get('send.HigherFee')}.</em></li>
+    //                         </ul>
+    //                         <div className='heading'>{intl.get('send.Encryption')}</div>
+    //                         <ul>
+    //                             <li>{intl.get('send.Encryption')}</li>
+    //                             <li>{intl.get('send.EncryptedMessageSentTo')}<em>{intl.get('send.WalletLeastTransaction')}</em></li>
+    //                         </ul>
+    //                         <div className='heading'>{intl.get('send.MessageLength')}</div>
+    //                         <ul>
+    //                             <li>{intl.get('send.DependingLanguage')}<em>{intl.get('send.EachCharacrterByte')}</em></li>
+    //                             <li>{intl.get('send.EncryptedMaxLength')}</li>
+    //                         </ul>
+    //                     </OpReturnMessageHelp>
+    //                 ),
+    //             })
+    //         }}
+    //     />
+    // )
 
     const trimMessage = (msg) => {
         // keep trimming the message one character at time
@@ -462,23 +465,10 @@ export const OpReturnMessageInput = ({ value, onChange, maxByteLength, labelTop,
         <AntdFormWrapper>
             <Form.Item {...otherProps} >
                 <React.Fragment>
-                    <div
-                        css={`
-                        display: flex;
-                        justify-content: flex-start;
-                        align-items: flex-end;
-                    `}
-                    >
-                        <div
-                            css={`
-                            flex-grow: 1
-                        `}
-                        >
-                            {labelTop}
-                        </div>
-                        <div>
+                    <div>
+                        <div style={{textAlign: 'right'}}>
                             {contextHolder}
-                            {Buffer.from(value).length}  / {maxByteLength} bytes {helpInfoIcon}
+                            {Buffer.from(value).length}  / {maxByteLength} bytes
                         </div>
 
                     </div>

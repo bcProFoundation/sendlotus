@@ -1,6 +1,6 @@
 {
   "name": "sendlotus",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "dependencies": {
     "@abcpros/bitcore-lib-xpi": "^8.25.36",
@@ -10,7 +10,7 @@
     "@bcpros/xpi-js": "^4.0.11",
     "@fortawesome/fontawesome-free": "^5.15.1",
     "@zxing/library": "0.8.0",
-    "antd": "^4.9.3",
+    "antd": "^5.19.3",
     "bfj": "^8.0.0",
     "bignumber.js": "^9.0.0",
     "chronik-client": "^0.8.1",
@@ -62,11 +62,9 @@
   },
   "browserslist": {
     "production": [
-      "chrome >= 67",
-      "edge >= 79",
-      "firefox >= 68",
-      "opera >= 54",
-      "safari >= 14"
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
     ],
     "development": [
       "last 1 chrome version",

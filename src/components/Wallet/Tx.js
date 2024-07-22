@@ -105,31 +105,7 @@ const ReplyButton = styled(Button)`
 
 const Tx = ({ item }) => {
     return (
-        <div
-            css={`
-                position: relative;
-            `}
-        >
-            {/* Link to the Explorer */}
-            <a
-                href={`https://explorer.givelotus.org/tx/${item.txid}`}
-                target="_blank"
-                rel="noreferrer"
-                css={`
-                    position: absolute;
-                    top: 5px;
-                    right: 5px;
-                `}
-            >
-                <LinkOutlined
-                    css={`
-                        color: ${props => props.theme.greyLight} !important;
-                        :hover {
-                            color: ${props => props.theme.primary} !important;
-                        }
-                    `}
-                />
-            </a>
+        <div>
             <TxWrapper outgoing={!item.parsed.incoming}>
                 <div className='label'>
                     {!item.parsed.incoming
@@ -151,6 +127,23 @@ const Tx = ({ item }) => {
                     </DateType>
                 </div>
                 <div className='amount'>
+										{/* Link to the Explorer */}
+										<a
+											href={`https://explorer.givelotus.org/tx/${item.txid}`}
+											target="_blank"
+											rel="noreferrer"
+											style={{textAlign: 'right', width: '100%',
+												display: 'inline-block'}}
+										>
+										<LinkOutlined
+												css={`
+														color: ${props => props.theme.greyLight} !important;
+														:hover {
+																color: ${props => props.theme.primary} !important;
+														}
+												`}
+										/>
+										</a>
                     <TxInfo outgoing={!item.parsed.incoming} className='amount'>
                         {!item.parsed.incoming ? (
                             <>

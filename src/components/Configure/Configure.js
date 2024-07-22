@@ -6,6 +6,7 @@ import {
     WalletFilled,
     ImportOutlined,
     LockOutlined,
+    DownloadOutlined
 } from '@ant-design/icons';
 import { WalletContext, AuthenticationContext } from '@utils/context';
 import { StyledCollapse } from '@components/Common/StyledCollapse';
@@ -505,8 +506,8 @@ const Configure = () => {
                             </AntdFormWrapper>
                         </Modal>
                     )}
-                    <h2>
-                        <ThemedCopyOutlined /> {intl.get('setting.BackupYourWallet')}
+                    <h2 style={{margin: '10px'}}>
+                        <DownloadOutlined /> {intl.get('setting.BackupYourWallet')}
                     </h2>
                     <Alert
                         style={{ marginBottom: '12px' }}

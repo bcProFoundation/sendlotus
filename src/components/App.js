@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import 'antd/dist/antd.less';
 import { Spin } from 'antd';
 import { CashLoadingIcon } from '@components/Common/CustomIcons';
 import '../index.css';
@@ -18,7 +17,7 @@ import Send from '@components/Send/Send';
 // import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
-import CashTab from '@assets/cashtab_xec.png';
+import SendLotus from '@assets/sendlotus_xpi.png';
 import LogoLotus from '@assets/lotus-pink-logo.png'
 import './App.css';
 import { WalletContext } from '@utils/context';
@@ -36,6 +35,7 @@ import {
 import PopOut from '@assets/popout.svg';
 import intl from 'react-intl-universal';
 import ClaimComponent from './Claim/ClaimComponent';
+import InApp from '@utils/inapp';
 
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
@@ -83,10 +83,9 @@ const CustomApp = styled.div`
 const Footer = styled.div`
     z-index: 2;
     background-color: ${props => props.theme.footer.background};
-    border-radius: 20px;
     position: fixed;
     bottom: 0;
-    width: 500px;
+    width: 580px;
     @media (max-width: 768px) {
         width: 100%;
     }
@@ -167,8 +166,7 @@ export const HeaderCtn = styled.div`
     align-items: center;
     justify-content: flex-start !important;
     width: 100%;
-    padding: 20px 0 30px;
-    margin-bottom: 20px;
+    padding: 10px 0 0 0;
     justify-content: space-between;
     border-bottom: 1px solid ${props => props.theme.wallet.borders.color};
 
@@ -184,11 +182,11 @@ export const HeaderCtn = styled.div`
         a {
             font-size: 12px;
         }
-        padding: 10px 0 20px;
+        padding: 10px 0 0 0;
     }
 `;
 
-export const CashTabLogo = styled.img`
+export const SendLotusLogo = styled.img`
     width: 200px;
     @media (max-width: 768px) {
         width: 150px;
@@ -213,6 +211,7 @@ const ExtTabImg = styled.img`
 
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
+    const inapp = new InApp(navigator.userAgent || window.opera);
     const { wallet, loading } = ContextValue;
     const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
     // If wallet is unmigrated, do not show page until it has migrated
@@ -241,14 +240,14 @@ const App = () => {
                         <WalletCtn>
                             <HeaderCtn>
                                 <Link to="/"><LotusLogo src={LogoLotus} alt="lotus" /></Link>
-                                <CashTabLogo src={CashTab} alt="cashtab" />
+                                <SendLotusLogo src={SendLotus} alt="sendlotus" />
                                 {/*Begin extension-only components*/}
-                                <OpenInTabBtn
+                                {!inapp && <OpenInTabBtn
                                     data-tip="Open in tab"
                                     onClick={() => openInTab()}
                                 >
                                     <ExtTabImg src={PopOut} alt="Open in tab" />
-                                </OpenInTabBtn>
+                                </OpenInTabBtn>}
                                 {/*End extension-only components*/}
                             </HeaderCtn>
                             <WalletLabel name={wallet.name}></WalletLabel>
@@ -289,7 +288,7 @@ const App = () => {
                                 <Route component={NotFound} />
                             </Switch>
                         </WalletCtn>
-                        {wallet ? (
+                        {wallet && 
                             <Footer>
                                 <NavButton
                                     active={!selectedKey}
@@ -331,7 +330,7 @@ const App = () => {
                                     {intl.get('wallet.Settings')}
                                 </NavButton>
                             </Footer>
-                        ) : null}
+                        }
                     </WalletBody>
                 </CustomApp>
             </Spin>
