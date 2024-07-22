@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "@abcpros/bitcore-lib-xpi": "^8.25.36",
-    "@abcpros/minimal-xpi-slp-wallet": "^3.0.5",
     "@abcpros/xaddress": "^0.0.9",
     "@ant-design/icons": "^4.3.0",
     "@bcpros/xpi-js": "^4.0.11",
@@ -32,7 +31,6 @@
     "react-dev-utils": "^11.0.4",
     "react-device-detect": "^1.15.0",
     "react-dom": "^17.0.1",
-    "react-ga": "^3.3.0",
     "react-image": "^4.0.3",
     "react-intl-universal": "^2.6.7",
     "react-router": "^5.2.0",

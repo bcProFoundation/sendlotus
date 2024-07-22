@@ -1,7 +1,7 @@
 // utils/GoogleAnalytics.js
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import * as ReactGA from 'react-ga';
+// import * as ReactGA from 'react-ga';
 import { Route } from 'react-router-dom';
 
 class GoogleAnalytics extends Component {
@@ -27,12 +27,12 @@ class GoogleAnalytics extends Component {
     logPageChange(pathname, search = '') {
         const page = pathname + search;
         const { location } = window;
-        ReactGA.set({
-            page,
-            location: `${location.origin}${page}`,
-            ...this.props.options,
-        });
-        ReactGA.pageview(page);
+        // ReactGA.set({
+        //     page,
+        //     location: `${location.origin}${page}`,
+        //     ...this.props.options,
+        // });
+        // ReactGA.pageview(page);
     }
 
     render() {
@@ -51,21 +51,21 @@ GoogleAnalytics.propTypes = {
 const RouteTracker = () => <Route component={GoogleAnalytics} />;
 
 const init = (options = {}) => {
-    const isGAEnabled = process.env.NODE_ENV === 'production';
+    // const isGAEnabled = process.env.NODE_ENV === 'production';
 
-    if (isGAEnabled) {
-        ReactGA.initialize('G-WS7GDZNDN1');
-    }
+    // if (isGAEnabled) {
+    //     ReactGA.initialize('G-WS7GDZNDN1');
+    // }
 
-    return isGAEnabled;
+    // return isGAEnabled;
 };
 
 export const Event = (category, action, label) => {
-    ReactGA.event({
-        category: category,
-        action: action,
-        label: label,
-    });
+    // ReactGA.event({
+    //     category: category,
+    //     action: action,
+    //     label: label,
+    // });
 };
 
 const GoogleAnalyticsDefault = {

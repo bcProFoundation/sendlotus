@@ -36,11 +36,11 @@ const useClaim = (address) => {
     const XPI = getXPI();
 
     useEffect(async () => {
-        if (address) {
-            if (process.env.NODE_ENV !== 'development') {
-                loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`);
-            }
-        }
+        // if (address) {
+        //     if (process.env.NODE_ENV !== 'development') {
+        //         loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`);
+        //     }
+        // }
     }, [address]);
 
     const claim = async (token, currentAddress, claimCode) => {

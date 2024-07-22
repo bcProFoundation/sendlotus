@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { currency } from '@components/Common/Ticker';
 import { isValidTokenStats } from '@utils/validation';
-import SlpWallet from '@abcpros/minimal-xpi-slp-wallet';
+// import SlpWallet from '@abcpros/minimal-xpi-slp-wallet';
 import {
     toSmallestDenomination,
     fromSmallestDenomination,
