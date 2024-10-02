@@ -13,6 +13,8 @@ import FormattedWalletAddress from './FormattedWalletAddress';
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
     border-radius: 23px;
+    width: 300px;
+    height: 300px;
     background: ${props => props.theme.qr.background};
     box-shadow: ${props => props.theme.qr.shadow};
     margin-bottom: 10px;
@@ -26,8 +28,8 @@ export const StyledRawQRCode = styled(RawQRCode)`
     }
     @media (max-width: 768px) {
         border-radius: 18px;
-        width: 170px;
-        height: 170px;
+        width: 250px;
+        height: 250px;
     }
 `;
 

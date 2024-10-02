@@ -201,14 +201,14 @@ const WalletInfo = () => {
             )}
             {apiError && <ApiError />}
 
-            {wallet && (wallet.Path10605) && (
+            {/* {wallet && (wallet.Path10605) && (
                 <>
                     <QRCode
                         id="borderedQRCode"
                         address={wallet.Path10605.xAddress}
                     />
                 </>
-            )}
+            )} */}
 
             {hasHistory && parsedTxHistory && (
                 <>

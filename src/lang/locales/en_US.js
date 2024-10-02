@@ -15,6 +15,7 @@ export default {
   'wallet.Tokens': 'Tokens',
   'wallet.Send': 'Send',
   'wallet.Settings': 'Settings',
+  'wallet.Recieve': 'Recieve',
   'wallet.ExternalMessage': 'External Message',
   'wallet.Reply': 'Reply',
   'wallet.Lixi': 'Lixi',

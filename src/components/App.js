@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Spin } from 'antd';
 import { CashLoadingIcon } from '@components/Common/CustomIcons';
 import '../index.css';
@@ -7,7 +7,8 @@ import { theme } from '@assets/styles/theme';
 import {
     SettingFilled,
     WalletFilled,
-    SendOutlined
+    SendOutlined,
+    DownloadOutlined
 } from '@ant-design/icons';
 import Icon from '@ant-design/icons';
 import { ReactComponent as IconLixi } from '@assets/icon_lixi.svg';
@@ -36,6 +37,7 @@ import PopOut from '@assets/popout.svg';
 import intl from 'react-intl-universal';
 import ClaimComponent from './Claim/ClaimComponent';
 import InApp from '@utils/inapp';
+import Recieve from './Recieve/Recieve';
 
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
@@ -276,14 +278,21 @@ const App = () => {
                                         address={wallet?.Path10605?.xAddress}
                                     />)}
                                 />
+
                                 <Route path="/lixi">
                                     <ClaimComponent
                                         address={wallet?.Path10605?.xAddress}
                                     />
                                 </Route>
+
                                 <Route path="/configure">
                                     <Configure />
                                 </Route>
+
+                                <Route path="/recieve">
+                                    <Recieve />
+                                </Route>
+
                                 <Redirect exact from="/" to="/wallet" />
                                 <Route component={NotFound} />
                             </Switch>
@@ -314,12 +323,20 @@ const App = () => {
                                     {intl.get('wallet.Send')}
                                 </NavButton>
 
-                                <NavButton
+                                {/* <NavButton
                                     active={selectedKey === 'lixi'}
                                     onClick={() => history.push('/lixi')}
                                 >
                                     <Icon component={IconLixi} />
                                     {intl.get('wallet.Lixi')}
+                                </NavButton> */}
+
+                                <NavButton
+                                    active={selectedKey === 'recieve'}
+                                    onClick={() => history.push('/recieve')}
+                                >
+                                    <Icon component={DownloadOutlined} />
+                                    {intl.get('wallet.Recieve')}
                                 </NavButton>
 
                                 <NavButton

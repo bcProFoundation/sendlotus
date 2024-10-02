@@ -46,7 +46,7 @@ const TxHistory = ({ txs }) => {
             <TxHistoryHeading>
                 {intl.get('wallet.RecentTransaction')}
             </TxHistoryHeading>
-            <TxHistoryWraper>
+            {/* <TxHistoryWraper> */}
                 {
                     Object.keys(walletParsedHistoryGroupByDate).map(index => {
                         keyIndex++
@@ -63,7 +63,7 @@ const TxHistory = ({ txs }) => {
                             </div>)
                     })
                 }
-            </TxHistoryWraper>
+            {/* </TxHistoryWraper> */}
         </>
     );
 };

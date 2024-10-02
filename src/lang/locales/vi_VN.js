@@ -23,6 +23,7 @@ export default {
   'wallet.Tokens': 'Tokens',
   'wallet.Send': 'Gửi',
   'wallet.Settings': 'Cài đặt',
+  'wallet.Recieve': 'Nhận',
   'wallet.ExternalMessage': 'Tin nhắn',
   'wallet.Reply': 'Trả lời',
   'wallet.Lixi': 'Lixi',
