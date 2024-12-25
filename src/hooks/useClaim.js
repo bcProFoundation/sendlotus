@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import axios from 'axios';
 import useXPI from '@hooks/useXPI';
+import { currency } from '@components/Common/Ticker.js';
 
 const SITE_KEY = "6Lc1rGwdAAAAABrD2AxMVIj4p_7ZlFKdE5xCFOrb";
 
@@ -35,11 +36,11 @@ const useClaim = (address) => {
     const XPI = getXPI();
 
     useEffect(async () => {
-        if (address) {
-            if (process.env.NODE_ENV !== 'development') {
-                loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`);
-            }
-        }
+        // if (address) {
+        //     if (process.env.NODE_ENV !== 'development') {
+        //         loadScriptByURL("recaptcha-key", `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`);
+        //     }
+        // }
     }, [address]);
 
     const claim = async (token, currentAddress, claimCode) => {

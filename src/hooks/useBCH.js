@@ -1,12 +1,12 @@
 import BigNumber from 'bignumber.js';
 import { currency } from '@components/Common/Ticker';
 import { isValidTokenStats } from '@utils/validation';
-import SlpWallet from '@abcpros/minimal-xpi-slp-wallet';
+// import SlpWallet from '@abcpros/minimal-xpi-slp-wallet';
 import {
     toSmallestDenomination,
     fromSmallestDenomination,
     batchArray,
-    flattenBatchedHydratedUtxos,
+    // flattenBatchedHydratedUtxos,
     isValidStoredWallet,
     parseOpReturn,
 } from '@utils/cashMethods';
@@ -526,17 +526,17 @@ export default function useBCH() {
         }
         let hydratedUtxoDetails;
 
-        try {
-            hydratedUtxoDetails = await Promise.all(hydrateUtxosPromises);
-            const flattenedBatchedHydratedUtxos = flattenBatchedHydratedUtxos(
-                hydratedUtxoDetails,
-            );
-            return flattenedBatchedHydratedUtxos;
-        } catch (err) {
-            console.log(`Error in Promise.all(hydrateUtxosPromises)`);
-            console.log(err);
-            return err;
-        }
+        // try {
+        //     hydratedUtxoDetails = await Promise.all(hydrateUtxosPromises);
+        //     const flattenedBatchedHydratedUtxos = flattenBatchedHydratedUtxos(
+        //         hydratedUtxoDetails,
+        //     );
+        //     return flattenedBatchedHydratedUtxos;
+        // } catch (err) {
+        //     console.log(`Error in Promise.all(hydrateUtxosPromises)`);
+        //     console.log(err);
+        //     return err;
+        // }
     };
 
     const calcFee = (

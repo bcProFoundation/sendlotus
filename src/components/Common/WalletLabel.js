@@ -7,7 +7,7 @@ const WalletName = styled.h4`
     font-weight: bold;
     display: inline-block;
     color: ${props => props.theme.primary};
-    margin-bottom: 0px;
+    margin: 15px;
     @media (max-width: 400px) {
         font-size: 16px;
     }
@@ -15,11 +15,11 @@ const WalletName = styled.h4`
 
 const WalletLabel = ({ name }) => {
     return (
-        <>
+        <React.Fragment>
             {name && typeof name === 'string' && (
                 <WalletName>{name}</WalletName>
             )}
-        </>
+        </React.Fragment>
     );
 };
 

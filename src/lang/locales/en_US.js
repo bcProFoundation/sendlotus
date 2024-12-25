@@ -1,4 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export */
 /* SendLotus Language Texts
 
 Table of Contents
@@ -16,6 +15,7 @@ export default {
   'wallet.Tokens': 'Tokens',
   'wallet.Send': 'Send',
   'wallet.Settings': 'Settings',
+  'wallet.Recieve': 'Recieve',
   'wallet.ExternalMessage': 'External Message',
   'wallet.Reply': 'Reply',
   'wallet.Lixi': 'Lixi',
@@ -46,7 +46,7 @@ export default {
   'send.Amount': 'Amount',
   'send.OptionalPrivateMessage': 'Optional Private Message',
   'send.SendButton': 'Send',
-  'send.SendOnlyMessage': 'send only message',
+  'send.SendOnlyMessage': 'Send only message',
   'send.TooManyUnModalMessage': 'The {ticker} you are trying to send has too many unModal. ed ancestors to send (limit 50). Sending will be possible after a block Modal.ation. Try again in about 10 minutes.',
   'send.AlertQueryParam': 'You are sending a transaction to an address including query parameters "{queryStringText}." Only the "amount" parameter, in units of {ticker} satoshis, is currently supported.',
 
@@ -78,8 +78,8 @@ export default {
   'setting.DownloadQRCode': 'Download your QR code',
   'setting.BackupYourWallet': 'Backup your wallet',
   'setting.ManageWallets': 'Manage Wallets',
-  'setting.NewWallet': 'NewWallet',
-  'setting.ImportWallet': 'ImportWallet',
+  'setting.NewWallet': 'New Wallet',
+  'setting.ImportWallet': 'Import Wallet',
   'setting.ValidSeedPhraseRequired': 'Valid mnemonic seed phrase required',
   'setting.Mnemonic': 'mnemonic (seed phrase)',
   'setting.Import': 'Import',

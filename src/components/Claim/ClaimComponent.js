@@ -253,7 +253,6 @@ const ClaimComponent = ({ address, claimCode }) => {
                     >
 
                         <FormItemWithQRCodeAddon
-                            loadWithCameraOpen={scannerSupported}
                             onScan={result =>
                                 handleclaimCodeChange({
                                     target: {

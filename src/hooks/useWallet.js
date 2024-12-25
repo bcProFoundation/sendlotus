@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
 import React, { useState, useEffect } from 'react';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import { notification } from 'antd';
@@ -43,7 +41,6 @@ const useWallet = () => {
   const [cashtabSettings, setCashtabSettings] = useState(false);
   const [fiatPrice, setFiatPrice] = useState(null);
   const [apiError, setApiError] = useState(false);
-  const [checkFiatInterval, setCheckFiatInterval] = useState(null);
   const { getXPI } = useXPI();
   const [loading, setLoading] = useState(true);
   const [apiIndex, setApiIndex] = useState(0);
@@ -119,7 +116,7 @@ const useWallet = () => {
 
   const loadWalletFromStorageOnStartup = async setWallet => {
     // get wallet object from localforage
-    const wallet = await getWallet();
+    let wallet = await getWallet();
     // If wallet object in storage is valid, use it to set state on startup
     if (wallet && isLegacyMigrationRequired(wallet)) {
       wallet = await migrateLegacyWallet(
@@ -227,12 +224,12 @@ const useWallet = () => {
 
     if (parsedChronikTx && parsedChronikTx.incoming) {
       // Notification
-      dispatch(xpiReceivedNotificationWebSocket(parsedChronikTx.xpiAmount));
+      // dispatch(xpiReceivedNotificationWebSocket(parsedChronikTx.xpiAmount));
     }
   };
 
   // Chronik websockets
-  const initializeWebsocket = async (wallet) => {
+  const initializeWebsocket = async () => {
     console.log(`Initializing websocket connection for wallet ${wallet}`);
 
     const hash160Array = getHashArrayFromWallet(wallet);
@@ -355,13 +352,6 @@ const useWallet = () => {
         };
       });
 
-      // Check that server is live
-      try {
-        await XPI.Blockchain.getBlockCount();
-      } catch (err) {
-        console.log(`Error in XPI.Blockchain.getBlockCount, the full node is likely down`, err);
-        throw new Error(`Node unavailable`);
-      }
 
       const chronikUtxos = await getUtxosChronik(chronik, hash160AndAddressObjArray);
       const walletUtxos = walletToUpdate.state && walletToUpdate.state.utxos ? walletToUpdate.state.utxos : [];
@@ -1196,8 +1186,8 @@ If the user is migrating from old version to this version, make sure to save the
 
   useEffect(async () => {
     handleUpdateWallet(setWallet);
-    const initialSettings = await loadCashtabSettings();
-    await initializeWebsocket(wallet);
+    await loadCashtabSettings();
+    wallet && await initializeWebsocket(wallet); 
   }, []);
 
 

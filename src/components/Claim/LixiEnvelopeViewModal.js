@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { saveAs } from 'file-saver';
 import { RWebShare } from "react-web-share";
-import { Image, Modal, Popover, notification,Button } from 'antd';
+import { Image, Modal, Popover, notification,Button, message } from 'antd';
 import { fromSmallestDenomination } from '@utils/cashMethods';
 import BalanceHeader from '@components/Common/BalanceHeader';
 import { currency } from '@components/Common/Ticker.js';
@@ -205,7 +205,7 @@ const LixiEnvelopeViewModal =
         return (
             <Modal
                 title="Lixi Program sent you a small gift!"
-                visible={true}
+                open={true}
                 preview={false}
                 onCancel={handleCancelLixiModal}
                 getContainer={false}

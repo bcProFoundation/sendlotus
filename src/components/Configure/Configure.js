@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Collapse, Form, Input, Modal, Alert } from 'antd';
@@ -7,6 +6,7 @@ import {
     WalletFilled,
     ImportOutlined,
     LockOutlined,
+    DownloadOutlined
 } from '@ant-design/icons';
 import { WalletContext, AuthenticationContext } from '@utils/context';
 import { StyledCollapse } from '@components/Common/StyledCollapse';
@@ -438,7 +438,7 @@ const Configure = () => {
                         <Modal
                             key={`${walletToBeRenamed?.name}`}
                             title={intl.get('setting.RenameWalletTitle', { walletName: walletToBeRenamed.name })}
-                            visible={showRenameWalletModal}
+                            open={showRenameWalletModal}
                             onOk={changeWalletName}
                             onCancel={() => cancelRenameWallet()}
                         >
@@ -474,7 +474,7 @@ const Configure = () => {
                         <Modal
                             key={`${walletToBeDeleted?.name}`}
                             title={intl.get('setting.DeleteWalletConfirmation', { walletToBeDeleted: walletToBeDeleted.name })}
-                            visible={showDeleteWalletModal}
+                            open={showDeleteWalletModal}
                             onOk={deleteSelectedWallet}
                             onCancel={() => cancelDeleteWallet()}
                         >
@@ -506,8 +506,8 @@ const Configure = () => {
                             </AntdFormWrapper>
                         </Modal>
                     )}
-                    <h2>
-                        <ThemedCopyOutlined /> {intl.get('setting.BackupYourWallet')}
+                    <h2 style={{margin: '10px'}}>
+                        <DownloadOutlined /> {intl.get('setting.BackupYourWallet')}
                     </h2>
                     <Alert
                         style={{ marginBottom: '12px' }}
