@@ -30,7 +30,7 @@ import {
   selectAllPaths
 } from '@utils/chronik';
 
-const chronik = new ChronikClient('https://chronik.be.cash/xpi');
+const chronik = new ChronikClient(process.env.REACT_APP_CHRONIK_URL.split(','));
 const websocketConnectedRefreshInterval = 10000;
 const PATHS = ['Path899', 'Path1899', 'Path10605']
 
