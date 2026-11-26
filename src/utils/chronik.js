@@ -104,6 +104,14 @@ export const flattenChronikTxHistory = (txHistoryOfAllAddresses) => {
     const txHistoryOfThisAddress = txHistoryResponseOfThisAddress.txs;
     flatTxHistoryArray = flatTxHistoryArray.concat(txHistoryOfThisAddress);
   }
+  // Chronik reports timeFirstSeen 0 for a confirmed tx it never saw in its mempool
+  // (e.g. a tx indexed from a block); use the block time so the history shows a real date
+  for (let i = 0; i < flatTxHistoryArray.length; i += 1) {
+    const thisTx = flatTxHistoryArray[i];
+    if (thisTx && thisTx.block && !Number(thisTx.timeFirstSeen)) {
+      thisTx.timeFirstSeen = thisTx.block.timestamp;
+    }
+  }
   return flatTxHistoryArray;
 };
 
